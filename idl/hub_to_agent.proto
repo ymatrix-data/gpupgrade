@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package idl;
+
+service CommandListener {
+    rpc CheckUpgradeStatus (CheckUpgradeStatusRequest) returns (CheckUpgradeStatusReply) {}
+    rpc CheckDiskUsageOnAgents (CheckDiskUsageRequestToAgent) returns (CheckDiskUsageReplyFromAgent) {}
+}
+
+message CheckUpgradeStatusRequest {}
+
+message CheckUpgradeStatusReply {
+    string process_list = 1;
+}
+
+message FileSysUsage {
+    string filesystem = 1;
+    double usage = 2;
+}
+
+message CheckDiskUsageRequestToAgent {}
+
+message CheckDiskUsageReplyFromAgent {
+    repeated FileSysUsage list_of_file_sys_usage = 1;
+}

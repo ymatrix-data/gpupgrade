@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package idl;
+
+service CliToHub {
+    rpc StatusUpgrade(StatusUpgradeRequest) returns (StatusUpgradeReply) {}
+    rpc CheckConfig(CheckConfigRequest) returns (CheckConfigReply) {}
+    rpc CheckObjectCount(CheckObjectCountRequest) returns (CheckObjectCountReply) {}
+    rpc CheckVersion(CheckVersionRequest) returns (CheckVersionReply) {}
+    rpc CheckDiskUsage(CheckDiskUsageRequest) returns (CheckDiskUsageReply) {}
+}
+
+message StatusUpgradeRequest {}
+
+message StatusUpgradeReply {
+    repeated UpgradeStepStatus listOfUpgradeStepStatuses = 1;
+}
+
+message UpgradeStepStatus {
+    UpgradeSteps step = 1;
+    StepStatus status = 2;
+}
+
+enum UpgradeSteps {
+    UNKNOWN_STEP = 0; // http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+    CHECK_CONFIG = 1;
+    SEGINSTALL = 2;
+}
+
+enum StepStatus {
+    UNKNOWN_STATUS = 0; // http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+    PENDING = 1;
+    RUNNING = 2;
+    COMPLETE = 3;
+    FAILED = 4;
+}
+
+
+message CheckConfigRequest {
+	int32 dbPort = 1;
+}
+
+// Consider removing the status as errors are/should be put on the error field.
+message CheckConfigReply {
+    string configStatus  = 1;
+}
+
+message CountPerDb {
+    string DbName = 1;
+    int32 AoCount = 2;
+    int32 HeapCount = 3;
+}
+message CheckObjectCountRequest {
+    int32 DbPort = 1;
+}
+
+message CheckObjectCountReply {
+    repeated CountPerDb list_of_counts = 1;
+}
+
+message CheckVersionRequest {
+    int32 DbPort = 1;
+    string Host = 2;
+}
+
+message CheckVersionReply {
+    bool IsVersionCompatible = 1;
+}
+
+message CheckDiskUsageRequest {}
+
+message CheckDiskUsageReply {
+    repeated string SegmentFileSysUsage = 1;
+}

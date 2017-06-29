@@ -5,10 +5,12 @@
 ### Prerequisites
 
 - Golang. We currently develop against latest stable Golang, which was v1.8.3 as of June 2017
-- Either `direnv`, or manually set your GOPATH. See the
-  [overall go-utils README](../../README.md) for more information
-
-You can run `make dependencies`, but most make targets will call it for you
+- For GOPATH, in the Makefile, we set a combination path, with the default ~/go as the first entry, 
+and the path to go-utils/ as the second entry. This allows all dependencies to be download by "go get"
+into the ~/go/ directory, away from the gpdb/ sources. See the
+  [overall go-utils README](../../README.md) for more information.
+- protoc This is the compiler for the [gRPC protobuffer](https://grpc.io/) system. 
+On macos, one way to install this is via `brew install protobuf`   
 
 ### Build and test the upgrade tool
 
@@ -37,17 +39,38 @@ information there
 We support cross-compilation into Linux or Darwin, as the GPDB servers that
 this tool upgrades run Linux, but many dev workstations are macOS
 
-```apple js
-make platforms
+For a target-specific build, run:
 ```
-should be equivalent to `make linux && make darwin`
+BUILD_TARGET=[linux | darwin] make build
+```
 
 ### Run the tests
 
+We use [ginkgo](https://github.com/onsi/ginkgo) and [gomega](https://github.com/onsi/gomega) to run our tests. We have `unit` and `integration` targets predefined.
+
+***Note:*** In order to run integration tests you need a running local gpdemo cluster. Instructions to setup one can be found [here](../../../../gpAux/gpdemo/README).
+
+#### Unit tests
 ```
+# To run all the unit tests
+make unit
+```
+#### Integration tests
+```
+# To run all the integration tests
+make integration
+```
+#### All tests
+```
+# To run all the tests
 make test
 ```
-should run all tests we consider the bar for ship-ability of this code.
+
+### Generate mocked gRPC client/server code
+```
+# To generate mocked files
+make generate_mock
+```
 
 ## Command line parsing
 
@@ -111,6 +134,8 @@ make integration
 ```
 should only run the integration tests
 
+In order to run the integration tests, the greenplum database must be up and
+running.
 We typically integration test the "happy path" expected behavior of the code
 when writing new features. We allow the unit tests to cover error messaging
 and other edge cases. We are not strict about outside-in (integration-first)
@@ -127,3 +152,14 @@ flags is specifically tested where needed, for example in
 
 The integration tests may require other binaries to be built. We aim to have
 any such requirements automated.
+
+### Directly using pg_upgrade
+
+Under the covers, gp_upgrade is calling pg_upgrade, first on the master, and
+then on the segments. If needed, you can call pg_upgrade directly. There is
+make target that runs a test, upgrading from version x to x. To do this, two
+clusters are setup on the local machine using demo_cluster.sh. In the root
+directory for the gpdb repo, run is `make -C contrib/pg_upgrade check`. This
+uses test_gpdb.sh to do the heavy lifting, and that can be customized to fit
+your setup. In particular, four env vars are usefor the cluster mapping:
+NEWBINDIR, OLDBINDIR, NEWDATADIR and OLDDATADIR.
