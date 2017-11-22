@@ -7,9 +7,11 @@ import (
 
 	"database/sql/driver"
 
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/onsi/gomega/gbytes"
 	"github.com/pkg/errors"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
@@ -20,11 +22,13 @@ var _ = Describe("hub", func() {
 		var (
 			dbConnector db.Connector
 			mock        sqlmock.Sqlmock
+			testLogFile *gbytes.Buffer
 		)
 
 		BeforeEach(func() {
 			dbConnector, mock = db.CreateMockDBConn()
 			dbConnector.Connect()
+			_, _, testLogFile = testhelper.SetupTestLogger()
 		})
 
 		AfterEach(func() {
@@ -50,11 +54,12 @@ var _ = Describe("hub", func() {
 		Describe("errors", func() {
 			Describe("when the query fails", func() {
 				It("returns an error", func() {
-					fakeFailingQuery := "SEJECT % ofrm tabel1"
+					fakeFailingQuery := `SEJECT % ofrm tabel1`
 					mock.ExpectQuery(fakeFailingQuery).WillReturnError(errors.New("the query has failed"))
 
 					err := services.SaveQueryResultToJSON(dbConnector.GetConn(), fakeFailingQuery, &SuccessfulWriter{})
 					Expect(err).To(HaveOccurred())
+					Expect(string(testLogFile.Contents())).To(ContainSubstring("the query has failed"))
 				})
 			})
 
@@ -68,6 +73,7 @@ var _ = Describe("hub", func() {
 
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("I always fail"))
+					Expect(string(testLogFile.Contents())).To(ContainSubstring("I always fail"))
 				})
 			})
 		})

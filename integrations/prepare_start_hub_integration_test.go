@@ -15,12 +15,8 @@ var _ = Describe("integration tests running on master only", func() {
 
 	Describe("gp_upgrade prepare", func() {
 		Describe("start-hub", func() {
-			AfterEach(func() {
-				pkillCmd := exec.Command("pkill", "gp_upgrade_hub")
-				pkillCmd.Run()
-			})
-
 			basicHappyPathCheck := func() {
+				killHub()
 				gpUpgradeSession := runCommand("prepare", "start-hub")
 				Eventually(gpUpgradeSession).Should(Exit(0))
 
@@ -33,6 +29,7 @@ var _ = Describe("integration tests running on master only", func() {
 			It("finds the right hub binary and starts a daemonized process", basicHappyPathCheck)
 
 			It("works even if run from the same directory as where the binaries are", func() {
+				// because we don't want the grep to shell expand
 				hubDirectoryPath := path.Dir(hubBinaryPath)
 				previousDirectory, err := os.Getwd()
 				if err != nil {
@@ -50,7 +47,7 @@ var _ = Describe("integration tests running on master only", func() {
 
 			It("returns error if gp_upgrade_hub is already running", func() {
 				//start a hub if necessary
-				runCommand("prepare", "start-hub")
+				ensureHubIsUp()
 
 				//second start should return error
 				secondSession := runCommand("prepare", "start-hub")

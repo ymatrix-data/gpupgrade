@@ -21,6 +21,8 @@ TARGET_PLATFORM := $(if $(BUILD_TARGET),GOOS=$(BUILD_TARGET) GOARCH=$(ARCH),)
 
 all : dependencies build
 
+# The inheritied LD_LIBRARY_PATH setting causes git clone in go get to fail.  Hence, nullifying it.
+dependencies :  export LD_LIBRARY_PATH =
 dependencies :
 		go get -d github.com/greenplum-db/gpbackup/utils
 		go get github.com/cppforlife/go-semi-semantic/version
@@ -75,6 +77,8 @@ coverage: build
 install : build
 	mkdir -p $(prefix)/bin
 	cp -p ../../bin/gp_upgrade $(prefix)/bin/
+	cp -p ../../bin/gp_upgrade_hub $(prefix)/bin/
+	cp -p ../../bin/gp_upgrade_agent $(prefix)/bin/
 
 clean:
 	rm -f ../../bin/gp_upgrade

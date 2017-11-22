@@ -2,11 +2,12 @@ package services
 
 import (
 	"fmt"
-	gpbackupUtils "github.com/greenplum-db/gpbackup/utils"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"gp_upgrade/hub/configutils"
 	pb "gp_upgrade/idl"
+
+	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -16,12 +17,19 @@ const (
 	diskUsageWarningLimit = 80
 )
 
-func (s *cliToHubListenerImpl) CheckDiskUsage(ctx context.Context,
+func (s *CatchAllCliToHubListenerImpl) CheckDiskUsage(ctx context.Context,
 	in *pb.CheckDiskUsageRequest) (*pb.CheckDiskUsageReply, error) {
 
+	gpbackupUtils.Info("starting CheckDiskUsage")
 	var replyMessages []string
 	reader := configutils.Reader{}
-	hostnames := reader.GetHostnames()
+	// We don't care whether this the old json vs the new json because we're
+	// just checking the hosts anyways.
+	reader.OfOldClusterConfig()
+	hostnames, err := reader.GetHostnames()
+	if err != nil {
+		return nil, err
+	}
 	var clients []configutils.ClientAndHostname
 	for i := 0; i < len(hostnames); i++ {
 		conn, err := grpc.Dial(hostnames[i]+":"+port, grpc.WithInsecure())
@@ -29,6 +37,7 @@ func (s *cliToHubListenerImpl) CheckDiskUsage(ctx context.Context,
 			clients = append(clients, configutils.ClientAndHostname{Client: pb.NewCommandListenerClient(conn), Hostname: hostnames[i]})
 			defer conn.Close()
 		} else {
+			gpbackupUtils.Error(err.Error())
 			replyMessages = append(replyMessages, "ERROR: couldn't get gRPC conn to "+hostnames[i])
 		}
 	}
@@ -43,11 +52,10 @@ func GetDiskUsageFromSegmentHosts(clients []configutils.ClientAndHostname) []str
 		reply, err := clients[i].Client.CheckDiskUsageOnAgents(context.Background(),
 			&pb.CheckDiskUsageRequestToAgent{})
 		if err != nil {
+			gpbackupUtils.Error(err.Error())
 			replyMessages = append(replyMessages, "Could not get disk usage from: "+clients[i].Hostname)
-			gpbackupUtils.GetLogger().Error(err.Error())
 			continue
 		}
-		//todo: get hostname from clientconn?
 		foundAnyTooFull := false
 		for _, line := range reply.ListOfFileSysUsage {
 			if line.Usage >= diskUsageWarningLimit {
@@ -57,7 +65,6 @@ func GetDiskUsageFromSegmentHosts(clients []configutils.ClientAndHostname) []str
 			}
 		}
 		if !foundAnyTooFull {
-			//TODO actual hostname instead of hostA
 			replyMessages = append(replyMessages, fmt.Sprintf("diskspace check - %s - OK", clients[i].Hostname))
 		}
 	}

@@ -1,26 +1,32 @@
 package services
 
 import (
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"gp_upgrade/db"
 	pb "gp_upgrade/idl"
 	"gp_upgrade/utils"
+
+	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
-func (s *cliToHubListenerImpl) CheckObjectCount(ctx context.Context,
+func (s *CatchAllCliToHubListenerImpl) CheckObjectCount(ctx context.Context,
 	in *pb.CheckObjectCountRequest) (*pb.CheckObjectCountReply, error) {
+
+	gpbackupUtils.Info("starting CheckObjectCount")
 
 	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")
 	defer dbConnector.Close()
 	err := dbConnector.Connect()
 	if err != nil {
+		gpbackupUtils.Error(err.Error())
 		return nil, utils.DatabaseConnectionError{Parent: err}
 	}
 	databaseHandler := dbConnector.GetConn()
 	names, err := GetDbList(databaseHandler)
 	if err != nil {
+		gpbackupUtils.Error(err.Error())
 		return nil, errors.New(err.Error())
 	}
 
@@ -31,11 +37,13 @@ func (s *cliToHubListenerImpl) CheckObjectCount(ctx context.Context,
 		defer dbConnector.Close()
 		err = dbConnector.Connect()
 		if err != nil {
+			gpbackupUtils.Error(err.Error())
 			return nil, errors.New(err.Error())
 		}
 		databaseHandler = dbConnector.GetConn()
 		aocount, heapcount, errFromCounts := GetCountsForDb(databaseHandler)
 		if errFromCounts != nil {
+			gpbackupUtils.Error(err.Error())
 			return nil, errors.New(errFromCounts.Error())
 		}
 		results = append(results, &pb.CountPerDb{DbName: names[i], AoCount: aocount, HeapCount: heapcount})
@@ -50,6 +58,7 @@ func GetDbList(dbHandler *sqlx.DB) ([]string, error) {
 	dbNames := []string{}
 	err := dbHandler.Select(&dbNames, GET_DATABASE_NAMES)
 	if err != nil {
+		gpbackupUtils.Error(err.Error())
 		return nil, errors.New(err.Error())
 	}
 
@@ -62,11 +71,13 @@ func GetCountsForDb(dbHandler *sqlx.DB) (int32, int32, error) {
 
 	err := dbHandler.Get(&aoCount, AO_CO_TABLE_QUERY_COUNT)
 	if err != nil {
+		gpbackupUtils.Error(err.Error())
 		return aoCount, heapCount, errors.New(err.Error())
 	}
 
 	err = dbHandler.Get(&heapCount, HEAP_TABLE_QUERY_COUNT)
 	if err != nil {
+		gpbackupUtils.Error(err.Error())
 		return aoCount, heapCount, errors.New(err.Error())
 	}
 

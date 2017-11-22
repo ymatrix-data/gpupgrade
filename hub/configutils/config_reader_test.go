@@ -5,9 +5,11 @@ import (
 	"gp_upgrade/testUtils"
 	"os"
 
+	"gp_upgrade/hub/configutils"
+	"regexp"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gp_upgrade/hub/configutils"
 )
 
 var _ = Describe("configutils reader", func() {
@@ -28,13 +30,16 @@ var _ = Describe("configutils reader", func() {
 	)
 
 	BeforeEach(func() {
-		saved_old_home = testUtils.ResetTempHomeDir()
+		saved_old_home = os.Getenv("HOME")
+		testUtils.EnsureHomeDirIsTempAndClean()
 		err := json.Unmarshal([]byte(expected_json), &json_structure)
 		Expect(err).NotTo(HaveOccurred())
 		subject = configutils.Reader{}
+		subject.OfOldClusterConfig()
 	})
 
 	AfterEach(func() {
+
 		os.Setenv("HOME", saved_old_home)
 	})
 
@@ -56,6 +61,16 @@ var _ = Describe("configutils reader", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(subject.GetHostnames()).Should(ContainElement("briarwood"))
 			Expect(subject.GetHostnames()).Should(ContainElement("aspen.pivotal"))
+		})
+		It("returns list of hostnames without duplicates", func() {
+			re := regexp.MustCompile("aspen.pivotal")
+			configWithDupe := re.ReplaceAllLiteralString(testUtils.SAMPLE_JSON, "briarwood")
+			testUtils.WriteProvidedConfig(configWithDupe)
+			err := subject.Read()
+			Expect(err).NotTo(HaveOccurred())
+			hostnames, err := subject.GetHostnames()
+			Expect(len(hostnames)).Should(Equal(1))
+			Expect(subject.GetHostnames()).Should(ContainElement("briarwood"))
 		})
 	})
 })

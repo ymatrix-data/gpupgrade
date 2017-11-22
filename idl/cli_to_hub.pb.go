@@ -9,11 +9,15 @@ It is generated from these files:
 	hub_to_agent.proto
 
 It has these top-level messages:
+	PingRequest
+	PingReply
 	StatusUpgradeRequest
 	StatusUpgradeReply
 	UpgradeStepStatus
 	CheckConfigRequest
 	CheckConfigReply
+	CheckSeginstallRequest
+	CheckSeginstallReply
 	CountPerDb
 	CheckObjectCountRequest
 	CheckObjectCountReply
@@ -21,6 +25,12 @@ It has these top-level messages:
 	CheckVersionReply
 	CheckDiskUsageRequest
 	CheckDiskUsageReply
+	PrepareShutdownClustersRequest
+	PrepareShutdownClustersReply
+	PrepareInitClusterRequest
+	PrepareInitClusterReply
+	UpgradeConvertMasterRequest
+	UpgradeConvertMasterReply
 	CheckUpgradeStatusRequest
 	CheckUpgradeStatusReply
 	FileSysUsage
@@ -52,20 +62,29 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type UpgradeSteps int32
 
 const (
-	UpgradeSteps_UNKNOWN_STEP UpgradeSteps = 0
-	UpgradeSteps_CHECK_CONFIG UpgradeSteps = 1
-	UpgradeSteps_SEGINSTALL   UpgradeSteps = 2
+	UpgradeSteps_UNKNOWN_STEP         UpgradeSteps = 0
+	UpgradeSteps_CHECK_CONFIG         UpgradeSteps = 1
+	UpgradeSteps_SEGINSTALL           UpgradeSteps = 2
+	UpgradeSteps_PREPARE_INIT_CLUSTER UpgradeSteps = 3
+	UpgradeSteps_MASTERUPGRADE        UpgradeSteps = 4
+	UpgradeSteps_STOPPED_CLUSTER      UpgradeSteps = 5
 )
 
 var UpgradeSteps_name = map[int32]string{
 	0: "UNKNOWN_STEP",
 	1: "CHECK_CONFIG",
 	2: "SEGINSTALL",
+	3: "PREPARE_INIT_CLUSTER",
+	4: "MASTERUPGRADE",
+	5: "STOPPED_CLUSTER",
 }
 var UpgradeSteps_value = map[string]int32{
-	"UNKNOWN_STEP": 0,
-	"CHECK_CONFIG": 1,
-	"SEGINSTALL":   2,
+	"UNKNOWN_STEP":         0,
+	"CHECK_CONFIG":         1,
+	"SEGINSTALL":           2,
+	"PREPARE_INIT_CLUSTER": 3,
+	"MASTERUPGRADE":        4,
+	"STOPPED_CLUSTER":      5,
 }
 
 func (x UpgradeSteps) String() string {
@@ -103,13 +122,29 @@ func (x StepStatus) String() string {
 }
 func (StepStatus) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
+type PingRequest struct {
+}
+
+func (m *PingRequest) Reset()                    { *m = PingRequest{} }
+func (m *PingRequest) String() string            { return proto.CompactTextString(m) }
+func (*PingRequest) ProtoMessage()               {}
+func (*PingRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+type PingReply struct {
+}
+
+func (m *PingReply) Reset()                    { *m = PingReply{} }
+func (m *PingReply) String() string            { return proto.CompactTextString(m) }
+func (*PingReply) ProtoMessage()               {}
+func (*PingReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
 type StatusUpgradeRequest struct {
 }
 
 func (m *StatusUpgradeRequest) Reset()                    { *m = StatusUpgradeRequest{} }
 func (m *StatusUpgradeRequest) String() string            { return proto.CompactTextString(m) }
 func (*StatusUpgradeRequest) ProtoMessage()               {}
-func (*StatusUpgradeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (*StatusUpgradeRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
 
 type StatusUpgradeReply struct {
 	ListOfUpgradeStepStatuses []*UpgradeStepStatus `protobuf:"bytes,1,rep,name=listOfUpgradeStepStatuses" json:"listOfUpgradeStepStatuses,omitempty"`
@@ -118,7 +153,7 @@ type StatusUpgradeReply struct {
 func (m *StatusUpgradeReply) Reset()                    { *m = StatusUpgradeReply{} }
 func (m *StatusUpgradeReply) String() string            { return proto.CompactTextString(m) }
 func (*StatusUpgradeReply) ProtoMessage()               {}
-func (*StatusUpgradeReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (*StatusUpgradeReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
 func (m *StatusUpgradeReply) GetListOfUpgradeStepStatuses() []*UpgradeStepStatus {
 	if m != nil {
@@ -135,7 +170,7 @@ type UpgradeStepStatus struct {
 func (m *UpgradeStepStatus) Reset()                    { *m = UpgradeStepStatus{} }
 func (m *UpgradeStepStatus) String() string            { return proto.CompactTextString(m) }
 func (*UpgradeStepStatus) ProtoMessage()               {}
-func (*UpgradeStepStatus) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+func (*UpgradeStepStatus) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
 func (m *UpgradeStepStatus) GetStep() UpgradeSteps {
 	if m != nil {
@@ -158,7 +193,7 @@ type CheckConfigRequest struct {
 func (m *CheckConfigRequest) Reset()                    { *m = CheckConfigRequest{} }
 func (m *CheckConfigRequest) String() string            { return proto.CompactTextString(m) }
 func (*CheckConfigRequest) ProtoMessage()               {}
-func (*CheckConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+func (*CheckConfigRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
 
 func (m *CheckConfigRequest) GetDbPort() int32 {
 	if m != nil {
@@ -175,7 +210,7 @@ type CheckConfigReply struct {
 func (m *CheckConfigReply) Reset()                    { *m = CheckConfigReply{} }
 func (m *CheckConfigReply) String() string            { return proto.CompactTextString(m) }
 func (*CheckConfigReply) ProtoMessage()               {}
-func (*CheckConfigReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+func (*CheckConfigReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
 func (m *CheckConfigReply) GetConfigStatus() string {
 	if m != nil {
@@ -183,6 +218,22 @@ func (m *CheckConfigReply) GetConfigStatus() string {
 	}
 	return ""
 }
+
+type CheckSeginstallRequest struct {
+}
+
+func (m *CheckSeginstallRequest) Reset()                    { *m = CheckSeginstallRequest{} }
+func (m *CheckSeginstallRequest) String() string            { return proto.CompactTextString(m) }
+func (*CheckSeginstallRequest) ProtoMessage()               {}
+func (*CheckSeginstallRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+
+type CheckSeginstallReply struct {
+}
+
+func (m *CheckSeginstallReply) Reset()                    { *m = CheckSeginstallReply{} }
+func (m *CheckSeginstallReply) String() string            { return proto.CompactTextString(m) }
+func (*CheckSeginstallReply) ProtoMessage()               {}
+func (*CheckSeginstallReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
 type CountPerDb struct {
 	DbName    string `protobuf:"bytes,1,opt,name=DbName" json:"DbName,omitempty"`
@@ -193,7 +244,7 @@ type CountPerDb struct {
 func (m *CountPerDb) Reset()                    { *m = CountPerDb{} }
 func (m *CountPerDb) String() string            { return proto.CompactTextString(m) }
 func (*CountPerDb) ProtoMessage()               {}
-func (*CountPerDb) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+func (*CountPerDb) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
 
 func (m *CountPerDb) GetDbName() string {
 	if m != nil {
@@ -223,7 +274,7 @@ type CheckObjectCountRequest struct {
 func (m *CheckObjectCountRequest) Reset()                    { *m = CheckObjectCountRequest{} }
 func (m *CheckObjectCountRequest) String() string            { return proto.CompactTextString(m) }
 func (*CheckObjectCountRequest) ProtoMessage()               {}
-func (*CheckObjectCountRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+func (*CheckObjectCountRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
 
 func (m *CheckObjectCountRequest) GetDbPort() int32 {
 	if m != nil {
@@ -239,7 +290,7 @@ type CheckObjectCountReply struct {
 func (m *CheckObjectCountReply) Reset()                    { *m = CheckObjectCountReply{} }
 func (m *CheckObjectCountReply) String() string            { return proto.CompactTextString(m) }
 func (*CheckObjectCountReply) ProtoMessage()               {}
-func (*CheckObjectCountReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+func (*CheckObjectCountReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
 
 func (m *CheckObjectCountReply) GetListOfCounts() []*CountPerDb {
 	if m != nil {
@@ -256,7 +307,7 @@ type CheckVersionRequest struct {
 func (m *CheckVersionRequest) Reset()                    { *m = CheckVersionRequest{} }
 func (m *CheckVersionRequest) String() string            { return proto.CompactTextString(m) }
 func (*CheckVersionRequest) ProtoMessage()               {}
-func (*CheckVersionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+func (*CheckVersionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{12} }
 
 func (m *CheckVersionRequest) GetDbPort() int32 {
 	if m != nil {
@@ -279,7 +330,7 @@ type CheckVersionReply struct {
 func (m *CheckVersionReply) Reset()                    { *m = CheckVersionReply{} }
 func (m *CheckVersionReply) String() string            { return proto.CompactTextString(m) }
 func (*CheckVersionReply) ProtoMessage()               {}
-func (*CheckVersionReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+func (*CheckVersionReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{13} }
 
 func (m *CheckVersionReply) GetIsVersionCompatible() bool {
 	if m != nil {
@@ -294,7 +345,7 @@ type CheckDiskUsageRequest struct {
 func (m *CheckDiskUsageRequest) Reset()                    { *m = CheckDiskUsageRequest{} }
 func (m *CheckDiskUsageRequest) String() string            { return proto.CompactTextString(m) }
 func (*CheckDiskUsageRequest) ProtoMessage()               {}
-func (*CheckDiskUsageRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+func (*CheckDiskUsageRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{14} }
 
 type CheckDiskUsageReply struct {
 	SegmentFileSysUsage []string `protobuf:"bytes,1,rep,name=SegmentFileSysUsage" json:"SegmentFileSysUsage,omitempty"`
@@ -303,7 +354,7 @@ type CheckDiskUsageReply struct {
 func (m *CheckDiskUsageReply) Reset()                    { *m = CheckDiskUsageReply{} }
 func (m *CheckDiskUsageReply) String() string            { return proto.CompactTextString(m) }
 func (*CheckDiskUsageReply) ProtoMessage()               {}
-func (*CheckDiskUsageReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+func (*CheckDiskUsageReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{15} }
 
 func (m *CheckDiskUsageReply) GetSegmentFileSysUsage() []string {
 	if m != nil {
@@ -312,12 +363,120 @@ func (m *CheckDiskUsageReply) GetSegmentFileSysUsage() []string {
 	return nil
 }
 
+type PrepareShutdownClustersRequest struct {
+	OldBinDir string `protobuf:"bytes,1,opt,name=oldBinDir" json:"oldBinDir,omitempty"`
+	NewBinDir string `protobuf:"bytes,2,opt,name=newBinDir" json:"newBinDir,omitempty"`
+}
+
+func (m *PrepareShutdownClustersRequest) Reset()                    { *m = PrepareShutdownClustersRequest{} }
+func (m *PrepareShutdownClustersRequest) String() string            { return proto.CompactTextString(m) }
+func (*PrepareShutdownClustersRequest) ProtoMessage()               {}
+func (*PrepareShutdownClustersRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{16} }
+
+func (m *PrepareShutdownClustersRequest) GetOldBinDir() string {
+	if m != nil {
+		return m.OldBinDir
+	}
+	return ""
+}
+
+func (m *PrepareShutdownClustersRequest) GetNewBinDir() string {
+	if m != nil {
+		return m.NewBinDir
+	}
+	return ""
+}
+
+type PrepareShutdownClustersReply struct {
+}
+
+func (m *PrepareShutdownClustersReply) Reset()                    { *m = PrepareShutdownClustersReply{} }
+func (m *PrepareShutdownClustersReply) String() string            { return proto.CompactTextString(m) }
+func (*PrepareShutdownClustersReply) ProtoMessage()               {}
+func (*PrepareShutdownClustersReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
+
+type PrepareInitClusterRequest struct {
+	DbPort int32 `protobuf:"varint,1,opt,name=dbPort" json:"dbPort,omitempty"`
+}
+
+func (m *PrepareInitClusterRequest) Reset()                    { *m = PrepareInitClusterRequest{} }
+func (m *PrepareInitClusterRequest) String() string            { return proto.CompactTextString(m) }
+func (*PrepareInitClusterRequest) ProtoMessage()               {}
+func (*PrepareInitClusterRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
+
+func (m *PrepareInitClusterRequest) GetDbPort() int32 {
+	if m != nil {
+		return m.DbPort
+	}
+	return 0
+}
+
+type PrepareInitClusterReply struct {
+}
+
+func (m *PrepareInitClusterReply) Reset()                    { *m = PrepareInitClusterReply{} }
+func (m *PrepareInitClusterReply) String() string            { return proto.CompactTextString(m) }
+func (*PrepareInitClusterReply) ProtoMessage()               {}
+func (*PrepareInitClusterReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
+
+type UpgradeConvertMasterRequest struct {
+	OldBinDir  string `protobuf:"bytes,1,opt,name=OldBinDir" json:"OldBinDir,omitempty"`
+	OldDataDir string `protobuf:"bytes,2,opt,name=OldDataDir" json:"OldDataDir,omitempty"`
+	NewBinDir  string `protobuf:"bytes,3,opt,name=NewBinDir" json:"NewBinDir,omitempty"`
+	NewDataDir string `protobuf:"bytes,4,opt,name=NewDataDir" json:"NewDataDir,omitempty"`
+}
+
+func (m *UpgradeConvertMasterRequest) Reset()                    { *m = UpgradeConvertMasterRequest{} }
+func (m *UpgradeConvertMasterRequest) String() string            { return proto.CompactTextString(m) }
+func (*UpgradeConvertMasterRequest) ProtoMessage()               {}
+func (*UpgradeConvertMasterRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
+
+func (m *UpgradeConvertMasterRequest) GetOldBinDir() string {
+	if m != nil {
+		return m.OldBinDir
+	}
+	return ""
+}
+
+func (m *UpgradeConvertMasterRequest) GetOldDataDir() string {
+	if m != nil {
+		return m.OldDataDir
+	}
+	return ""
+}
+
+func (m *UpgradeConvertMasterRequest) GetNewBinDir() string {
+	if m != nil {
+		return m.NewBinDir
+	}
+	return ""
+}
+
+func (m *UpgradeConvertMasterRequest) GetNewDataDir() string {
+	if m != nil {
+		return m.NewDataDir
+	}
+	return ""
+}
+
+type UpgradeConvertMasterReply struct {
+}
+
+func (m *UpgradeConvertMasterReply) Reset()                    { *m = UpgradeConvertMasterReply{} }
+func (m *UpgradeConvertMasterReply) String() string            { return proto.CompactTextString(m) }
+func (*UpgradeConvertMasterReply) ProtoMessage()               {}
+func (*UpgradeConvertMasterReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
+
 func init() {
+	proto.RegisterType((*PingRequest)(nil), "idl.PingRequest")
+	proto.RegisterType((*PingReply)(nil), "idl.PingReply")
 	proto.RegisterType((*StatusUpgradeRequest)(nil), "idl.StatusUpgradeRequest")
 	proto.RegisterType((*StatusUpgradeReply)(nil), "idl.StatusUpgradeReply")
 	proto.RegisterType((*UpgradeStepStatus)(nil), "idl.UpgradeStepStatus")
 	proto.RegisterType((*CheckConfigRequest)(nil), "idl.CheckConfigRequest")
 	proto.RegisterType((*CheckConfigReply)(nil), "idl.CheckConfigReply")
+	proto.RegisterType((*CheckSeginstallRequest)(nil), "idl.CheckSeginstallRequest")
+	proto.RegisterType((*CheckSeginstallReply)(nil), "idl.CheckSeginstallReply")
 	proto.RegisterType((*CountPerDb)(nil), "idl.CountPerDb")
 	proto.RegisterType((*CheckObjectCountRequest)(nil), "idl.CheckObjectCountRequest")
 	proto.RegisterType((*CheckObjectCountReply)(nil), "idl.CheckObjectCountReply")
@@ -325,6 +484,12 @@ func init() {
 	proto.RegisterType((*CheckVersionReply)(nil), "idl.CheckVersionReply")
 	proto.RegisterType((*CheckDiskUsageRequest)(nil), "idl.CheckDiskUsageRequest")
 	proto.RegisterType((*CheckDiskUsageReply)(nil), "idl.CheckDiskUsageReply")
+	proto.RegisterType((*PrepareShutdownClustersRequest)(nil), "idl.PrepareShutdownClustersRequest")
+	proto.RegisterType((*PrepareShutdownClustersReply)(nil), "idl.PrepareShutdownClustersReply")
+	proto.RegisterType((*PrepareInitClusterRequest)(nil), "idl.PrepareInitClusterRequest")
+	proto.RegisterType((*PrepareInitClusterReply)(nil), "idl.PrepareInitClusterReply")
+	proto.RegisterType((*UpgradeConvertMasterRequest)(nil), "idl.UpgradeConvertMasterRequest")
+	proto.RegisterType((*UpgradeConvertMasterReply)(nil), "idl.UpgradeConvertMasterReply")
 	proto.RegisterEnum("idl.UpgradeSteps", UpgradeSteps_name, UpgradeSteps_value)
 	proto.RegisterEnum("idl.StepStatus", StepStatus_name, StepStatus_value)
 }
@@ -340,11 +505,16 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for CliToHub service
 
 type CliToHubClient interface {
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error)
 	StatusUpgrade(ctx context.Context, in *StatusUpgradeRequest, opts ...grpc.CallOption) (*StatusUpgradeReply, error)
 	CheckConfig(ctx context.Context, in *CheckConfigRequest, opts ...grpc.CallOption) (*CheckConfigReply, error)
+	CheckSeginstall(ctx context.Context, in *CheckSeginstallRequest, opts ...grpc.CallOption) (*CheckSeginstallReply, error)
 	CheckObjectCount(ctx context.Context, in *CheckObjectCountRequest, opts ...grpc.CallOption) (*CheckObjectCountReply, error)
 	CheckVersion(ctx context.Context, in *CheckVersionRequest, opts ...grpc.CallOption) (*CheckVersionReply, error)
 	CheckDiskUsage(ctx context.Context, in *CheckDiskUsageRequest, opts ...grpc.CallOption) (*CheckDiskUsageReply, error)
+	PrepareInitCluster(ctx context.Context, in *PrepareInitClusterRequest, opts ...grpc.CallOption) (*PrepareInitClusterReply, error)
+	PrepareShutdownClusters(ctx context.Context, in *PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*PrepareShutdownClustersReply, error)
+	UpgradeConvertMaster(ctx context.Context, in *UpgradeConvertMasterRequest, opts ...grpc.CallOption) (*UpgradeConvertMasterReply, error)
 }
 
 type cliToHubClient struct {
@@ -353,6 +523,15 @@ type cliToHubClient struct {
 
 func NewCliToHubClient(cc *grpc.ClientConn) CliToHubClient {
 	return &cliToHubClient{cc}
+}
+
+func (c *cliToHubClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error) {
+	out := new(PingReply)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/Ping", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *cliToHubClient) StatusUpgrade(ctx context.Context, in *StatusUpgradeRequest, opts ...grpc.CallOption) (*StatusUpgradeReply, error) {
@@ -367,6 +546,15 @@ func (c *cliToHubClient) StatusUpgrade(ctx context.Context, in *StatusUpgradeReq
 func (c *cliToHubClient) CheckConfig(ctx context.Context, in *CheckConfigRequest, opts ...grpc.CallOption) (*CheckConfigReply, error) {
 	out := new(CheckConfigReply)
 	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckConfig", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliToHubClient) CheckSeginstall(ctx context.Context, in *CheckSeginstallRequest, opts ...grpc.CallOption) (*CheckSeginstallReply, error) {
+	out := new(CheckSeginstallReply)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckSeginstall", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -400,18 +588,68 @@ func (c *cliToHubClient) CheckDiskUsage(ctx context.Context, in *CheckDiskUsageR
 	return out, nil
 }
 
+func (c *cliToHubClient) PrepareInitCluster(ctx context.Context, in *PrepareInitClusterRequest, opts ...grpc.CallOption) (*PrepareInitClusterReply, error) {
+	out := new(PrepareInitClusterReply)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareInitCluster", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliToHubClient) PrepareShutdownClusters(ctx context.Context, in *PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*PrepareShutdownClustersReply, error) {
+	out := new(PrepareShutdownClustersReply)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareShutdownClusters", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliToHubClient) UpgradeConvertMaster(ctx context.Context, in *UpgradeConvertMasterRequest, opts ...grpc.CallOption) (*UpgradeConvertMasterReply, error) {
+	out := new(UpgradeConvertMasterReply)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertMaster", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for CliToHub service
 
 type CliToHubServer interface {
+	Ping(context.Context, *PingRequest) (*PingReply, error)
 	StatusUpgrade(context.Context, *StatusUpgradeRequest) (*StatusUpgradeReply, error)
 	CheckConfig(context.Context, *CheckConfigRequest) (*CheckConfigReply, error)
+	CheckSeginstall(context.Context, *CheckSeginstallRequest) (*CheckSeginstallReply, error)
 	CheckObjectCount(context.Context, *CheckObjectCountRequest) (*CheckObjectCountReply, error)
 	CheckVersion(context.Context, *CheckVersionRequest) (*CheckVersionReply, error)
 	CheckDiskUsage(context.Context, *CheckDiskUsageRequest) (*CheckDiskUsageReply, error)
+	PrepareInitCluster(context.Context, *PrepareInitClusterRequest) (*PrepareInitClusterReply, error)
+	PrepareShutdownClusters(context.Context, *PrepareShutdownClustersRequest) (*PrepareShutdownClustersReply, error)
+	UpgradeConvertMaster(context.Context, *UpgradeConvertMasterRequest) (*UpgradeConvertMasterReply, error)
 }
 
 func RegisterCliToHubServer(s *grpc.Server, srv CliToHubServer) {
 	s.RegisterService(&_CliToHub_serviceDesc, srv)
+}
+
+func _CliToHub_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliToHubServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.CliToHub/Ping",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliToHubServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _CliToHub_StatusUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -446,6 +684,24 @@ func _CliToHub_CheckConfig_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CliToHubServer).CheckConfig(ctx, req.(*CheckConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliToHub_CheckSeginstall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckSeginstallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliToHubServer).CheckSeginstall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.CliToHub/CheckSeginstall",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliToHubServer).CheckSeginstall(ctx, req.(*CheckSeginstallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -504,10 +760,68 @@ func _CliToHub_CheckDiskUsage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CliToHub_PrepareInitCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareInitClusterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliToHubServer).PrepareInitCluster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.CliToHub/PrepareInitCluster",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliToHubServer).PrepareInitCluster(ctx, req.(*PrepareInitClusterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliToHub_PrepareShutdownClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareShutdownClustersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliToHubServer).PrepareShutdownClusters(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.CliToHub/PrepareShutdownClusters",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliToHubServer).PrepareShutdownClusters(ctx, req.(*PrepareShutdownClustersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliToHub_UpgradeConvertMaster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeConvertMasterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliToHubServer).UpgradeConvertMaster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.CliToHub/UpgradeConvertMaster",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliToHubServer).UpgradeConvertMaster(ctx, req.(*UpgradeConvertMasterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _CliToHub_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "idl.CliToHub",
 	HandlerType: (*CliToHubServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Ping",
+			Handler:    _CliToHub_Ping_Handler,
+		},
 		{
 			MethodName: "StatusUpgrade",
 			Handler:    _CliToHub_StatusUpgrade_Handler,
@@ -515,6 +829,10 @@ var _CliToHub_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckConfig",
 			Handler:    _CliToHub_CheckConfig_Handler,
+		},
+		{
+			MethodName: "CheckSeginstall",
+			Handler:    _CliToHub_CheckSeginstall_Handler,
 		},
 		{
 			MethodName: "CheckObjectCount",
@@ -528,6 +846,18 @@ var _CliToHub_serviceDesc = grpc.ServiceDesc{
 			MethodName: "CheckDiskUsage",
 			Handler:    _CliToHub_CheckDiskUsage_Handler,
 		},
+		{
+			MethodName: "PrepareInitCluster",
+			Handler:    _CliToHub_PrepareInitCluster_Handler,
+		},
+		{
+			MethodName: "PrepareShutdownClusters",
+			Handler:    _CliToHub_PrepareShutdownClusters_Handler,
+		},
+		{
+			MethodName: "UpgradeConvertMaster",
+			Handler:    _CliToHub_UpgradeConvertMaster_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "cli_to_hub.proto",
@@ -536,44 +866,63 @@ var _CliToHub_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("cli_to_hub.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 613 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0x51, 0x4f, 0x1a, 0x4d,
-	0x14, 0x15, 0x50, 0x94, 0x0b, 0x1f, 0xdf, 0x7a, 0xad, 0x88, 0xc4, 0x07, 0x33, 0x49, 0x53, 0x63,
-	0x1a, 0xd3, 0xda, 0xb4, 0xaf, 0x0d, 0x2e, 0xab, 0x10, 0xe9, 0x42, 0x76, 0x97, 0xf6, 0xa5, 0x09,
-	0x61, 0x97, 0x11, 0x57, 0x57, 0x66, 0xcb, 0x0c, 0x0f, 0xfe, 0xeb, 0xfe, 0x84, 0x66, 0x67, 0xc6,
-	0xb2, 0xcb, 0x62, 0xfa, 0xc6, 0x3d, 0xe7, 0xce, 0xb9, 0x73, 0x76, 0xce, 0x05, 0x8c, 0x20, 0x0a,
-	0xc7, 0x82, 0x8d, 0xef, 0x97, 0xfe, 0x45, 0xbc, 0x60, 0x82, 0x61, 0x29, 0x9c, 0x46, 0xa4, 0x01,
-	0x6f, 0x5c, 0x31, 0x11, 0x4b, 0x3e, 0x8a, 0x67, 0x8b, 0xc9, 0x94, 0x3a, 0xf4, 0xd7, 0x92, 0x72,
-	0x41, 0x1e, 0x00, 0xd7, 0xf0, 0x38, 0x7a, 0x46, 0x0f, 0x8e, 0xa3, 0x90, 0x8b, 0xc1, 0x9d, 0x46,
-	0x5d, 0x41, 0x63, 0xd5, 0x46, 0x79, 0xb3, 0x70, 0x5a, 0x3a, 0xab, 0x5e, 0x36, 0x2e, 0xc2, 0x69,
-	0x74, 0x91, 0xe3, 0x9d, 0xd7, 0x0f, 0x92, 0x00, 0xf6, 0x73, 0x30, 0xbe, 0x85, 0x6d, 0x2e, 0x68,
-	0xdc, 0x2c, 0x9c, 0x16, 0xce, 0xea, 0x97, 0xfb, 0xeb, 0xaa, 0xdc, 0x91, 0x34, 0xbe, 0x83, 0x32,
-	0x97, 0x07, 0x9a, 0x45, 0xd9, 0xf8, 0xbf, 0x6c, 0x4c, 0xcd, 0xd5, 0x34, 0x79, 0x0f, 0x68, 0xde,
-	0xd3, 0xe0, 0xd1, 0x64, 0xf3, 0xbb, 0x70, 0xa6, 0x6d, 0x62, 0x03, 0xca, 0x53, 0x7f, 0xc8, 0x16,
-	0x42, 0xce, 0xd9, 0x71, 0x74, 0x45, 0xbe, 0x80, 0x91, 0xe9, 0x4e, 0xcc, 0x13, 0xa8, 0x05, 0xb2,
-	0x54, 0xca, 0xf2, 0x44, 0xc5, 0xc9, 0x60, 0xe4, 0x27, 0x80, 0xc9, 0x96, 0x73, 0x31, 0xa4, 0x8b,
-	0x8e, 0x9f, 0xa8, 0x77, 0x7c, 0x7b, 0xf2, 0x44, 0x75, 0xaf, 0xae, 0xb0, 0x09, 0xbb, 0x6d, 0x26,
-	0xfb, 0xe4, 0xad, 0x77, 0x9c, 0x97, 0x12, 0x4f, 0xa0, 0xd2, 0xa5, 0x93, 0x58, 0x71, 0x25, 0xc9,
-	0xad, 0x00, 0xf2, 0x11, 0x8e, 0xe4, 0xad, 0x06, 0xfe, 0x03, 0x0d, 0x84, 0xc4, 0x52, 0x46, 0x3a,
-	0x19, 0x23, 0xaa, 0x22, 0x36, 0x1c, 0xe6, 0x8f, 0x24, 0x6e, 0x3e, 0x43, 0x3d, 0x79, 0x91, 0x31,
-	0xbb, 0x1b, 0x07, 0x09, 0xfa, 0xf2, 0x7e, 0xea, 0x03, 0xae, 0x4c, 0x38, 0x35, 0xf5, 0x70, 0x12,
-	0xe1, 0xa4, 0x0d, 0x07, 0x52, 0xef, 0x3b, 0x5d, 0xf0, 0x90, 0xcd, 0xff, 0x31, 0x1e, 0x11, 0xb6,
-	0xbb, 0x8c, 0x2b, 0x9b, 0x15, 0x47, 0xfe, 0x26, 0x16, 0xec, 0x67, 0x25, 0x92, 0xeb, 0x7c, 0x80,
-	0x83, 0x1e, 0xd7, 0x88, 0xc9, 0x9e, 0xe2, 0x89, 0x08, 0xfd, 0x48, 0x7d, 0xb7, 0x3d, 0x67, 0x13,
-	0x45, 0x8e, 0xb4, 0xb3, 0x4e, 0xc8, 0x1f, 0x47, 0x7c, 0x32, 0xfb, 0x1b, 0xdd, 0x1b, 0x7d, 0xc5,
-	0x14, 0xa1, 0x27, 0xb8, 0x74, 0xf6, 0x44, 0xe7, 0xe2, 0x3a, 0x8c, 0xa8, 0xfb, 0xcc, 0x25, 0x27,
-	0x5d, 0x57, 0x9c, 0x4d, 0xd4, 0xf9, 0x15, 0xd4, 0xd2, 0x89, 0x43, 0x03, 0x6a, 0x23, 0xfb, 0xd6,
-	0x1e, 0xfc, 0xb0, 0xc7, 0xae, 0x67, 0x0d, 0x8d, 0xad, 0x04, 0x31, 0xbb, 0x96, 0x79, 0x3b, 0x36,
-	0x07, 0xf6, 0x75, 0xef, 0xc6, 0x28, 0x60, 0x1d, 0xc0, 0xb5, 0x6e, 0x7a, 0xb6, 0xeb, 0xb5, 0xfb,
-	0x7d, 0xa3, 0x78, 0xee, 0x01, 0xa4, 0x42, 0x8d, 0x50, 0x5f, 0x29, 0xb4, 0xbd, 0x91, 0x6b, 0x6c,
-	0x61, 0x15, 0x76, 0x87, 0x96, 0xdd, 0xe9, 0xd9, 0xc9, 0xf1, 0x2a, 0xec, 0x3a, 0x23, 0xdb, 0x4e,
-	0x8a, 0x22, 0xd6, 0x60, 0xcf, 0x1c, 0x7c, 0x1b, 0xf6, 0x2d, 0xcf, 0x32, 0x4a, 0x08, 0x50, 0xbe,
-	0x6e, 0xf7, 0xfa, 0x56, 0xc7, 0xd8, 0xbe, 0xfc, 0x5d, 0x84, 0x3d, 0x33, 0x0a, 0x3d, 0xd6, 0x5d,
-	0xfa, 0x68, 0xc1, 0x7f, 0x99, 0x55, 0xc5, 0x63, 0xbd, 0x03, 0xf9, 0xb5, 0x6e, 0x1d, 0x6d, 0xa2,
-	0xe2, 0xe8, 0x99, 0x6c, 0xe1, 0x57, 0xa8, 0xa6, 0x22, 0x8f, 0xaa, 0x33, 0xbf, 0x32, 0xad, 0xc3,
-	0x3c, 0xa1, 0x04, 0x6c, 0xbd, 0x33, 0xa9, 0xa8, 0xe1, 0xc9, 0xaa, 0x39, 0x1f, 0xda, 0x56, 0xeb,
-	0x15, 0x56, 0xe9, 0x5d, 0x41, 0x2d, 0x9d, 0x13, 0x6c, 0xae, 0xba, 0xb3, 0xe9, 0x6b, 0x35, 0x36,
-	0x30, 0x4a, 0xa3, 0x0b, 0xf5, 0x6c, 0x16, 0x30, 0x35, 0x73, 0x3d, 0x39, 0xad, 0xe6, 0x46, 0x4e,
-	0x2a, 0xf9, 0x65, 0xf9, 0xa7, 0xf9, 0xe9, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb3, 0xde, 0x72,
-	0xcf, 0x48, 0x05, 0x00, 0x00,
+	// 918 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x56, 0x51, 0x6f, 0xe2, 0x46,
+	0x10, 0x0e, 0x81, 0x90, 0x30, 0x10, 0xe2, 0x6c, 0x72, 0x04, 0x1c, 0x84, 0x52, 0x57, 0x55, 0x4f,
+	0x51, 0x15, 0xb5, 0x39, 0xb5, 0xaf, 0x15, 0x67, 0x3b, 0x01, 0x85, 0x18, 0xcb, 0x36, 0xad, 0x54,
+	0x9d, 0x84, 0x0c, 0x6c, 0x88, 0xef, 0x1c, 0xdb, 0xb5, 0x97, 0x46, 0xbc, 0xf5, 0xa1, 0x7f, 0xa2,
+	0xff, 0xf6, 0xb4, 0xbb, 0x06, 0x1b, 0x6c, 0x2e, 0x6f, 0xcc, 0xf7, 0xcd, 0x7c, 0xb3, 0xb3, 0xe3,
+	0xfd, 0x12, 0x10, 0xa6, 0xae, 0x33, 0x26, 0xfe, 0xf8, 0x79, 0x31, 0xb9, 0x09, 0x42, 0x9f, 0xf8,
+	0xa8, 0xe8, 0xcc, 0x5c, 0xe9, 0x18, 0xaa, 0xba, 0xe3, 0xcd, 0x0d, 0xfc, 0xf7, 0x02, 0x47, 0x44,
+	0xaa, 0x42, 0x85, 0x87, 0x81, 0xbb, 0x94, 0x1a, 0x70, 0x6e, 0x12, 0x9b, 0x2c, 0xa2, 0x51, 0x30,
+	0x0f, 0xed, 0x19, 0x5e, 0x25, 0x7d, 0x06, 0xb4, 0x85, 0x07, 0xee, 0x12, 0x59, 0xd0, 0x72, 0x9d,
+	0x88, 0x0c, 0x9f, 0x62, 0xd4, 0x24, 0x38, 0xe0, 0x69, 0x38, 0x6a, 0x16, 0xae, 0x8a, 0xef, 0xab,
+	0xb7, 0x8d, 0x1b, 0x67, 0xe6, 0xde, 0x64, 0x78, 0x63, 0x77, 0xa1, 0x34, 0x85, 0xd3, 0x0c, 0x8c,
+	0x7e, 0x80, 0x52, 0x44, 0x70, 0xd0, 0x2c, 0x5c, 0x15, 0xde, 0xd7, 0x6f, 0x4f, 0xb7, 0x55, 0x23,
+	0x83, 0xd1, 0xe8, 0x47, 0x28, 0x47, 0xac, 0xa0, 0xb9, 0xcf, 0x12, 0x4f, 0x58, 0x62, 0xaa, 0x6f,
+	0x4c, 0x4b, 0x3f, 0x01, 0x92, 0x9f, 0xf1, 0xf4, 0x8b, 0xec, 0x7b, 0x4f, 0xce, 0xea, 0x2e, 0x50,
+	0x03, 0xca, 0xb3, 0x89, 0xee, 0x87, 0x84, 0xf5, 0x39, 0x30, 0xe2, 0x48, 0xfa, 0x0d, 0x84, 0x8d,
+	0x6c, 0x3a, 0xbc, 0x04, 0xb5, 0x29, 0x0b, 0xb9, 0x32, 0xab, 0xa8, 0x18, 0x1b, 0x98, 0xd4, 0x84,
+	0x06, 0xab, 0x33, 0xf1, 0xdc, 0xf1, 0x22, 0x62, 0xbb, 0xee, 0xea, 0x42, 0x1b, 0x70, 0x9e, 0x61,
+	0xe8, 0x02, 0x3e, 0x01, 0xc8, 0xfe, 0xc2, 0x23, 0x3a, 0x0e, 0x95, 0x09, 0x3d, 0x8f, 0x32, 0xd1,
+	0xec, 0x17, 0x1c, 0xab, 0xc7, 0x11, 0x6a, 0xc2, 0x61, 0xd7, 0x67, 0x79, 0x6c, 0xce, 0x03, 0x63,
+	0x15, 0xa2, 0x36, 0x54, 0x7a, 0xd8, 0x0e, 0x38, 0x57, 0x64, 0x5c, 0x02, 0x48, 0xbf, 0xc0, 0x05,
+	0xeb, 0x3a, 0x9c, 0x7c, 0xc6, 0x53, 0xc2, 0xb0, 0xd4, 0xe8, 0xca, 0xc6, 0xe8, 0x3c, 0x92, 0x34,
+	0x78, 0x97, 0x2d, 0xa1, 0xf3, 0xff, 0x0a, 0x75, 0xba, 0xc3, 0xb1, 0xff, 0x34, 0x9e, 0x52, 0x74,
+	0xb5, 0x71, 0x7e, 0xe5, 0xc9, 0x10, 0x46, 0x8d, 0xaf, 0x9a, 0x21, 0x91, 0xd4, 0x85, 0x33, 0xa6,
+	0xf7, 0x07, 0x0e, 0x23, 0xc7, 0xf7, 0xde, 0x68, 0x8f, 0x10, 0x94, 0x7a, 0x7e, 0xc4, 0xc7, 0xac,
+	0x18, 0xec, 0xb7, 0xa4, 0xc2, 0xe9, 0xa6, 0x04, 0x3d, 0xce, 0xcf, 0x70, 0xd6, 0x8f, 0x62, 0x44,
+	0xf6, 0x5f, 0x02, 0x9b, 0x38, 0x13, 0x97, 0xdf, 0xdb, 0x91, 0x91, 0x47, 0x49, 0x17, 0xf1, 0x64,
+	0x8a, 0x13, 0x7d, 0x19, 0x45, 0xf6, 0x7c, 0xfd, 0xb1, 0xdf, 0xc7, 0x47, 0x4c, 0x11, 0x71, 0x07,
+	0x13, 0xcf, 0x5f, 0xb0, 0x47, 0xee, 0x1c, 0x17, 0x9b, 0xcb, 0x88, 0x71, 0x6c, 0xea, 0x8a, 0x91,
+	0x47, 0x49, 0x9f, 0xa0, 0xa3, 0x87, 0x38, 0xb0, 0x43, 0x6c, 0x3e, 0x2f, 0xc8, 0xcc, 0x7f, 0xf5,
+	0x64, 0x77, 0x11, 0x11, 0x1c, 0x46, 0xab, 0xb1, 0xdb, 0x50, 0xf1, 0xdd, 0xd9, 0x47, 0xc7, 0x53,
+	0x9c, 0x30, 0xde, 0x71, 0x02, 0x50, 0xd6, 0xc3, 0xaf, 0x31, 0xcb, 0x6f, 0x20, 0x01, 0xa4, 0x0e,
+	0xb4, 0x77, 0xaa, 0xd3, 0x4f, 0xe9, 0x03, 0xb4, 0x62, 0xbe, 0xef, 0x39, 0x24, 0xe6, 0xde, 0xfa,
+	0xd2, 0x5b, 0x70, 0x91, 0x57, 0x44, 0xf5, 0xfe, 0x2f, 0xc0, 0x65, 0xfc, 0xe4, 0x64, 0xdf, 0xfb,
+	0x07, 0x87, 0xe4, 0xd1, 0x4e, 0x4b, 0xb6, 0xa1, 0x32, 0xdc, 0x9e, 0x65, 0x0d, 0xa0, 0x0e, 0xc0,
+	0xd0, 0x9d, 0x29, 0x36, 0xb1, 0x93, 0x61, 0x52, 0x08, 0xad, 0xd6, 0xd6, 0xb3, 0x16, 0x79, 0xf5,
+	0x1a, 0xa0, 0xd5, 0x1a, 0x7e, 0x5d, 0x55, 0x97, 0x78, 0x75, 0x82, 0x48, 0x97, 0xd0, 0xca, 0x3f,
+	0x5a, 0xe0, 0x2e, 0xaf, 0xff, 0x2b, 0x40, 0x2d, 0xed, 0x15, 0x48, 0x80, 0xda, 0x48, 0x7b, 0xd0,
+	0x86, 0x7f, 0x6a, 0x63, 0xd3, 0x52, 0x75, 0x61, 0x8f, 0x22, 0x72, 0x4f, 0x95, 0x1f, 0xc6, 0xf2,
+	0x50, 0xbb, 0xeb, 0xdf, 0x0b, 0x05, 0x54, 0x07, 0x30, 0xd5, 0xfb, 0xbe, 0x66, 0x5a, 0xdd, 0xc1,
+	0x40, 0xd8, 0x47, 0x4d, 0x38, 0xd7, 0x0d, 0x55, 0xef, 0x1a, 0xea, 0xb8, 0xaf, 0xf5, 0xad, 0xb1,
+	0x3c, 0x18, 0x99, 0x96, 0x6a, 0x08, 0x45, 0x74, 0x0a, 0xc7, 0x8f, 0x5d, 0xfa, 0x7b, 0xa4, 0xdf,
+	0x1b, 0x5d, 0x45, 0x15, 0x4a, 0xe8, 0x0c, 0x4e, 0x4c, 0x6b, 0xa8, 0xeb, 0xaa, 0xb2, 0xce, 0x3b,
+	0xb8, 0xb6, 0x00, 0x52, 0x86, 0x86, 0xa0, 0x9e, 0x9c, 0xa1, 0x6b, 0x8d, 0x4c, 0x61, 0x0f, 0x55,
+	0xe1, 0x50, 0x57, 0x35, 0xa5, 0xaf, 0xd1, 0x03, 0x54, 0xe1, 0xd0, 0x18, 0x69, 0x1a, 0x0d, 0xf6,
+	0x51, 0x0d, 0x8e, 0xe4, 0xe1, 0xa3, 0x3e, 0x50, 0x2d, 0x55, 0x28, 0x22, 0x80, 0xf2, 0x5d, 0xb7,
+	0x3f, 0x50, 0x15, 0xa1, 0x74, 0xfb, 0x6f, 0x19, 0x8e, 0x64, 0xd7, 0xb1, 0xfc, 0xde, 0x62, 0x82,
+	0xae, 0xa1, 0x44, 0xbd, 0x1c, 0x09, 0xec, 0x0d, 0xa6, 0x5c, 0x5e, 0xac, 0xa7, 0x10, 0xba, 0xcc,
+	0x3d, 0xa4, 0xc2, 0xf1, 0x86, 0xa5, 0xa3, 0x56, 0xec, 0x95, 0x59, 0xfb, 0x17, 0x2f, 0xf2, 0x28,
+	0x2e, 0xf3, 0x3b, 0x54, 0x53, 0xd6, 0x88, 0x78, 0x66, 0xd6, 0x5a, 0xc5, 0x77, 0x59, 0x82, 0x0b,
+	0x3c, 0xc0, 0xc9, 0x96, 0x13, 0xa2, 0xcb, 0x24, 0x37, 0xe3, 0x9c, 0x62, 0x2b, 0x9f, 0xe4, 0x62,
+	0x5a, 0x6c, 0xd4, 0x29, 0xb7, 0x42, 0xed, 0xa4, 0x20, 0xeb, 0x7b, 0xa2, 0xb8, 0x83, 0xe5, 0x7a,
+	0x1f, 0xa1, 0x96, 0xb6, 0x1a, 0xd4, 0x4c, 0xb2, 0x37, 0x0d, 0x4c, 0x6c, 0xe4, 0x30, 0x5c, 0xa3,
+	0x07, 0xf5, 0x4d, 0x3b, 0x41, 0xa9, 0x9e, 0xdb, 0xe6, 0x23, 0x36, 0x73, 0x39, 0xae, 0x64, 0x01,
+	0xca, 0x3e, 0x4e, 0xd4, 0xe1, 0xab, 0xdd, 0xf5, 0xd4, 0xc5, 0xf6, 0x4e, 0x9e, 0xab, 0x4e, 0xd7,
+	0x4f, 0x7e, 0xdb, 0x47, 0xd0, 0xf7, 0xe9, 0xd2, 0x1d, 0x1e, 0x26, 0x7e, 0xf7, 0xed, 0x24, 0xde,
+	0xe4, 0x2f, 0x38, 0xcf, 0x7b, 0xa0, 0xe8, 0x2a, 0xfd, 0x97, 0x3c, 0xcf, 0x56, 0xc4, 0xce, 0x37,
+	0x32, 0x98, 0xf6, 0xa4, 0xcc, 0xfe, 0xb9, 0xf9, 0xf0, 0x35, 0x00, 0x00, 0xff, 0xff, 0xad, 0x12,
+	0x50, 0xf4, 0xf0, 0x08, 0x00, 0x00,
 }

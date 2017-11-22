@@ -21,6 +21,7 @@ type SegmentConfiguration []Segment
 type Segment struct {
 	Address  string `json:"address"`
 	Content  int    `json:"content"`
+	Datadir  string `json:datadir`
 	DBID     int    `json:"dbid"`
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`
@@ -36,4 +37,8 @@ func GetConfigFilePath() string {
 
 func GetVersionFilePath() string {
 	return path.Join(GetConfigDir(), "cluster_version.json")
+}
+
+func GetNewClusterConfigFilePath() string {
+	return path.Join(GetConfigDir(), "new_cluster_config.json")
 }

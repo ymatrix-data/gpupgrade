@@ -9,7 +9,7 @@ import (
 
 	pb "gp_upgrade/idl"
 
-	gpbackupUtils "github.com/greenplum-db/gpbackup/utils"
+	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -27,6 +27,8 @@ func main() {
 
 	var masterHost string
 	var dbPort int
+	var newClusterDbPort int
+	var oldDataDir, oldBinDir, newDataDir, newBinDir string
 
 	var cmdPrepare = &cobra.Command{
 		Use:   "prepare",
@@ -38,12 +40,87 @@ func main() {
 		Use:   "start-hub",
 		Short: "starts the hub",
 		Long:  "starts the hub",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			gpbackupUtils.InitializeLogging("gp_upgrade_cli", "")
+		Run: func(cmd *cobra.Command, args []string) {
 			preparer := commanders.Preparer{}
-			return preparer.StartHub()
+			err := preparer.StartHub()
+			if err != nil {
+				gpbackupUtils.Error(err.Error())
+				os.Exit(1)
+			}
+
+			conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+			if connConfigErr != nil {
+				gpbackupUtils.Error(connConfigErr.Error())
+				os.Exit(1)
+			}
+			client := pb.NewCliToHubClient(conn)
+			err = preparer.VerifyConnectivity(client)
+
+			if err != nil {
+				gpbackupUtils.Error("gp_upgrade is unable to connect via gRPC to the hub")
+				gpbackupUtils.Error("%v", err)
+				os.Exit(1)
+			}
 		},
 	}
+
+	var cmdPrepareSubShutdownClusters = &cobra.Command{
+		Use:   "shutdown-clusters",
+		Short: "shuts down both old and new cluster",
+		Long:  "Current assumptions is both clusters exist.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if oldBinDir == "" {
+				return errors.New("the required flag '--old-bindir' was not specified")
+			}
+			if newBinDir == "" {
+				return errors.New("the required flag '--new-bindir' was not specified")
+			}
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+			if connConfigErr != nil {
+				gpbackupUtils.Error(connConfigErr.Error())
+				os.Exit(1)
+			}
+			client := pb.NewCliToHubClient(conn)
+			preparer := commanders.NewPreparer(client)
+			err := preparer.ShutdownClusters(oldBinDir, newBinDir)
+			if err != nil {
+				gpbackupUtils.Error(err.Error())
+				os.Exit(1)
+			}
+		},
+	}
+	cmdPrepareSubShutdownClusters.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	cmdPrepareSubShutdownClusters.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+
+	var cmdPrepareSubInitCluster = &cobra.Command{
+		Use:   "init-cluster",
+		Short: "inits the cluster",
+		Long:  "Current assumptions is that the cluster already exists. And will only generate json config file for now.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if newClusterDbPort == -1 {
+				return errors.New("the required flag '--port' was not specified")
+			}
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+			if connConfigErr != nil {
+				gpbackupUtils.Error(connConfigErr.Error())
+				os.Exit(1)
+			}
+			client := pb.NewCliToHubClient(conn)
+			preparer := commanders.NewPreparer(client)
+			err := preparer.InitCluster(newClusterDbPort)
+			if err != nil {
+				gpbackupUtils.Error(err.Error())
+				os.Exit(1)
+			}
+		},
+	}
+	cmdPrepareSubInitCluster.PersistentFlags().IntVar(&newClusterDbPort, "port", -1, "port for Greenplum on new master")
 
 	var cmdStatus = &cobra.Command{
 		Use:   "status",
@@ -56,18 +133,16 @@ func main() {
 		Short: "the status of the upgrade",
 		Long:  "the status of the upgrade",
 		Run: func(cmd *cobra.Command, args []string) {
-			gpbackupUtils.InitializeLogging("gp_upgrade_cli", "")
-
 			conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
 			if connConfigErr != nil {
-				fmt.Println(connConfigErr)
+				gpbackupUtils.Error(connConfigErr.Error())
 				os.Exit(1)
 			}
 			client := pb.NewCliToHubClient(conn)
 			reporter := commanders.NewReporter(client)
 			err := reporter.OverallUpgradeStatus()
 			if err != nil {
-				fmt.Println(err)
+				gpbackupUtils.Error(err.Error())
 				os.Exit(1)
 			}
 		},
@@ -99,12 +174,11 @@ func main() {
 			conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
 				grpc.WithInsecure())
 			if connConfigErr != nil {
-				fmt.Println(connConfigErr)
+				gpbackupUtils.Error(connConfigErr.Error())
 				os.Exit(1)
 			}
 			client := pb.NewCliToHubClient(conn)
-			err := commanders.NewVersionChecker(client).Execute(masterHost, dbPort)
-			return err
+			return commanders.NewVersionChecker(client).Execute(masterHost, dbPort)
 		},
 	}
 
@@ -121,10 +195,7 @@ func main() {
 				os.Exit(1)
 			}
 			client := pb.NewCliToHubClient(conn)
-			commanders.NewObjectCountChecker(client).Execute(dbPort)
-			//ocCommand := commands.NewObjectCountCommand(masterHost, dbPort, commands.RealDbConnectionFactory{})
-			//return ocCommand.Execute(args)
-			return nil
+			return commanders.NewObjectCountChecker(client).Execute(dbPort)
 		},
 	}
 
@@ -133,15 +204,15 @@ func main() {
 		Short:   "check that disk space usage is less than 80% on all segments",
 		Long:    "check that disk space usage is less than 80% on all segments",
 		Aliases: []string{"du"},
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
 				grpc.WithInsecure())
 			if connConfigErr != nil {
-				fmt.Println(connConfigErr)
+				gpbackupUtils.Error(connConfigErr.Error())
 				os.Exit(1)
 			}
 			client := pb.NewCliToHubClient(conn)
-			commanders.NewDiskUsageChecker(client).Execute(dbPort)
+			return commanders.NewDiskUsageChecker(client).Execute(dbPort)
 		},
 	}
 
@@ -153,15 +224,40 @@ func main() {
 			conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
 				grpc.WithInsecure())
 			if connConfigErr != nil {
-				fmt.Println(connConfigErr)
+				gpbackupUtils.Error(connConfigErr.Error())
 				os.Exit(1)
 			}
 			client := pb.NewCliToHubClient(conn)
 			err := commanders.NewConfigChecker(client).Execute(dbPort)
 			if err != nil {
-				fmt.Println(err)
+				gpbackupUtils.Error(err.Error())
 				os.Exit(1)
 			}
+		},
+	}
+
+	var cmdCheckSubSeginstall = &cobra.Command{
+		Use:   "seginstall",
+		Short: "confirms that the new software is installed on all segments",
+		Long: "Running this command will validate that the new software is installed on all segments, " +
+			"and register successful or failed validation (available in `gp_upgrade status upgrade`)",
+		Run: func(cmd *cobra.Command, args []string) {
+			conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
+				grpc.WithInsecure())
+			if connConfigErr != nil {
+				gpbackupUtils.Error(connConfigErr.Error())
+				os.Exit(1)
+			}
+			client := pb.NewCliToHubClient(conn)
+
+			err := commanders.NewSeginstallChecker(client).Execute()
+			if err != nil {
+				gpbackupUtils.Error(err.Error())
+				os.Exit(1)
+			}
+
+			fmt.Println("Seginstall is underway. Use command \"gp_upgrade status upgrade\" " +
+				"to check its current status, and/or hub logs for possible errors.")
 		},
 	}
 
@@ -174,6 +270,33 @@ func main() {
 		},
 	}
 
+	var cmdUpgrade = &cobra.Command{
+		Use:   "upgrade",
+		Short: "starts upgrade process",
+		Long:  `starts upgrade process`,
+	}
+
+	var cmdUpgradeSubConvertMaster = &cobra.Command{
+		Use:   "convert-master",
+		Short: "start upgrade process on master",
+		Long:  `start upgrade process on master`,
+		Run: func(cmd *cobra.Command, args []string) {
+			conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
+				grpc.WithInsecure())
+			if connConfigErr != nil {
+				gpbackupUtils.Error(connConfigErr.Error())
+				os.Exit(1)
+			}
+
+			client := pb.NewCliToHubClient(conn)
+			err := commanders.NewUpgrader(client).ConvertMaster(oldDataDir, oldBinDir, newDataDir, newBinDir)
+			if err != nil {
+				gpbackupUtils.Error(err.Error())
+				os.Exit(1)
+			}
+		},
+	}
+
 	var rootCmd = &cobra.Command{Use: "gp_upgrade"}
 
 	//TODO this could be improved.
@@ -182,10 +305,12 @@ func main() {
 		log.Fatal("Please specify one command of: prepare, check, status or version")
 	}
 	// all root level
-	rootCmd.AddCommand(cmdPrepare, cmdStatus, cmdCheck, cmdVersion)
+	rootCmd.AddCommand(cmdPrepare, cmdStatus, cmdCheck, cmdVersion, cmdUpgrade)
 
 	// prepare subcommmands
 	cmdPrepare.AddCommand(cmdPrepareSubStartHub)
+	cmdPrepare.AddCommand(cmdPrepareSubInitCluster)
+	cmdPrepare.AddCommand(cmdPrepareSubShutdownClusters)
 
 	// status subcommands
 	cmdStatus.AddCommand(cmdStatusSubUpgrade)
@@ -195,6 +320,14 @@ func main() {
 	cmdCheck.AddCommand(cmdCheckSubObjectCountCommand)
 	cmdCheck.AddCommand(cmdCheckSubDiskSpaceCommand)
 	cmdCheck.AddCommand(cmdCheckSubConfigCommand)
+	cmdCheck.AddCommand(cmdCheckSubSeginstall)
+
+	// upgrade subcommands
+	cmdUpgrade.AddCommand(cmdUpgradeSubConvertMaster)
+	cmdUpgradeSubConvertMaster.PersistentFlags().StringVar(&oldDataDir, "old-datadir", "", "data directory for old gpdb version")
+	cmdUpgradeSubConvertMaster.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	cmdUpgradeSubConvertMaster.PersistentFlags().StringVar(&newDataDir, "new-datadir", "", "data directory for new gpdb version")
+	cmdUpgradeSubConvertMaster.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
 
 	//TODO if give a subcommand that doesn't exist, we should give the user feedback
 

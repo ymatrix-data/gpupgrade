@@ -1,6 +1,7 @@
 package integrations_test
 
 import (
+	"gp_upgrade/cli/commanders"
 	"gp_upgrade/sshClient"
 	"gp_upgrade/testUtils"
 
@@ -15,6 +16,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
@@ -28,6 +31,7 @@ func TestCommands(t *testing.T) {
 var (
 	cliBinaryPath            string
 	hubBinaryPath            string
+	agentBinaryPath          string
 	sshd                     *exec.Cmd
 	fixture_path             string
 	sshdPath                 string
@@ -42,6 +46,13 @@ var _ = BeforeSuite(func() {
 	hubBinaryPath, err = Build("gp_upgrade/hub")
 	Expect(err).NotTo(HaveOccurred())
 	hubDirectoryPath := path.Dir(hubBinaryPath)
+
+	agentBinaryPath, err = Build("gp_upgrade/agent")
+	Expect(err).NotTo(HaveOccurred())
+	// move the agent binary into the hub directory and rename to match expected name
+	renamedAgentBinaryPath := filepath.Join(hubDirectoryPath, "/gp_upgrade_agent")
+	err = os.Rename(agentBinaryPath, renamedAgentBinaryPath)
+	Expect(err).NotTo(HaveOccurred())
 
 	// hub gets built as "hub", but rename for integration tests that expect
 	// "gp_upgrade_hub" to be on the path
@@ -58,15 +69,21 @@ var _ = BeforeSuite(func() {
 	sshdPath, err = Build("gp_upgrade/integrations/sshd")
 	Expect(err).NotTo(HaveOccurred())
 
-	// for master_only_integration_test, in `gp_upgrade prepare start-hub`. Fencepost problem where we want to clean up before & after each test
-	pkillCmd := exec.Command("pkill", "gp_upgrade_hub")
-	pkillCmd.Run()
+	/* Tests that need a hub up in a specific home directory should start their
+	* own. Other tests don't need a hub; don't start a fresh one automatically
+	* because it might be a waste. */
+	killHub()
 
 	_, this_file_path, _, _ := runtime.Caller(0)
 	fixture_path = path.Join(path.Dir(this_file_path), "fixtures")
 })
 
-var _ = SynchronizedAfterSuite(func() {}, func() {
+var _ = AfterSuite(func() {
+	/* for a developer who runs `make integration` and then goes on to manually
+	* test things out they should start their own up under a different HOME dir
+	* setting than what ginkgo has been using */
+	killHub()
+
 	CleanupBuildArtifacts()
 })
 
@@ -82,6 +99,8 @@ var _ = BeforeEach(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	waitForSocketToAllowConnections()
+
+	testUtils.EnsureHomeDirIsTempAndClean()
 })
 
 func waitForSocketToAllowConnections() {
@@ -99,7 +118,6 @@ func waitForSocketToAllowConnections() {
 		session, err := connector.Connect("localhost", 2022, "pivotal")
 		if err == nil {
 			session.Close()
-			//fmt.Println("success during waitForSocketToAllowConnections")
 			break
 		}
 
@@ -136,4 +154,25 @@ func ShutDownSshdServer() {
 		sshd.Process.Kill()
 		sshd = nil
 	}
+}
+
+func ensureHubIsUp() {
+	countHubs, _ := commanders.HowManyHubsRunning()
+
+	if countHubs == 0 {
+		prepareSession := runCommand("prepare", "start-hub")
+		Eventually(prepareSession).Should(Exit(0))
+	}
+
+}
+
+func killHub() {
+	//pkill gp_upgrade_ will kill both gp_upgrade_hub and gp_upgrade_agent
+	pkillCmd := exec.Command("pkill", "gp_upgrade_")
+	pkillCmd.Run()
+}
+
+func restartHub() {
+	killHub()
+	ensureHubIsUp()
 }
