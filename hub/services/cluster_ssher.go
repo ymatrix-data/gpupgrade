@@ -2,15 +2,16 @@ package services
 
 import (
 	"fmt"
-	"gp_upgrade/hub/logger"
 	"gp_upgrade/utils"
 	"os"
 	"path/filepath"
+
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
 
 type ClusterSsher struct {
 	checklistWriter ChecklistWriter
-	logger          logger.LogEntry
+	AgentPinger     AgentPinger
 }
 
 type ChecklistWriter interface {
@@ -20,52 +21,79 @@ type ChecklistWriter interface {
 	MarkComplete(string) error
 }
 
-func NewClusterSsher(cw ChecklistWriter, logger logger.LogEntry) *ClusterSsher {
-	return &ClusterSsher{checklistWriter: cw, logger: logger}
+type AgentPinger interface {
+	PingPollAgents() error
+}
+
+func NewClusterSsher(cw ChecklistWriter, ap AgentPinger) *ClusterSsher {
+	return &ClusterSsher{checklistWriter: cw, AgentPinger: ap}
 }
 
 func (c *ClusterSsher) VerifySoftware(hostnames []string) {
-	err := c.checklistWriter.ResetStateDir("seginstall")
+	hubPath, _ := os.Executable()
+	agentPath := filepath.Join(filepath.Dir(hubPath), "gp_upgrade_agent")
+	statedir := "seginstall"
+	anyFailed := c.remoteExec(hostnames, statedir, []string{"ls", agentPath})
+	handleStatusLogging(c, statedir, anyFailed)
+}
+
+func (c *ClusterSsher) Start(hostnames []string) {
+	// ssh -o "StrictHostKeyChecking=no" hostname /path/to/gp_upgrade_agent
+	statedir := "start-agents"
+	hubPath, _ := os.Executable()
+	agentPath := filepath.Join(filepath.Dir(hubPath), "gp_upgrade_agent")
+	////ssh -n -f user@host "sh -c 'cd /whereever; nohup ./whatever > /dev/null 2>&1 &'"
+	completeCommandString := fmt.Sprintf("sh -c 'nohup %s > /dev/null 2>&1 & '", agentPath)
+	c.remoteExec(hostnames, statedir, []string{completeCommandString})
+
+	//check that all the agents are running
+	var err error
+	err = c.AgentPinger.PingPollAgents()
+	anyFailed := err != nil
+	handleStatusLogging(c, statedir, anyFailed)
+}
+
+func (c *ClusterSsher) remoteExec(hostnames []string, statedir string, command []string) bool {
+	err := c.checklistWriter.ResetStateDir(statedir)
 	if err != nil {
-		c.logger.Error <- err.Error()
+		gplog.Error(err.Error())
 		//For MMVP, return here, but maybe should log more info
-		return
+		return true
 	}
-	err = c.checklistWriter.MarkInProgress("seginstall")
+	err = c.checklistWriter.MarkInProgress(statedir)
 	if err != nil {
-		c.logger.Error <- err.Error()
+		gplog.Error(err.Error())
 		//For MMVP, return here, but maybe should log more info
-		return
+		return true
 	}
 	//default assumption: GPDB is installed on the same path on all hosts in cluster
 	//we're looking for gp_upgrade_agent as proof that the new binary is installed
 	//TODO: if this finds nothing, should we err out? do a fallback check based on $GPHOME?
-	hubPath, _ := os.Executable()
-	agentPath := filepath.Join(filepath.Dir(hubPath), "gp_upgrade_agent")
 	var anyFailed = false
 	for _, hostname := range hostnames {
-		output, err := utils.System.ExecCmdCombinedOutput("ssh",
-			"-o",
-			"StrictHostKeyChecking=no",
-			hostname,
-			"ls",
-			agentPath,
-		)
+		sshArgs := []string{"-o", "StrictHostKeyChecking=no", hostname}
+		sshArgs = append(sshArgs, command...)
+		output, err := utils.System.ExecCmdCombinedOutput("ssh", sshArgs...)
 		if err != nil {
-			c.logger.Error <- string(output)
-			c.logger.Error <- fmt.Sprintf("didn't find %s on %s", agentPath, hostname)
+			gplog.Error("Couldn't run %s on %s: %s", command, hostname, string(output))
 			anyFailed = true
 		}
 	}
+	return anyFailed
+}
+
+func handleStatusLogging(c *ClusterSsher, statedir string, anyFailed bool) {
 	if anyFailed {
-		err = c.checklistWriter.MarkFailed("seginstall")
+		err := c.checklistWriter.MarkFailed(statedir)
 		if err != nil {
-			c.logger.Error <- err.Error()
+			fmt.Println("Got an error (failed):", err)
+			gplog.Error(err.Error())
 		}
 		return
 	}
-	err = c.checklistWriter.MarkComplete("seginstall")
+	err := c.checklistWriter.MarkComplete(statedir)
 	if err != nil {
-		c.logger.Error <- err.Error()
+		fmt.Println("Got an error (complete):", err)
+		gplog.Error(err.Error())
 	}
 }

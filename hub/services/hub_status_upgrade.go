@@ -9,12 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"golang.org/x/net/context"
 )
 
 func (s *CatchAllCliToHubListenerImpl) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*pb.StatusUpgradeReply, error) {
-	gpbackupUtils.Info("starting StatusUpgrade")
+	gplog.Info("starting StatusUpgrade")
 
 	demoStepStatus := &pb.UpgradeStepStatus{
 		Step:   pb.UpgradeSteps_CHECK_CONFIG,
@@ -29,21 +29,25 @@ func (s *CatchAllCliToHubListenerImpl) StatusUpgrade(ctx context.Context, in *pb
 	}
 
 	seginstallStatePath := filepath.Join(homeDirectory, ".gp_upgrade/seginstall")
-	gpbackupUtils.Debug("looking for seginstall State at %s", seginstallStatePath)
-	seginstallState := upgradestatus.NewSeginstall(seginstallStatePath)
+	gplog.Debug("looking for seginstall State at %s", seginstallStatePath)
+	seginstallState := upgradestatus.NewStateCheck(seginstallStatePath, pb.UpgradeSteps_SEGINSTALL)
 	seginstallStatus, _ := seginstallState.GetStatus()
 
 	gpstopStatePath := filepath.Join(homeDirectory, ".gp_upgrade/gpstop")
 	clusterPair := upgradestatus.NewShutDownClusters(gpstopStatePath)
+	shutdownClustersStatus, _ := clusterPair.GetStatus()
 
 	pgUpgradePath := filepath.Join(homeDirectory, ".gp_upgrade/pg_upgrade")
 	convertMaster := upgradestatus.NewConvertMaster(pgUpgradePath)
-
-	shutdownClustersStatus, _ := clusterPair.GetStatus()
 	masterUpgradeStatus, _ := convertMaster.GetStatus()
 
+	startAgentsStatePath := filepath.Join(homeDirectory, ".gp_upgrade/start-agents")
+	prepareStartAgentsState := upgradestatus.NewStateCheck(startAgentsStatePath, pb.UpgradeSteps_PREPARE_START_AGENTS)
+	startAgentsStatus, _ := prepareStartAgentsState.GetStatus()
+
 	reply := &pb.StatusUpgradeReply{}
-	reply.ListOfUpgradeStepStatuses = append(reply.ListOfUpgradeStepStatuses, demoStepStatus, seginstallStatus, prepareInitStatus, shutdownClustersStatus, masterUpgradeStatus)
+	reply.ListOfUpgradeStepStatuses = append(reply.ListOfUpgradeStepStatuses, demoStepStatus, seginstallStatus,
+		prepareInitStatus, shutdownClustersStatus, masterUpgradeStatus, startAgentsStatus)
 	return reply, nil
 }
 
@@ -52,7 +56,7 @@ func GetPrepareNewClusterConfigStatus() (*pb.UpgradeStepStatus, error) {
 	_, err := utils.System.Stat(configutils.GetNewClusterConfigFilePath())
 
 	if err != nil {
-		gpbackupUtils.Debug("%v", err)
+		gplog.Debug("%v", err)
 		return &pb.UpgradeStepStatus{Step: pb.UpgradeSteps_PREPARE_INIT_CLUSTER,
 			Status: pb.StepStatus_PENDING}, nil
 	}

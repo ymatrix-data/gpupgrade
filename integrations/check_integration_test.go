@@ -1,7 +1,7 @@
 package integrations_test
 
 import (
-	"gp_upgrade/testUtils"
+	"gp_upgrade/testutils"
 	"io/ioutil"
 
 	"gp_upgrade/hub/configutils"
@@ -31,12 +31,12 @@ var _ = Describe("check", func() {
 			// check file
 
 			_, err := ioutil.ReadFile(configutils.GetConfigFilePath())
-			testUtils.Check("cannot read file", err)
+			testutils.Check("cannot read file", err)
 
 			reader := configutils.Reader{}
 			reader.OfOldClusterConfig()
 			err = reader.Read()
-			testUtils.Check("cannot read config", err)
+			testutils.Check("cannot read config", err)
 
 			// for extra credit, read db and compare info
 			Expect(len(reader.GetSegmentConfiguration())).To(BeNumerically(">", 1))
@@ -62,8 +62,10 @@ var _ = Describe("check", func() {
 			expectationsDuringCommandInFlight := make(chan bool)
 
 			go func() {
+				defer GinkgoRecover()
 				// TODO: Can this flake? if the in-progress window is shorter than the frequency of Eventually(), then yea
 				Eventually(runStatusUpgrade).Should(ContainSubstring("RUNNING - Install binaries on segments"))
+				//close channel here
 				expectationsDuringCommandInFlight <- true
 			}()
 
@@ -74,6 +76,7 @@ var _ = Describe("check", func() {
 			Eventually(runStatusUpgrade).Should(ContainSubstring("COMPLETE - Install binaries on segments"))
 		})
 	})
+
 })
 
 func runStatusUpgrade() string {

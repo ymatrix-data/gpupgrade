@@ -13,10 +13,10 @@ service CliToHub {
     rpc PrepareInitCluster(PrepareInitClusterRequest) returns (PrepareInitClusterReply) {}
     rpc PrepareShutdownClusters(PrepareShutdownClustersRequest) returns (PrepareShutdownClustersReply) {}
     rpc UpgradeConvertMaster(UpgradeConvertMasterRequest) returns (UpgradeConvertMasterReply) {}
+    rpc PrepareStartAgents(PrepareStartAgentsRequest) returns (PrepareStartAgentsReply) {}
 }
 
-message PingRequest {
-}
+message PingRequest {}
 message PingReply {}
 
 message StatusUpgradeRequest {}
@@ -37,6 +37,7 @@ enum UpgradeSteps {
     PREPARE_INIT_CLUSTER = 3;
     MASTERUPGRADE = 4;
     STOPPED_CLUSTER = 5;
+    PREPARE_START_AGENTS = 6;
 }
 
 enum StepStatus {
@@ -58,6 +59,9 @@ message CheckConfigReply {
 
 message CheckSeginstallRequest {}
 message CheckSeginstallReply {}
+
+message PrepareStartAgentsRequest {}
+message PrepareStartAgentsReply {}
 
 message CountPerDb {
     string DbName = 1;

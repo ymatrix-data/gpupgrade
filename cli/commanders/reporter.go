@@ -5,7 +5,7 @@ import (
 	"fmt"
 	pb "gp_upgrade/idl"
 
-	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +27,7 @@ var UpgradeStepsMessage = map[pb.UpgradeSteps]string{
 	pb.UpgradeSteps_CHECK_CONFIG:         "- Configuration Check",
 	pb.UpgradeSteps_SEGINSTALL:           "- Install binaries on segments",
 	pb.UpgradeSteps_PREPARE_INIT_CLUSTER: "- Initialize upgrade target cluster",
+	pb.UpgradeSteps_PREPARE_START_AGENTS: "- Agents Started on Cluster",
 	pb.UpgradeSteps_MASTERUPGRADE:        "- Run pg_upgrade on master",
 	pb.UpgradeSteps_STOPPED_CLUSTER:      "- Shutdown clusters",
 }
@@ -48,7 +49,7 @@ func (r *Reporter) OverallUpgradeStatus() error {
 		upgradeStepStatus := reply.ListOfUpgradeStepStatuses[i]
 		reportString := fmt.Sprintf("%v %s", upgradeStepStatus.Status,
 			UpgradeStepsMessage[upgradeStepStatus.Step])
-		gpbackupUtils.Info(reportString)
+		gplog.Info(reportString)
 	}
 
 	return nil

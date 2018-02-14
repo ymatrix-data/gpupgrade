@@ -10,12 +10,10 @@ import (
 
 	pb "gp_upgrade/idl"
 
-	"fmt"
-	hubLogger "gp_upgrade/hub/logger"
 	"os"
 	"runtime/debug"
 
-	gpbackupUtils "github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
 )
 
@@ -34,46 +32,19 @@ func main() {
 		Long:  `Start the gp_upgrade_hub (blocks)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			debug.SetTraceback("all")
-			gpbackupUtils.InitializeLogging("gp_upgrade_hub", logdir)
-			errorChannel := make(chan error)
-			defer close(errorChannel)
+			gplog.InitializeLogging("gp_upgrade_hub", logdir)
 			lis, err := net.Listen("tcp", cliToHubPort)
 			if err != nil {
-				gpbackupUtils.Fatal(err, "failed to listen")
+				gplog.Fatal(err, "failed to listen")
 			}
 
-			channelLogger := hubLogger.LogEntry{Info: make(chan string), Error: make(chan string), Done: make(chan bool)}
 			server := grpc.NewServer()
 			clusterPair := cluster.Pair{}
-			myImpl := services.NewCliToHubListener(channelLogger, &clusterPair)
+			myImpl := services.NewCliToHubListener(&clusterPair)
 			pb.RegisterCliToHubServer(server, myImpl)
 			reflection.Register(server)
-			go func(myListener net.Listener) {
-				if err := server.Serve(myListener); err != nil {
-					gpbackupUtils.Fatal(err, "failed to serve", err)
-					errorChannel <- err
-				}
-
-				close(errorChannel)
-			}(lis)
-
-			go func(channelLogger hubLogger.LogEntry) {
-				for {
-					select {
-					case infoMsg := <-channelLogger.Info:
-						gpbackupUtils.Info(infoMsg)
-					case errorMsg := <-channelLogger.Error:
-						fmt.Println("got error log")
-						gpbackupUtils.Error(errorMsg)
-					}
-				}
-			}(channelLogger)
-
-			select {
-			case err := <-errorChannel:
-				if err != nil {
-					gpbackupUtils.Fatal(err, "error during Listening")
-				}
+			if err := server.Serve(lis); err != nil {
+				gplog.Fatal(err, "failed to serve", err)
 			}
 			return nil
 		},
@@ -82,7 +53,7 @@ func main() {
 	RootCmd.PersistentFlags().StringVar(&logdir, "log-directory", "", "gp_upgrade_hub log directory")
 
 	if err := RootCmd.Execute(); err != nil {
-		gpbackupUtils.Error(err.Error())
+		gplog.Error(err.Error())
 		os.Exit(1)
 	}
 

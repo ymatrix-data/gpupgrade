@@ -1,4 +1,4 @@
-package shellParsers_test
+package sshclient_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestCommands(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Shell Parsers Suite")
+	RunSpecs(t, "Ssh Suite")
 }
