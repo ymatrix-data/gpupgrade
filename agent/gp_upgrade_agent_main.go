@@ -1,11 +1,13 @@
 package main
 
 import (
+	"net"
 	"os"
+	"os/exec"
 
 	"gp_upgrade/agent/services"
+	"gp_upgrade/helpers"
 	pb "gp_upgrade/idl"
-	"net"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
@@ -41,9 +43,14 @@ func main() {
 			}
 
 			server := grpc.NewServer()
-			myImpl := services.NewCommandListener()
-			pb.RegisterCommandListenerServer(server, myImpl)
+
+			commandExecer := func(command string, vars ...string) helpers.Command {
+				return exec.Command(command, vars...)
+			}
+			agentServer := services.NewAgentServer(commandExecer)
+			pb.RegisterAgentServer(server, agentServer)
 			reflection.Register(server)
+
 			go func(myListener net.Listener) {
 				if err := server.Serve(myListener); err != nil {
 					gplog.Fatal(err, "failed to serve", err)
@@ -62,6 +69,7 @@ func main() {
 			return nil
 		},
 	}
+
 	RootCmd.PersistentFlags().StringVar(&logdir, "log-directory", "", "command_listener log directory")
 
 	if err := RootCmd.Execute(); err != nil {

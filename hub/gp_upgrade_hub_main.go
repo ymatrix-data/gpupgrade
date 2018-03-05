@@ -1,24 +1,19 @@
 package main
 
 import (
-	"gp_upgrade/hub/cluster"
-	"gp_upgrade/hub/services"
-	"net"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-
-	pb "gp_upgrade/idl"
-
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime/debug"
+
+	"gp_upgrade/helpers"
+	"gp_upgrade/hub/cluster"
+	"gp_upgrade/hub/configutils"
+	"gp_upgrade/hub/services"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
-)
-
-const (
-	cliToHubPort = ":7527"
+	"google.golang.org/grpc"
 )
 
 // This directory to have the implementation code for the gRPC server to serve
@@ -31,21 +26,25 @@ func main() {
 		Short: "Start the gp_upgrade_hub (blocks)",
 		Long:  `Start the gp_upgrade_hub (blocks)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			debug.SetTraceback("all")
 			gplog.InitializeLogging("gp_upgrade_hub", logdir)
-			lis, err := net.Listen("tcp", cliToHubPort)
-			if err != nil {
-				gplog.Fatal(err, "failed to listen")
-			}
+			debug.SetTraceback("all")
 
-			server := grpc.NewServer()
-			clusterPair := cluster.Pair{}
-			myImpl := services.NewCliToHubListener(&clusterPair)
-			pb.RegisterCliToHubServer(server, myImpl)
-			reflection.Register(server)
-			if err := server.Serve(lis); err != nil {
-				gplog.Fatal(err, "failed to serve", err)
+			conf := &services.HubConfig{
+				CliToHubPort:   7527,
+				HubToAgentPort: 6416,
+				StateDir:       filepath.Join(os.Getenv("HOME"), ".gp_upgrade"),
+				LogDir:         logdir,
 			}
+			reader := configutils.NewReader()
+
+			commandExecer := func(command string, vars ...string) helpers.Command {
+				return exec.Command(command, vars...)
+			}
+			hub := services.NewHub(&cluster.Pair{}, &reader, grpc.DialContext, commandExecer, conf)
+			hub.Start()
+
+			hub.Stop()
+
 			return nil
 		},
 	}
@@ -56,5 +55,4 @@ func main() {
 		gplog.Error(err.Error())
 		os.Exit(1)
 	}
-
 }

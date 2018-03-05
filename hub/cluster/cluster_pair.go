@@ -1,20 +1,14 @@
 package cluster
 
 import (
-	"gp_upgrade/hub/configutils"
-	"gp_upgrade/utils"
-
 	"fmt"
+
+	"gp_upgrade/helpers"
+	"gp_upgrade/hub/configutils"
 	"gp_upgrade/hub/upgradestatus"
-	"os/exec"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
-
-type PairOperator interface {
-	Init(string, string) error
-	StopEverything(string)
-}
 
 type Pair struct {
 	upgradeConfig          configutils.UpgradeConfig
@@ -24,14 +18,16 @@ type Pair struct {
 	newMasterDataDirectory string
 	oldBinDir              string
 	newBinDir              string
+	commandExecer          helpers.CommandExecer
 }
 
-func (cp *Pair) Init(oldBinDir string, newBinDir string) error {
+func (cp *Pair) Init(baseDir, oldBinDir, newBinDir string, execer helpers.CommandExecer) error {
 	var err error
 	cp.oldBinDir = oldBinDir
 	cp.newBinDir = newBinDir
+	cp.commandExecer = execer
 
-	cp.upgradeConfig, err = configutils.GetUpgradeConfig()
+	cp.upgradeConfig, err = configutils.GetUpgradeConfig(baseDir)
 	if err != nil {
 		return fmt.Errorf("couldn't read config files: %v", err)
 	}
@@ -56,18 +52,18 @@ func (cp *Pair) StopEverything(pathToGpstopStateDir string) {
 
 	oldGpstopShellArgs := fmt.Sprintf("PGPORT=%d && MASTER_DATA_DIRECTORY=%s && %s/gpstop -a",
 		cp.oldMasterPort, cp.oldMasterDataDirectory, cp.oldBinDir)
-	runOldStopCmd := utils.System.ExecCommand("bash", "-c", oldGpstopShellArgs)
+	runOldStopCmd := cp.commandExecer("bash", "-c", oldGpstopShellArgs)
 
 	newGpstopShellArgs := fmt.Sprintf("PGPORT=%d && MASTER_DATA_DIRECTORY=%s && %s/gpstop -a", cp.newMasterPort,
 		cp.newMasterDataDirectory, cp.newBinDir)
-	runNewStopCmd := utils.System.ExecCommand("bash", "-c", newGpstopShellArgs)
+	runNewStopCmd := cp.commandExecer("bash", "-c", newGpstopShellArgs)
 
 	stopCluster(runOldStopCmd, "gpstop.old", checklistManager)
 	stopCluster(runNewStopCmd, "gpstop.new", checklistManager)
 }
 
-func stopCluster(stopCmd *exec.Cmd, baseName string, stateManager *upgradestatus.ChecklistManager) {
-	err := stateManager.MarkInProgress(baseName)
+func stopCluster(stopCmd helpers.Command, step string, stateManager *upgradestatus.ChecklistManager) {
+	err := stateManager.MarkInProgress(step)
 	if err != nil {
 		gplog.Error(err.Error())
 		return
@@ -75,12 +71,12 @@ func stopCluster(stopCmd *exec.Cmd, baseName string, stateManager *upgradestatus
 
 	err = stopCmd.Run()
 
-	gplog.Info("finished stopping %s", baseName)
-
+	gplog.Info("finished stopping %s", step)
 	if err != nil {
 		gplog.Error(err.Error())
-		stateManager.MarkFailed(baseName)
+		stateManager.MarkFailed(step)
 		return
 	}
-	stateManager.MarkComplete(baseName)
+
+	stateManager.MarkComplete(step)
 }

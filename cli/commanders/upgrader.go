@@ -33,3 +33,27 @@ func (u Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir 
 	gplog.Info("Kicked off pg_upgrade request.")
 	return nil
 }
+
+func (u Upgrader) ShareOids() error {
+	_, err := u.client.UpgradeShareOids(context.Background(), &pb.UpgradeShareOidsRequest{})
+	if err != nil {
+		gplog.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (u Upgrader) ValidateStartCluster(newDataDir string, newBinDir string) error {
+	_, err := u.client.UpgradeValidateStartCluster(context.Background(), &pb.UpgradeValidateStartClusterRequest{
+		NewDataDir: newDataDir,
+		NewBinDir:  newBinDir,
+	})
+	if err != nil {
+		gplog.Error(err.Error())
+		return err
+	}
+
+	gplog.Info("Kicked off request for validation of cluster startup.")
+	return nil
+}

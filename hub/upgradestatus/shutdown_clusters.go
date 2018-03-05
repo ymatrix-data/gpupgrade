@@ -1,6 +1,7 @@
 package upgradestatus
 
 import (
+	"gp_upgrade/helpers"
 	pb "gp_upgrade/idl"
 	"gp_upgrade/utils"
 
@@ -9,10 +10,14 @@ import (
 
 type ShutDownClusters struct {
 	gpstopStatePath string
+	commandExecer   helpers.CommandExecer
 }
 
-func NewShutDownClusters(gpstopStatePath string) ShutDownClusters {
-	return ShutDownClusters{gpstopStatePath: gpstopStatePath}
+func NewShutDownClusters(gpstopStatePath string, execer helpers.CommandExecer) ShutDownClusters {
+	return ShutDownClusters{
+		gpstopStatePath: gpstopStatePath,
+		commandExecer:   execer,
+	}
 }
 
 /*
@@ -20,12 +25,11 @@ func NewShutDownClusters(gpstopStatePath string) ShutDownClusters {
 	- gpstop will not fail without error before writing an inprogress file
 	- when a new gpstop is started it deletes all *.done and *.inprogress files
 */
-func (s ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
+func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 	var shutdownClustersStatus *pb.UpgradeStepStatus
 	gpstopStatePath := s.gpstopStatePath
 
 	if _, err := utils.System.Stat(gpstopStatePath); utils.System.IsNotExist(err) {
-		gplog.Info("setting status to PENDING")
 		shutdownClustersStatus = &pb.UpgradeStepStatus{
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_PENDING,
@@ -38,8 +42,7 @@ func (s ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 	 * We only care if the inprogress file exists. We are relying on the hub to never go down
 	 * for this state processing to work.
 	 */
-	if isGpstopRunning() && s.inProgressFilesExist(gpstopStatePath) {
-		gplog.Info("setting status to RUNNING")
+	if s.isGpstopRunning() && s.inProgressFilesExist(gpstopStatePath) {
 		shutdownClustersStatus = &pb.UpgradeStepStatus{
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_RUNNING,
@@ -48,7 +51,6 @@ func (s ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 	}
 
 	if !s.inProgressFilesExist(gpstopStatePath) && s.IsStopComplete(gpstopStatePath) {
-		gplog.Info("setting status to COMPLETE")
 		shutdownClustersStatus = &pb.UpgradeStepStatus{
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_COMPLETE,
@@ -56,7 +58,6 @@ func (s ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 		return shutdownClustersStatus, nil
 	}
 
-	gplog.Info("setting status to FAILED")
 	shutdownClustersStatus = &pb.UpgradeStepStatus{
 		Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 		Status: pb.StepStatus_FAILED,
@@ -65,17 +66,17 @@ func (s ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 	return shutdownClustersStatus, nil
 }
 
-func isGpstopRunning() bool {
+func (s *ShutDownClusters) isGpstopRunning() bool {
 	//if pgrep doesnt find target, ExecCmdOutput will return empty byte array and err.Error()="exit status 1"
-	pgUpgradePids, err := utils.System.ExecCmdOutput("pgrep", "-f", "gpstop")
+	pgUpgradePids, err := s.commandExecer("pgrep", "-f", "gpstop").Output()
 	if err == nil && len(pgUpgradePids) != 0 {
 		return true
 	}
 	return false
 }
 
-func (s ShutDownClusters) inProgressFilesExist(gpstopStatePath string) bool {
-	files, err := utils.System.FilePathGlob(gpstopStatePath + "/*.inprogress")
+func (s *ShutDownClusters) inProgressFilesExist(gpstopStatePath string) bool {
+	files, err := utils.System.FilePathGlob(gpstopStatePath + "/*/in.progress")
 	if files == nil {
 		return false
 	}
@@ -88,9 +89,8 @@ func (s ShutDownClusters) inProgressFilesExist(gpstopStatePath string) bool {
 	return true
 }
 
-func (s ShutDownClusters) IsStopComplete(gpstopStatePath string) bool {
-
-	completeFiles, completeErr := utils.System.FilePathGlob(gpstopStatePath + "/*.complete")
+func (s *ShutDownClusters) IsStopComplete(gpstopStatePath string) bool {
+	completeFiles, completeErr := utils.System.FilePathGlob(gpstopStatePath + "/*/completed")
 	if completeFiles == nil {
 		return false
 	}

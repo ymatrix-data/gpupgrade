@@ -2,13 +2,10 @@ package cluster_test
 
 import (
 	"errors"
-	"fmt"
 	"os"
-	"os/exec"
-	"strconv"
-	"testing"
 
 	"gp_upgrade/hub/cluster"
+	"gp_upgrade/testutils"
 	"gp_upgrade/utils"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -34,41 +31,27 @@ const (
 `
 )
 
-// TestHelperProcess isn't a real test. It's used as a helper process
-// for TestParameterRun.
-func TestHelperProcess(t *testing.T) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
-		return
-	}
-
-	mockedOutput := os.Getenv("MOCKED_OUTPUT")
-	mockedExitStatus, err := strconv.Atoi(os.Getenv("MOCKED_EXIT_STATUS"))
-	if err != nil {
-		mockedOutput = "Exit status conversion failed.\nAre we missing the mocked_exit_status?"
-		mockedExitStatus = -1
-	}
-	defer os.Exit(mockedExitStatus)
-	fmt.Fprintf(os.Stdout, mockedOutput)
-}
-
 var _ = Describe("ClusterPair", func() {
 	var (
+		dir              string
 		mockedOutput     string
 		mockedExitStatus int
 
 		filesLaidDown []string
+		commandExecer *testutils.FakeCommandExecer
+		errChan       chan error
+		outChan       chan []byte
 	)
 
-	/* This idea came from https://golang.org/src/os/exec/exec_test.go */
-	fakeExecCommand := func(command string, args ...string) *exec.Cmd {
-		cs := []string{"-test.run=TestHelperProcess", "--", command}
-		cs = append(cs, args...)
-		cmd := exec.Command(os.Args[0], cs...)
-		output := fmt.Sprintf("MOCKED_OUTPUT=%s", mockedOutput)
-		exitStatus := fmt.Sprintf("MOCKED_EXIT_STATUS=%d", mockedExitStatus)
-		cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", output, exitStatus}
-		return cmd
-	}
+	BeforeEach(func() {
+		commandExecer = &testutils.FakeCommandExecer{}
+		errChan = make(chan error, 2)
+		outChan = make(chan []byte, 2)
+		commandExecer.SetOutput(&testutils.FakeCommand{
+			Err: errChan,
+			Out: outChan,
+		})
+	})
 
 	AfterEach(func() {
 		utils.System = utils.InitializeSystemFunctions()
@@ -101,20 +84,15 @@ var _ = Describe("ClusterPair", func() {
 		It("Logs successful when things work", func() {
 			mockedExitStatus = 0
 			mockedOutput = "Something that's not bad"
-			utils.System.ExecCommand = fakeExecCommand
+
+			outChan <- []byte("some output")
 
 			subject := cluster.Pair{}
-			err := subject.Init("old/path", "new/path")
+			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
 
 			subject.StopEverything("path/to/gpstop")
 
-			/* By waiting on the channel message, we enforce the test to wait for
-			 * the goroutine to finish and not hit the "race" issue
-			 */
-			//Consistently(fakeLogger.Error).ShouldNot(Receive())
-			//Eventually(fakeLogger.Info).Should(Receive(Equal("finished stopping gpstop.old")))
-			//Eventually(fakeLogger.Info).Should(Receive(Equal("finished stopping gpstop.new")))
 			Expect(filesLaidDown).To(ContainElement("path/to/gpstop/gpstop.old/completed"))
 			Expect(filesLaidDown).To(ContainElement("path/to/gpstop/gpstop.new/completed"))
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.old/running"))
@@ -127,30 +105,26 @@ var _ = Describe("ClusterPair", func() {
 			}
 
 			subject := cluster.Pair{}
-			err := subject.Init("old/path", "new/path")
+			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
 
 			subject.StopEverything("path/to/gpstop")
 
-			//Eventually(fakeLogger.Error).Should(Receive(Equal("filesystem blowup")))
-			//Consistently(fakeLogger.Info).ShouldNot(Receive(Equal("finished stopping gpstop.old")))
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.old/in.progress"))
 		})
 
 		It("puts Stop failures in the log and leaves files to mark the error", func() {
 			mockedExitStatus = 127
 			mockedOutput = "gpstop failed us" // what gpstop puts in its own logs
-			utils.System.ExecCommand = fakeExecCommand
+
+			errChan <- errors.New("failed")
 
 			subject := cluster.Pair{}
-			err := subject.Init("old/path", "new/path")
+			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
 
 			subject.StopEverything("path/to/gpstop")
 
-			// failing because stopCmd.Run() isn't returning an err
-			//Eventually(fakeLogger.Info).Should(Receive(Equal("finished stopping gpstop.old")))
-			//Eventually(fakeLogger.Error).Should(Receive(Equal("exit status 127")))
 			Expect(filesLaidDown).To(ContainElement("path/to/gpstop/gpstop.old/failed"))
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.old/in.progress"))
 		})

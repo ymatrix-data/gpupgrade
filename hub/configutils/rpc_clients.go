@@ -14,13 +14,13 @@ const (
 )
 
 type ClientAndHostname struct {
-	Client   pb.CommandListenerClient
+	Client   pb.AgentClient
 	Hostname string
 }
 
-func GetRPCClients() ([]ClientAndHostname, error) {
+func GetClients(baseDir string) ([]ClientAndHostname, error) {
 	reader := NewReader()
-	reader.OfOldClusterConfig()
+	reader.OfOldClusterConfig(baseDir)
 	hostnames, err := reader.GetHostnames()
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func GetRPCClients() ([]ClientAndHostname, error) {
 			gplog.Error(err.Error())
 		}
 		clientAndHost := ClientAndHostname{
-			Client:   pb.NewCommandListenerClient(conn),
+			Client:   pb.NewAgentClient(conn),
 			Hostname: hostnames[i],
 		}
 		clients = append(clients, clientAndHost)

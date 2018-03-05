@@ -2,7 +2,7 @@ package upgradestatus_test
 
 import (
 	"os"
-	"path/filepath"
+	"strings"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	. "github.com/onsi/ginkgo"
@@ -12,21 +12,30 @@ import (
 	pb "gp_upgrade/idl"
 	"gp_upgrade/testutils"
 	"gp_upgrade/utils"
-	"strings"
 
 	"github.com/pkg/errors"
 )
 
-var _ bool = Describe("hub", func() {
+var _ = Describe("hub", func() {
+	var (
+		commandExecer *testutils.FakeCommandExecer
+		errChan       chan error
+		outChan       chan []byte
+	)
+
 	BeforeEach(func() {
 		testhelper.SetupTestLogger() // extend to capture the values in a var if future tests need it
 
-		homeDirectory := os.Getenv("HOME")
-		// convert this eventually to an expect
-		Eventually(homeDirectory).Should(Not(Equal("")))
-		err := os.RemoveAll(filepath.Join(homeDirectory, "/.gp_upgrade/gpstop"))
-		Expect(err).To(BeNil())
+		errChan = make(chan error, 2)
+		outChan = make(chan []byte, 2)
+
+		commandExecer = &testutils.FakeCommandExecer{}
+		commandExecer.SetOutput(&testutils.FakeCommand{
+			Err: errChan,
+			Out: outChan,
+		})
 	})
+
 	AfterEach(func() {
 		utils.System = utils.InitializeSystemFunctions()
 	})
@@ -39,7 +48,7 @@ var _ bool = Describe("hub", func() {
 			utils.System.IsNotExist = func(error) bool {
 				return true
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp")
+			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
 			status, err := subject.GetStatus()
 			Expect(err).To(BeNil())
 			Expect(status.Status).To(Equal(pb.StepStatus_PENDING))
@@ -52,16 +61,16 @@ var _ bool = Describe("hub", func() {
 			utils.System.IsNotExist = func(error) bool {
 				return false
 			}
-			utils.System.ExecCmdOutput = func(cmd string, args ...string) ([]byte, error) {
-				return []byte("I'm running"), nil
-			}
+
+			outChan <- []byte("I'm running")
+
 			utils.System.FilePathGlob = func(glob string) ([]string, error) {
-				if strings.Contains(glob, "inprogress") {
+				if strings.Contains(glob, "in.progress") {
 					return []string{"found something"}, nil
 				}
 				return nil, errors.New("Test not configured for this glob.")
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp")
+			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
 			status, err := subject.GetStatus()
 			Expect(err).To(BeNil())
 			Expect(status.Status).To(Equal(pb.StepStatus_RUNNING))
@@ -74,11 +83,11 @@ var _ bool = Describe("hub", func() {
 			utils.System.IsNotExist = func(error) bool {
 				return false
 			}
-			utils.System.ExecCmdOutput = func(cmd string, args ...string) ([]byte, error) {
-				return []byte(""), errors.New("exit status 1")
-			}
+
+			errChan <- errors.New("exit status 1")
+
 			utils.System.FilePathGlob = func(glob string) ([]string, error) {
-				if strings.Contains(glob, "inprogress") {
+				if strings.Contains(glob, "in.progress") {
 					return nil, errors.New("fake error")
 				} else if strings.Contains(glob, "complete") {
 					return []string{"old stop complete", "new stop complete"}, nil
@@ -92,7 +101,7 @@ var _ bool = Describe("hub", func() {
 				}
 				return nil, nil
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp")
+			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
 			status, err := subject.GetStatus()
 			Expect(err).To(BeNil())
 			Expect(status.Status).To(Equal(pb.StepStatus_COMPLETE))
@@ -107,10 +116,10 @@ var _ bool = Describe("hub", func() {
 			utils.System.IsNotExist = func(error) bool {
 				return false
 			}
-			utils.System.ExecCmdOutput = func(cmd string, args ...string) ([]byte, error) {
-				return []byte(""), errors.New("gpstop failed")
-			}
-			subject := upgradestatus.NewShutDownClusters("/tmp")
+
+			errChan <- errors.New("gpstop failed")
+
+			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
 			status, err := subject.GetStatus()
 			Expect(err).To(BeNil())
 			Expect(status.Status).To(Equal(pb.StepStatus_FAILED))

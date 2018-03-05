@@ -2,9 +2,10 @@ package services
 
 import (
 	"fmt"
-	"gp_upgrade/utils"
 	"os"
 	"path/filepath"
+
+	"gp_upgrade/helpers"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
@@ -12,6 +13,7 @@ import (
 type ClusterSsher struct {
 	checklistWriter ChecklistWriter
 	AgentPinger     AgentPinger
+	commandExecer   helpers.CommandExecer
 }
 
 type ChecklistWriter interface {
@@ -25,13 +27,16 @@ type AgentPinger interface {
 	PingPollAgents() error
 }
 
-func NewClusterSsher(cw ChecklistWriter, ap AgentPinger) *ClusterSsher {
-	return &ClusterSsher{checklistWriter: cw, AgentPinger: ap}
+func NewClusterSsher(cw ChecklistWriter, ap AgentPinger, commandExecer helpers.CommandExecer) *ClusterSsher {
+	return &ClusterSsher{
+		checklistWriter: cw,
+		AgentPinger:     ap,
+		commandExecer:   commandExecer,
+	}
 }
 
 func (c *ClusterSsher) VerifySoftware(hostnames []string) {
-	hubPath, _ := os.Executable()
-	agentPath := filepath.Join(filepath.Dir(hubPath), "gp_upgrade_agent")
+	agentPath := filepath.Join(os.Getenv("GPHOME"), "bin", "gp_upgrade_agent")
 	statedir := "seginstall"
 	anyFailed := c.remoteExec(hostnames, statedir, []string{"ls", agentPath})
 	handleStatusLogging(c, statedir, anyFailed)
@@ -40,10 +45,9 @@ func (c *ClusterSsher) VerifySoftware(hostnames []string) {
 func (c *ClusterSsher) Start(hostnames []string) {
 	// ssh -o "StrictHostKeyChecking=no" hostname /path/to/gp_upgrade_agent
 	statedir := "start-agents"
-	hubPath, _ := os.Executable()
-	agentPath := filepath.Join(filepath.Dir(hubPath), "gp_upgrade_agent")
+	agentPath := filepath.Join(os.Getenv("GPHOME"), "bin", "gp_upgrade_agent")
 	////ssh -n -f user@host "sh -c 'cd /whereever; nohup ./whatever > /dev/null 2>&1 &'"
-	completeCommandString := fmt.Sprintf("sh -c 'nohup %s > /dev/null 2>&1 & '", agentPath)
+	completeCommandString := fmt.Sprintf(`sh -c 'nohup %s > /dev/null 2>&1 & '`, agentPath)
 	c.remoteExec(hostnames, statedir, []string{completeCommandString})
 
 	//check that all the agents are running
@@ -73,9 +77,13 @@ func (c *ClusterSsher) remoteExec(hostnames []string, statedir string, command [
 	for _, hostname := range hostnames {
 		sshArgs := []string{"-o", "StrictHostKeyChecking=no", hostname}
 		sshArgs = append(sshArgs, command...)
-		output, err := utils.System.ExecCmdCombinedOutput("ssh", sshArgs...)
+		output, err := c.commandExecer("ssh", sshArgs...).CombinedOutput()
 		if err != nil {
-			gplog.Error("Couldn't run %s on %s: %s", command, hostname, string(output))
+			errText := "Couldn't run %s on %s:"
+			if output != nil {
+				errText += string(output)
+			}
+			gplog.Error(errText, command, hostname)
 			anyFailed = true
 		}
 	}
@@ -86,14 +94,12 @@ func handleStatusLogging(c *ClusterSsher, statedir string, anyFailed bool) {
 	if anyFailed {
 		err := c.checklistWriter.MarkFailed(statedir)
 		if err != nil {
-			fmt.Println("Got an error (failed):", err)
 			gplog.Error(err.Error())
 		}
 		return
 	}
 	err := c.checklistWriter.MarkComplete(statedir)
 	if err != nil {
-		fmt.Println("Got an error (complete):", err)
 		gplog.Error(err.Error())
 	}
 }

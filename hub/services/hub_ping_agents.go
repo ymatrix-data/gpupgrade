@@ -11,16 +11,17 @@ import (
 )
 
 type PingerManager struct {
-	RPCClients []configutils.ClientAndHostname
-	NumRetries int
+	RPCClients       []configutils.ClientAndHostname
+	NumRetries       int
+	PauseBeforeRetry time.Duration
 }
 
-func NewPingerManager() *PingerManager {
-	rpcClients, err := configutils.GetRPCClients()
+func NewPingerManager(baseDir string, t time.Duration) *PingerManager {
+	rpcClients, err := configutils.GetClients(baseDir)
 	if err != nil {
 		return &PingerManager{}
 	}
-	return &PingerManager{rpcClients, 10}
+	return &PingerManager{rpcClients, 10, t}
 }
 
 func (agent *PingerManager) PingPollAgents() error {
@@ -33,7 +34,7 @@ func (agent *PingerManager) PingPollAgents() error {
 			done = true
 			break
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(agent.PauseBeforeRetry)
 	}
 	if !done {
 		gplog.Info("Reached ping timeout")

@@ -24,6 +24,7 @@ all : dependencies build
 # The inheritied LD_LIBRARY_PATH setting causes git clone in go get to fail.  Hence, nullifying it.
 dependencies :  export LD_LIBRARY_PATH =
 dependencies :
+		go get -u github.com/golang/protobuf/protoc-gen-go
 		go get golang.org/x/tools/cmd/goimports
 		go get github.com/golang/lint/golint
 		go get github.com/onsi/ginkgo/ginkgo
@@ -43,18 +44,13 @@ lint :
 		gometalinter --config=gometalinter.config -s vendor ./...
 
 unit :
-		ginkgo -r -randomizeSuites -randomizeAllSpecs -race --skipPackage=integrations
+		ginkgo -r -randomizeSuites -randomizeAllSpecs --skipPackage=integrations #-race
 
 sshd_build :
 		make -C integrations/sshd
 
-integration: install
-		-gpstop -ai
-		gpstart -a
-		-pkill gp_upgrade_hub
-		$(prefix)/bin/gp_upgrade prepare start-hub
-		$(prefix)/bin/gp_upgrade check config
-		ginkgo -r -randomizeAllSpecs -race integrations
+integration:
+		ginkgo -r -randomizeAllSpecs integrations #-race 
 
 test : format lint unit integration
 

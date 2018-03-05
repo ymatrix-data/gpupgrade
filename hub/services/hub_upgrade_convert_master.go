@@ -1,106 +1,95 @@
 package services
 
 import (
-	"errors"
 	"fmt"
-	"gp_upgrade/hub/configutils"
+	"os"
+	"os/exec"
+	"path/filepath"
+
 	pb "gp_upgrade/idl"
 	"gp_upgrade/utils"
 
-	"os"
-	"path/filepath"
-
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
-var (
-	GetMasterDataDirs = getMasterDataDirs
-)
-
-func (s *CatchAllCliToHubListenerImpl) UpgradeConvertMaster(ctx context.Context,
-	in *pb.UpgradeConvertMasterRequest) (*pb.UpgradeConvertMasterReply, error) {
-
+func (h *HubClient) UpgradeConvertMaster(ctx context.Context, in *pb.UpgradeConvertMasterRequest) (*pb.UpgradeConvertMasterReply, error) {
 	gplog.Info("Starting master upgrade")
 	//need to remember where we ran, i.e. pathToUpgradeWD, b/c pg_upgrade generates some files that need to be copied to QE nodes later
 	//this is also where the 1.done, 2.inprogress ... files will be written
-	homeDirectory := os.Getenv("HOME")
-	if homeDirectory == "" {
-		return nil, errors.New("Could not find the home directory environemnt variable")
-
-	}
-	gpUpgradeDirectory := homeDirectory + "/.gp_upgrade"
-	err := ConvertMaster(gpUpgradeDirectory+"/pg_upgrade", in.OldBinDir, in.NewBinDir)
+	err := h.convertMaster(h.conf.StateDir, "pg_upgrade", in)
 	if err != nil {
 		gplog.Error("%v", err)
 		return nil, err
 	}
+
 	return &pb.UpgradeConvertMasterReply{}, nil
 }
 
-func ConvertMaster(pathToUpgradeWD string, oldBinDir string, newBinDir string) error {
-	err := os.Mkdir(pathToUpgradeWD, 0700)
+func (h *HubClient) convertMaster(baseDir, upgradeFileName string, in *pb.UpgradeConvertMasterRequest) error {
+	pathToUpgradeWD := filepath.Join(baseDir, upgradeFileName)
+	err := utils.System.MkdirAll(pathToUpgradeWD, 0700)
 	if err != nil {
-		gplog.Error("mkdir %s failed: %v. Is there an pg_upgrade in progress?", pathToUpgradeWD, err)
+		errMsg := fmt.Sprintf("mkdir %s failed: %v. Is there an pg_upgrade in progress?", pathToUpgradeWD, err)
+		gplog.Error(errMsg)
+		return errors.New(errMsg)
 	}
 
 	pgUpgradeLog := filepath.Join(pathToUpgradeWD, "/pg_upgrade_master.log")
-	f, _ := os.Create(pgUpgradeLog) /* We already made sure above that we have a prestine directory */
-
-	oldMasterDataDir, newMasterDataDir, err := GetMasterDataDirs() // TODO: this will need to the appropriate location
+	f, err := utils.System.OpenFile(pgUpgradeLog, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666) /* We already made sure above that we have a pristine directory */
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf("mkdir %s failed: %v. Is there an pg_upgrade in progress?", pathToUpgradeWD, err)
+		gplog.Error(errMsg)
+		return errors.New(errMsg)
 	}
 
-	upgradeCmdArgs := fmt.Sprintf("unset PGHOST; unset PGPORT; cd %s && nohup %s --old-bindir=%s --old-datadir=%s --new-bindir=%s --new-datadir=%s --dispatcher-mode --progress",
-		pathToUpgradeWD, newBinDir+"/pg_upgrade", oldBinDir, oldMasterDataDir, newBinDir, newMasterDataDir)
+	oldMasterPort, newMasterPort, err := h.getMasterPorts()
+	if err != nil {
+		errMsg := fmt.Sprint("pg_upgrade failed to run: ", err)
+		gplog.Error(errMsg)
+		return errors.New(errMsg)
+	}
+
+	upgradeCmdArgs := fmt.Sprintf("unset PGHOST; unset PGPORT; cd %s && nohup %s "+
+		"--old-bindir=%s --old-datadir=%s --new-bindir=%s --new-datadir=%s --old-port=%d --new-port=%d --dispatcher-mode --progress",
+		pathToUpgradeWD, filepath.Join(in.NewBinDir, "pg_upgrade"),
+		in.OldBinDir, in.OldDataDir, in.NewBinDir, in.NewDataDir, oldMasterPort, newMasterPort)
 
 	//export ENV VARS instead of passing on cmd line?
-	upgradeCommand := utils.System.ExecCommand("bash", "-c", upgradeCmdArgs)
-
-	// redirect both stdout and stderr to the log file
-	upgradeCommand.Stdout = f
-	upgradeCommand.Stderr = f
+	upgradeCommand := h.commandExecer("bash", "-c", upgradeCmdArgs)
+	cmd, ok := upgradeCommand.(*exec.Cmd)
+	if ok {
+		cmd.Stdout = f
+		cmd.Stderr = f
+	}
 
 	//TODO check the rc on this? keep a pid?
 	err = upgradeCommand.Start()
 	if err != nil {
-		gplog.Error("An error occured: %v", err)
-		return err
+		errMsg := fmt.Sprint("pg_upgrade failed to run: ", err)
+		gplog.Error(errMsg)
+		return errors.New(errMsg)
 	}
-	gplog.Info("Upgrade command: %v", upgradeCommand)
+
+	gplog.Info("Convert Master upgrade command: %v", upgradeCommand)
 	gplog.Info("Found no errors when starting the upgrade")
 
 	return nil
 }
 
-func getMasterDataDirs() (string, string, error) {
-	var err error
-	reader := configutils.Reader{}
-	reader.OfOldClusterConfig()
-	err = reader.Read()
-	if err != nil {
-		gplog.Error("Unable to read the file: %v", err)
-		return "", "", err
+func (h *HubClient) getMasterPorts() (int, int, error) {
+	h.configreader.OfOldClusterConfig(h.conf.StateDir)
+	oldPort := h.configreader.GetPortForSegment(1)
+	if oldPort == -1 {
+		return -1, -1, errors.New("failed to get old port")
 	}
 
-	oldMasterDataDir := reader.GetMasterDataDir()
-	if oldMasterDataDir == "" {
-		return "", "", errors.New("could not find old master data directory")
+	h.configreader.OfNewClusterConfig(h.conf.StateDir)
+	newPort := h.configreader.GetPortForSegment(1)
+	if newPort == -1 {
+		return -1, -1, errors.New("failed to get new port")
 	}
 
-	reader = configutils.Reader{}
-	reader.OfNewClusterConfig()
-	err = reader.Read()
-	if err != nil {
-		gplog.Error("Unable to read the file: %v", err)
-		return "", "", err
-	}
-
-	newMasterDataDir := reader.GetMasterDataDir()
-	if oldMasterDataDir == "" {
-		return "", "", errors.New("could not find old master data directory")
-	}
-
-	return oldMasterDataDir, newMasterDataDir, err
+	return oldPort, newPort, nil
 }
