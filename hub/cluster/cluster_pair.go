@@ -29,7 +29,7 @@ func (cp *Pair) Init(baseDir, oldBinDir, newBinDir string, execer helpers.Comman
 
 	cp.upgradeConfig, err = configutils.GetUpgradeConfig(baseDir)
 	if err != nil {
-		return fmt.Errorf("couldn't read config files: %v", err)
+		return fmt.Errorf("couldn't read config files: %+v", err)
 	}
 
 	cp.oldMasterPort, cp.newMasterPort, err = cp.upgradeConfig.GetMasterPorts()
@@ -50,15 +50,18 @@ func (cp *Pair) StopEverything(pathToGpstopStateDir string) {
 	checklistManager.ResetStateDir("gpstop.old")
 	checklistManager.ResetStateDir("gpstop.new")
 
-	oldGpstopShellArgs := fmt.Sprintf("PGPORT=%d && MASTER_DATA_DIRECTORY=%s && %s/gpstop -a",
-		cp.oldMasterPort, cp.oldMasterDataDirectory, cp.oldBinDir)
+	oldGpstopShellArgs := fmt.Sprintf("source %s/../greenplum_path.sh; %s/gpstop -a -d %s",
+		cp.oldBinDir, cp.oldBinDir, cp.oldMasterDataDirectory)
 	runOldStopCmd := cp.commandExecer("bash", "-c", oldGpstopShellArgs)
-
-	newGpstopShellArgs := fmt.Sprintf("PGPORT=%d && MASTER_DATA_DIRECTORY=%s && %s/gpstop -a", cp.newMasterPort,
-		cp.newMasterDataDirectory, cp.newBinDir)
-	runNewStopCmd := cp.commandExecer("bash", "-c", newGpstopShellArgs)
+	gplog.Info("old gpstop command: %+v", runOldStopCmd)
 
 	stopCluster(runOldStopCmd, "gpstop.old", checklistManager)
+
+	newGpstopShellArgs := fmt.Sprintf("source %s/../greenplum_path.sh; %s/gpstop -a -d %s",
+		cp.newBinDir, cp.newBinDir, cp.newMasterDataDirectory)
+	runNewStopCmd := cp.commandExecer("bash", "-c", newGpstopShellArgs)
+	gplog.Info("new gpstop command: %+v", runNewStopCmd)
+
 	stopCluster(runNewStopCmd, "gpstop.new", checklistManager)
 }
 

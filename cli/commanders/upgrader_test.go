@@ -2,10 +2,11 @@ package commanders_test
 
 import (
 	"errors"
-	"gp_upgrade/cli/commanders"
-	mockpb "gp_upgrade/mock_idl"
 
+	"gp_upgrade/cli/commanders"
 	pb "gp_upgrade/idl"
+	mockpb "gp_upgrade/mock_idl"
+	"gp_upgrade/testutils"
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -15,17 +16,24 @@ import (
 )
 
 var _ = Describe("reporter", func() {
-
 	var (
 		client *mockpb.MockCliToHubClient
 		ctrl   *gomock.Controller
+
+		hubClient  *testutils.MockHubClient
+		upgrader   *commanders.Upgrader
+		testStdout *gbytes.Buffer
+		testStderr *gbytes.Buffer
 	)
 
 	BeforeEach(func() {
+		testStdout, testStderr, _ = testhelper.SetupTestLogger()
+
 		ctrl = gomock.NewController(GinkgoT())
 		client = mockpb.NewMockCliToHubClient(ctrl)
 
-		testhelper.SetupTestLogger()
+		hubClient = testutils.NewMockHubClient()
+		upgrader = commanders.NewUpgrader(hubClient)
 	})
 
 	AfterEach(func() {
@@ -34,7 +42,6 @@ var _ = Describe("reporter", func() {
 
 	Describe("ConvertMaster", func() {
 		It("Reports success when pg_upgrade started", func() {
-			testStdout, _, _ := testhelper.SetupTestLogger()
 			client.EXPECT().UpgradeConvertMaster(
 				gomock.Any(),
 				&pb.UpgradeConvertMasterRequest{},
@@ -45,7 +52,6 @@ var _ = Describe("reporter", func() {
 		})
 
 		It("reports failure when command fails to connect to the hub", func() {
-			_, testStderr, _ := testhelper.SetupTestLogger()
 			client.EXPECT().UpgradeConvertMaster(
 				gomock.Any(),
 				&pb.UpgradeConvertMasterRequest{},
@@ -57,4 +63,38 @@ var _ = Describe("reporter", func() {
 		})
 	})
 
+	Describe("ConvertPrimaries", func() {
+		It("returns no error when the hub returns no error", func() {
+			err := upgrader.ConvertPrimaries("/old/bin", "/new/bin")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(hubClient.UpgradeConvertPrimariesRequest).To(Equal(&pb.UpgradeConvertPrimariesRequest{
+				OldBinDir: "/old/bin",
+				NewBinDir: "/new/bin",
+			}))
+		})
+
+		It("returns an error when the hub returns an error", func() {
+			hubClient.Err = errors.New("hub error")
+
+			err := upgrader.ConvertPrimaries("", "")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("ShareOids", func() {
+		It("returns no error when oids are shared successfully", func() {
+			err := upgrader.ShareOids()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(hubClient.UpgradeShareOidsRequest).To(Equal(&pb.UpgradeShareOidsRequest{}))
+		})
+
+		It("returns an error when oids cannot be shared", func() {
+			hubClient.Err = errors.New("test share oids failed")
+
+			err := upgrader.ShareOids()
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })

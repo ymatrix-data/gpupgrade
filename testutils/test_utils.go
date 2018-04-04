@@ -3,12 +3,10 @@ package testutils
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 
 	"gp_upgrade/hub/configutils"
-	"gp_upgrade/hub/services"
-	pb "gp_upgrade/idl"
-	"net"
 )
 
 const (
@@ -62,18 +60,6 @@ func WriteNewConfig(base, jsonConfig string) {
 	Check("cannot write new sample configutils", err)
 }
 
-func GetUpgradeStatus(hub *services.HubClient, step pb.UpgradeSteps) (pb.StepStatus, error) {
-	reply, err := hub.StatusUpgrade(nil, &pb.StatusUpgradeRequest{})
-	stepStatuses := reply.GetListOfUpgradeStepStatuses()
-	var stepStatusSaved *pb.UpgradeStepStatus
-	for _, stepStatus := range stepStatuses {
-		if stepStatus.GetStep() == step {
-			stepStatusSaved = stepStatus
-		}
-	}
-	return stepStatusSaved.GetStatus(), err
-}
-
 func GetOpenPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
@@ -85,6 +71,6 @@ func GetOpenPort() (int, error) {
 		return 0, err
 	}
 	defer l.Close()
-	port := l.Addr().(*net.TCPAddr).Port
-	return port, nil
+
+	return l.Addr().(*net.TCPAddr).Port, nil
 }

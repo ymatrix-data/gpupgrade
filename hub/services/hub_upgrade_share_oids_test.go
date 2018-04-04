@@ -2,15 +2,14 @@ package services_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 
-	"gp_upgrade/hub/configutils"
 	"gp_upgrade/hub/services"
 	pb "gp_upgrade/idl"
 	"gp_upgrade/testutils"
 
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"google.golang.org/grpc"
 
 	. "github.com/onsi/ginkgo"
@@ -19,7 +18,7 @@ import (
 
 var _ = Describe("UpgradeShareOids", func() {
 	var (
-		reader        *spyReader
+		reader        *testutils.SpyReader
 		hub           *services.HubClient
 		dir           string
 		commandExecer *testutils.FakeCommandExecer
@@ -28,20 +27,10 @@ var _ = Describe("UpgradeShareOids", func() {
 	)
 
 	BeforeEach(func() {
-		reader = &spyReader{
-			hostnames: []string{"hostone", "hosttwo"},
-			segmentConfiguration: configutils.SegmentConfiguration{
-				{
-					Content:  0,
-					DBID:     2,
-					Hostname: "hostone",
-				}, {
-					Content:  1,
-					DBID:     3,
-					Hostname: "hosttwo",
-				},
-			},
+		reader = &testutils.SpyReader{
+			Hostnames: []string{"hostone", "hosttwo"},
 		}
+
 		var err error
 		dir, err = ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
@@ -57,42 +46,36 @@ var _ = Describe("UpgradeShareOids", func() {
 		hub = services.NewHub(nil, reader, grpc.DialContext, commandExecer.Exec, &services.HubConfig{
 			StateDir: dir,
 		})
-		testhelper.SetupTestLogger()
 	})
 
 	AfterEach(func() {
 		os.RemoveAll(dir)
 	})
 
-	It("Reports status PENDING when no share-oids request has been made", func() {
-		stepStatus, err := testutils.GetUpgradeStatus(hub, pb.UpgradeSteps_SHARE_OIDS)
-		Expect(err).To(BeNil())
-		Eventually(stepStatus).Should(Equal(pb.StepStatus_PENDING))
-	})
-
-	It("marks step as COMPLETE if rsync succeeds for all hosts", func() {
-		outChan <- []byte("success")
-		outChan <- []byte("success")
-
-		hub.ShareOidFilesStub()
-
-		Eventually(commandExecer.GetNumInvocations).Should(Equal(len(reader.hostnames)))
-
-		stepStatus, err := testutils.GetUpgradeStatus(hub, pb.UpgradeSteps_SHARE_OIDS)
-		Expect(err).To(BeNil())
-		Eventually(stepStatus).Should(Equal(pb.StepStatus_COMPLETE))
-	})
-
-	It("marks step as FAILED if rsync fails for any host", func() {
-		errChan <- errors.New("failure")
-		outChan <- []byte("success")
-
-		hub.ShareOidFilesStub()
-
-		Eventually(commandExecer.GetNumInvocations).Should(Equal(len(reader.hostnames)))
-
-		stepStatus, err := testutils.GetUpgradeStatus(hub, pb.UpgradeSteps_SHARE_OIDS)
+	It("copies files to each host", func() {
+		_, err := hub.UpgradeShareOids(nil, &pb.UpgradeShareOidsRequest{})
 		Expect(err).ToNot(HaveOccurred())
-		Eventually(stepStatus).Should(Equal(pb.StepStatus_FAILED))
+
+		hostnames, err := reader.GetHostnames()
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(commandExecer.GetNumInvocations).Should(Equal(len(hostnames)))
+
+		Expect(commandExecer.Calls()).To(Equal([]string{
+			fmt.Sprintf("bash -c rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@hostone:%s/pg_upgrade", dir, dir),
+			fmt.Sprintf("bash -c rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@hosttwo:%s/pg_upgrade", dir, dir),
+		}))
+	})
+
+	It("copies all files even if rsync fails for a host", func() {
+		errChan <- errors.New("failure")
+
+		_, err := hub.UpgradeShareOids(nil, &pb.UpgradeShareOidsRequest{})
+		Expect(err).ToNot(HaveOccurred())
+
+		hostnames, err := reader.GetHostnames()
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(commandExecer.GetNumInvocations).Should(Equal(len(hostnames)))
 	})
 })

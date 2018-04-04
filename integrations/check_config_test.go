@@ -32,6 +32,13 @@ var _ = Describe("check config", func() {
 		dir, err = ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
 
+		// We only needed to get the name of the temp directory, so we delete it.
+		// The actual directory will be created by the
+		// SaveOldClusterConfigAndVersion() routine.
+		// Being a temp dir, Go will remove the directory at the end of test also.
+		err = os.RemoveAll(dir)
+		Expect(err).ToNot(HaveOccurred())
+
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -56,6 +63,7 @@ var _ = Describe("check config", func() {
 
 	Describe("when a greenplum master db on localhost is up and running", func() {
 		It("happy: the database configuration is saved to a specified location", func() {
+			//testutils.WriteSampleConfigVersion(dir)
 			session := runCommand("check", "config", "--master-host", "localhost")
 			if session.ExitCode() != 0 {
 				fmt.Println("make sure greenplum is running")

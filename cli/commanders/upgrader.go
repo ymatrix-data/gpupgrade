@@ -12,11 +12,11 @@ type Upgrader struct {
 	client pb.CliToHubClient
 }
 
-func NewUpgrader(client pb.CliToHubClient) Upgrader {
-	return Upgrader{client: client}
+func NewUpgrader(client pb.CliToHubClient) *Upgrader {
+	return &Upgrader{client: client}
 }
 
-func (u Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir string, newBinDir string) error {
+func (u *Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir string, newBinDir string) error {
 	upgradeConvertMasterRequest := pb.UpgradeConvertMasterRequest{
 		OldDataDir: oldDataDir,
 		OldBinDir:  oldBinDir,
@@ -34,17 +34,33 @@ func (u Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir 
 	return nil
 }
 
-func (u Upgrader) ShareOids() error {
+func (u *Upgrader) ConvertPrimaries(oldBinDir, newBinDir string) error {
+	_, err := u.client.UpgradeConvertPrimaries(context.Background(), &pb.UpgradeConvertPrimariesRequest{
+		OldBinDir: oldBinDir,
+		NewBinDir: newBinDir,
+	})
+	if err != nil {
+		// TODO: Change the logging message?
+		gplog.Error("Error when calling hub upgrade convert primaries: %v", err.Error())
+		return err
+	}
+
+	gplog.Info("Kicked off pg_upgrade request for primaries")
+	return nil
+}
+
+func (u *Upgrader) ShareOids() error {
 	_, err := u.client.UpgradeShareOids(context.Background(), &pb.UpgradeShareOidsRequest{})
 	if err != nil {
 		gplog.Error(err.Error())
 		return err
 	}
 
+	gplog.Info("Kicked off request to share oids")
 	return nil
 }
 
-func (u Upgrader) ValidateStartCluster(newDataDir string, newBinDir string) error {
+func (u *Upgrader) ValidateStartCluster(newDataDir string, newBinDir string) error {
 	_, err := u.client.UpgradeValidateStartCluster(context.Background(), &pb.UpgradeValidateStartClusterRequest{
 		NewDataDir: newDataDir,
 		NewBinDir:  newBinDir,
@@ -54,6 +70,6 @@ func (u Upgrader) ValidateStartCluster(newDataDir string, newBinDir string) erro
 		return err
 	}
 
-	gplog.Info("Kicked off request for validation of cluster startup.")
+	gplog.Info("Kicked off request for validation of cluster startup")
 	return nil
 }
