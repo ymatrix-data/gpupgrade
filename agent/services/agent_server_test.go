@@ -4,8 +4,6 @@ import (
 	"gp_upgrade/utils"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
-	"github.com/onsi/gomega/gbytes"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gp_upgrade/agent/services"
@@ -16,13 +14,13 @@ import (
 
 var _ = Describe("AgentServer", func() {
 	var (
-		dir         string
-		agentConf   services.AgentConfig
-		testLogFile *gbytes.Buffer
-		exists      func() bool
+		dir       string
+		agentConf services.AgentConfig
+		exists    func() bool
 	)
 
 	BeforeEach(func() {
+		testhelper.SetupTestLogger()
 		dir, err := ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
 
@@ -41,7 +39,6 @@ var _ = Describe("AgentServer", func() {
 			}
 			return true
 		}
-		_, _, testLogFile = testhelper.SetupTestLogger()
 	})
 
 	AfterEach(func() {

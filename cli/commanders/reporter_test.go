@@ -4,7 +4,6 @@ import (
 	"errors"
 	"gp_upgrade/cli/commanders"
 	pb "gp_upgrade/idl"
-	mockpb "gp_upgrade/mock_idl"
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -12,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"gp_upgrade/utils"
 )
 
 var _ = Describe("Reporter", func() {
@@ -19,7 +19,6 @@ var _ = Describe("Reporter", func() {
 		spyClient   *spyCliToHubClient
 		testLogFile *gbytes.Buffer
 		reporter    *commanders.Reporter
-		client      *mockpb.MockCliToHubClient
 		ctrl        *gomock.Controller
 	)
 
@@ -28,10 +27,10 @@ var _ = Describe("Reporter", func() {
 		_, _, testLogFile = testhelper.SetupTestLogger()
 		reporter = commanders.NewReporter(spyClient)
 		ctrl = gomock.NewController(GinkgoT())
-		client = mockpb.NewMockCliToHubClient(ctrl)
 	})
 
 	AfterEach(func() {
+		utils.System = utils.InitializeSystemFunctions()
 		defer ctrl.Finish()
 	})
 
@@ -111,6 +110,7 @@ var _ = Describe("Reporter", func() {
 			Entry("prepare init cluster", pb.UpgradeSteps_PREPARE_INIT_CLUSTER, pb.StepStatus_FAILED, "FAILED - Initialize upgrade target cluster"),
 			Entry("upgrade on master", pb.UpgradeSteps_MASTERUPGRADE, pb.StepStatus_PENDING, "PENDING - Run pg_upgrade on master"),
 			Entry("shutdown cluster", pb.UpgradeSteps_STOPPED_CLUSTER, pb.StepStatus_PENDING, "PENDING - Shutdown clusters"),
+			Entry("reconfigure ports", pb.UpgradeSteps_RECONFIGURE_PORTS, pb.StepStatus_PENDING, "PENDING - Adjust upgrade cluster ports"),
 		)
 	})
 })

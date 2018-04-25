@@ -35,6 +35,8 @@ type reader interface {
 type pairOperator interface {
 	Init(string, string, string, helpers.CommandExecer) error
 	StopEverything(string)
+	GetPortsAndDataDirForReconfiguration() (int, int, string)
+	EitherPostmasterRunning() bool
 }
 
 type HubClient struct {
@@ -54,8 +56,9 @@ type HubClient struct {
 }
 
 type Connection struct {
-	Conn     *grpc.ClientConn
-	Hostname string
+	Conn          *grpc.ClientConn
+	Hostname      string
+	CancelContext func()
 }
 
 type HubConfig struct {
@@ -142,15 +145,17 @@ func (h *HubClient) AgentConns() ([]*Connection, error) {
 	}
 
 	for _, host := range hostnames {
-		ctx, _ := context.WithTimeout(context.Background(), DialTimeout)
-		conn, err := h.grpcDialer(ctx, host+":"+strconv.Itoa(h.conf.HubToAgentPort), grpc.WithInsecure(), grpc.WithBlock())
+		ctx, cancelFunc := context.WithTimeout(context.Background(), DialTimeout)
+		conn, err := h.grpcDialer(ctx, host+":"+strconv.Itoa(h.conf.HubToAgentPort), grpc.WithInsecure())
 		if err != nil {
 			gplog.Error("grpcDialer failed: ", err)
+			cancelFunc()
 			return nil, err
 		}
 		h.agentConns = append(h.agentConns, &Connection{
-			Conn:     conn,
-			Hostname: host,
+			Conn:          conn,
+			Hostname:      host,
+			CancelContext: cancelFunc,
 		})
 	}
 
@@ -181,6 +186,7 @@ func (h *HubClient) ensureConnsAreReady() error {
 
 func (h *HubClient) closeConns() {
 	for _, conn := range h.agentConns {
+		defer conn.CancelContext()
 		err := conn.Conn.Close()
 		if err != nil {
 			gplog.Info(fmt.Sprintf("Error closing hub to agent connection. host: %s, err: %s", conn.Hostname, err.Error()))

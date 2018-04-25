@@ -57,6 +57,7 @@ var _ = Describe("status upgrade", func() {
 	})
 
 	AfterEach(func() {
+		utils.System = utils.InitializeSystemFunctions()
 		os.RemoveAll(dir)
 	})
 
@@ -104,6 +105,9 @@ var _ = Describe("status upgrade", func() {
 				}, {
 					Step:   pb.UpgradeSteps_CONVERT_PRIMARIES,
 					Status: pb.StepStatus_RUNNING,
+				}, {
+					Step:   pb.UpgradeSteps_RECONFIGURE_PORTS,
+					Status: pb.StepStatus_PENDING,
 				},
 			},
 		))

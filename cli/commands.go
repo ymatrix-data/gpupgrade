@@ -207,7 +207,7 @@ var subDiskSpace = &cobra.Command{
 			os.Exit(1)
 		}
 		client := pb.NewCliToHubClient(conn)
-		return commanders.NewDiskUsageChecker(client).Execute(dbPort)
+		return commanders.NewDiskUsageChecker(client).Execute()
 	},
 }
 
@@ -352,6 +352,27 @@ var subValidateStartCluster = &cobra.Command{
 
 		client := pb.NewCliToHubClient(conn)
 		err := commanders.NewUpgrader(client).ValidateStartCluster(newDataDir, newBinDir)
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}
+	},
+}
+
+var subReconfigurePorts = &cobra.Command{
+	Use:   "reconfigure-ports",
+	Short: "Set master port on upgraded cluster to the value from the older cluster",
+	Long:  `Set master port on upgraded cluster to the value from the older cluster`,
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
+			grpc.WithInsecure())
+		if connConfigErr != nil {
+			gplog.Error(connConfigErr.Error())
+			os.Exit(1)
+		}
+
+		client := pb.NewCliToHubClient(conn)
+		err := commanders.NewUpgrader(client).ReconfigurePorts()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)

@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"gp_upgrade/utils"
 )
 
 var _ = Describe("reporter", func() {
@@ -37,6 +38,7 @@ var _ = Describe("reporter", func() {
 	})
 
 	AfterEach(func() {
+		utils.System = utils.InitializeSystemFunctions()
 		defer ctrl.Finish()
 	})
 
@@ -94,6 +96,22 @@ var _ = Describe("reporter", func() {
 			hubClient.Err = errors.New("test share oids failed")
 
 			err := upgrader.ShareOids()
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("ReconfigurePorts", func() {
+		It("returns nil error when ports are reconfigured successfully", func() {
+			err := upgrader.ReconfigurePorts()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(hubClient.UpgradeReconfigurePortsRequest).To(Equal(&pb.UpgradeReconfigurePortsRequest{}))
+		})
+
+		It("returns error when ports cannot be reconfigured", func() {
+			hubClient.Err = errors.New("reconfigure ports failed")
+
+			err := upgrader.ReconfigurePorts()
 			Expect(err).To(HaveOccurred())
 		})
 	})

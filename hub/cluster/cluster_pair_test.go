@@ -14,37 +14,19 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const (
-	MASTER_ONLY_JSON = `
-[{
-    "address": "briarwood",
-    "content": -1,
-    "datadir": "/datadir",
-    "dbid": 1,
-    "hostname": "briarwood",
-    "mode": "s",
-    "port": 25437,
-    "preferred_role": "m",
-    "role": "m",
-    "san_mounts": null,
-    "status": "u"
-  }]
-`
-)
-
 var _ = Describe("ClusterPair", func() {
 	var (
-		dir              string
-		mockedOutput     string
-		mockedExitStatus int
+		dir string
 
 		filesLaidDown []string
 		commandExecer *testutils.FakeCommandExecer
 		errChan       chan error
 		outChan       chan []byte
+		subject       cluster.Pair
 	)
 
 	BeforeEach(func() {
+		testhelper.SetupTestLogger()
 		commandExecer = &testutils.FakeCommandExecer{}
 		errChan = make(chan error, 2)
 		outChan = make(chan []byte, 2)
@@ -61,10 +43,15 @@ var _ = Describe("ClusterPair", func() {
 
 	Describe("StopEverything(), shutting down both clusters", func() {
 		BeforeEach(func() {
-			testhelper.SetupTestLogger()
 			// fake out system utilities
+			numInvocations := 0
 			utils.System.ReadFile = func(filename string) ([]byte, error) {
-				return []byte(MASTER_ONLY_JSON), nil
+				if numInvocations == 0 {
+					numInvocations++
+					return []byte(testutils.MASTER_ONLY_JSON), nil
+				} else {
+					return []byte(testutils.NEW_MASTER_JSON), nil
+				}
 			}
 			utils.System.OpenFile = func(name string, flag int, perm os.FileMode) (*os.File, error) {
 				filesLaidDown = append(filesLaidDown, name)
@@ -80,17 +67,20 @@ var _ = Describe("ClusterPair", func() {
 				filesLaidDown = filteredFiles
 				return nil
 			}
+			subject = cluster.Pair{
+				OldMasterPort:          25437,
+				NewMasterPort:          35437,
+				OldMasterDataDirectory: "/old/datadir",
+				NewMasterDataDirectory: "/new/datadir",
+			}
 		})
 
 		It("Logs successfully when things work", func() {
-			mockedExitStatus = 0
-			mockedOutput = "Something that's not bad"
-
 			outChan <- []byte("some output")
 
-			subject := cluster.Pair{}
 			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(subject.EitherPostmasterRunning()).To(BeTrue())
 
 			subject.StopEverything("path/to/gpstop")
 
@@ -99,8 +89,8 @@ var _ = Describe("ClusterPair", func() {
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.old/running"))
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.new/running"))
 
-			Expect(commandExecer.Calls()).To(ContainElement(fmt.Sprintf("bash -c source %s/../greenplum_path.sh; %s/gpstop -a -d %s", "old/path", "old/path", "/datadir")))
-			Expect(commandExecer.Calls()).To(ContainElement(fmt.Sprintf("bash -c source %s/../greenplum_path.sh; %s/gpstop -a -d %s", "new/path", "new/path", "/datadir")))
+			Expect(commandExecer.Calls()).To(ContainElement(fmt.Sprintf("bash -c source %s/../greenplum_path.sh; %s/gpstop -a -d %s", "old/path", "old/path", "/old/datadir")))
+			Expect(commandExecer.Calls()).To(ContainElement(fmt.Sprintf("bash -c source %s/../greenplum_path.sh; %s/gpstop -a -d %s", "new/path", "new/path", "/new/datadir")))
 		})
 
 		It("puts failures in the log if there are filesystem errors", func() {
@@ -108,7 +98,6 @@ var _ = Describe("ClusterPair", func() {
 				return nil, errors.New("filesystem blowup")
 			}
 
-			subject := cluster.Pair{}
 			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -118,19 +107,51 @@ var _ = Describe("ClusterPair", func() {
 		})
 
 		It("puts Stop failures in the log and leaves files to mark the error", func() {
-			mockedExitStatus = 127
-			mockedOutput = "gpstop failed us" // what gpstop puts in its own logs
 
-			errChan <- errors.New("failed")
-
-			subject := cluster.Pair{}
 			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(subject.EitherPostmasterRunning()).To(BeTrue())
 
+			errChan <- errors.New("failed")
 			subject.StopEverything("path/to/gpstop")
 
 			Expect(filesLaidDown).To(ContainElement("path/to/gpstop/gpstop.old/failed"))
 			Expect(filesLaidDown).ToNot(ContainElement("path/to/gpstop/gpstop.old/in.progress"))
+		})
+	})
+
+	Describe("PostmastersRunning", func() {
+		BeforeEach(func() {
+			utils.System.ReadFile = func(filename string) ([]byte, error) {
+				return []byte(testutils.MASTER_ONLY_JSON), nil
+			}
+			subject = cluster.Pair{
+				OldMasterPort:          25437,
+				NewMasterPort:          35437,
+				OldMasterDataDirectory: "/old/datadir",
+				NewMasterDataDirectory: "/new/datadir",
+			}
+			err := subject.Init(dir, "old/path", "new/path", commandExecer.Exec)
+			Expect(err).ToNot(HaveOccurred())
+
+		})
+		It("returns true if both postmaster processes are running", func() {
+			Expect(subject.EitherPostmasterRunning()).To(BeTrue())
+		})
+		It("returns true if only old postmaster is running", func() {
+			errChan <- nil
+			errChan <- errors.New("failed")
+			Expect(subject.EitherPostmasterRunning()).To(BeTrue())
+		})
+		It("returns true if only new postmaster is running", func() {
+			errChan <- errors.New("failed")
+			errChan <- nil
+			Expect(subject.EitherPostmasterRunning()).To(BeTrue())
+		})
+		It("returns false if both postmaster processes are down", func() {
+			errChan <- errors.New("failed")
+			errChan <- errors.New("failed")
+			Expect(subject.EitherPostmasterRunning()).To(BeFalse())
 		})
 	})
 })

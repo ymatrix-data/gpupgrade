@@ -14,6 +14,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gp_upgrade/utils"
 )
 
 var _ = Describe("hub pings agents test", func() {
@@ -27,13 +28,14 @@ var _ = Describe("hub pings agents test", func() {
 		ctrl = gomock.NewController(GinkgoT())
 		client = mockpb.NewMockAgentClient(ctrl)
 		pingerManager = &services.PingerManager{
-			[]configutils.ClientAndHostname{{Client: client, Hostname: "doesnotexist"}},
-			10,
-			1 * time.Millisecond,
+			RPCClients:       []configutils.ClientAndHostname{{Client: client, Hostname: "doesnotexist"}},
+			NumRetries:       10,
+			PauseBeforeRetry: 1 * time.Millisecond,
 		}
 	})
 
 	AfterEach(func() {
+		utils.System = utils.InitializeSystemFunctions()
 		ctrl.Finish()
 	})
 
