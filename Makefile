@@ -15,10 +15,10 @@ GIT_VERSION := $(shell git describe --tags | perl -pe 's/(.*)-([0-9]*)-(g[0-9a-f
 UPGRADE_VERSION_STR="-X $(MODULE_NAME)/cli/commanders.UpgradeVersion=$(GIT_VERSION)"
 
 BRANCH := $(shell git for-each-ref --format='%(objectname) %(refname:short)' refs/heads | awk "/^$$(git rev-parse HEAD)/ {print \$$2}")
-LINUX_PREFIX := "env GOOS=linux GOARCH=amd64"
-MAC_PREFIX := "env GOOS=darwin GOARCH=amd64"
-LINUX_POSTFIX := ".linux.$(BRANCH)"
-MAC_POSTFIX := ".darwin.$(BRANCH)"
+LINUX_PREFIX := env GOOS=linux GOARCH=amd64
+MAC_PREFIX := env GOOS=darwin GOARCH=amd64
+LINUX_POSTFIX := .linux.$(BRANCH)
+MAC_POSTFIX := .darwin.$(BRANCH)
 
 GOFLAGS :=
 
