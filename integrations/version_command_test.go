@@ -2,8 +2,6 @@ package integrations_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"os/exec"
 	"time"
 
@@ -21,16 +19,13 @@ import (
 
 var _ = Describe("version command", func() {
 	var (
-		dir           string
-		hub           *services.Hub
-		commandExecer *testutils.FakeCommandExecer
+		hub                *services.Hub
+		commandExecer      *testutils.FakeCommandExecer
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -38,7 +33,7 @@ var _ = Describe("version command", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: 6416,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -52,7 +47,6 @@ var _ = Describe("version command", func() {
 
 	AfterEach(func() {
 		hub.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 

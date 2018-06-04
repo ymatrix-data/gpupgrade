@@ -1,8 +1,6 @@
 package integrations_test
 
 import (
-	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/greenplum-db/gpupgrade/hub/configutils"
@@ -10,33 +8,29 @@ import (
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 
+	"fmt"
+
+	"github.com/greenplum-db/gpupgrade/hub/cluster"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
-	"github.com/greenplum-db/gpupgrade/hub/cluster"
-	"fmt"
 )
 
 var _ = Describe("prepare shutdown-clusters", func() {
 	var (
-		dir           string
-		hub           *services.Hub
-		mockAgent     *testutils.MockAgentServer
-		commandExecer *testutils.FakeCommandExecer
-		outChan       chan []byte
-		errChan       chan error
-		oldBinDir     string
-		newBinDir     string
+		hub                *services.Hub
+		mockAgent          *testutils.MockAgentServer
+		commandExecer      *testutils.FakeCommandExecer
+		outChan            chan []byte
+		errChan            chan error
+		oldBinDir          string
+		newBinDir          string
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
-		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		oldBinDir = "/old/tmp"
 		newBinDir = "/new/tmp"
 
@@ -48,9 +42,10 @@ var _ = Describe("prepare shutdown-clusters", func() {
 			  "port": 5432
 			}],"BinDir":"%s"}`
 
-		testutils.WriteOldConfig(dir, fmt.Sprintf(config, oldBinDir))
-		testutils.WriteNewConfig(dir, fmt.Sprintf(config, newBinDir))
+		testutils.WriteOldConfig(testStateDir, fmt.Sprintf(config, oldBinDir))
+		testutils.WriteNewConfig(testStateDir, fmt.Sprintf(config, newBinDir))
 
+		var err error
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -60,7 +55,7 @@ var _ = Describe("prepare shutdown-clusters", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -72,7 +67,7 @@ var _ = Describe("prepare shutdown-clusters", func() {
 			Out: outChan,
 			Err: errChan,
 		})
-		clusterPair := cluster.NewClusterPair(dir, commandExecer.Exec)
+		clusterPair := cluster.NewClusterPair(testStateDir, commandExecer.Exec)
 
 		clusterPair.OldMasterPort = 25437
 		clusterPair.NewMasterPort = 35437
@@ -87,7 +82,6 @@ var _ = Describe("prepare shutdown-clusters", func() {
 	AfterEach(func() {
 		hub.Stop()
 		mockAgent.Stop()
-		os.RemoveAll(dir)
 	})
 
 	It("updates status PENDING and then to COMPLETE if successful", func(done Done) {

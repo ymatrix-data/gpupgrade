@@ -2,7 +2,6 @@ package integrations_test
 
 import (
 	"io/ioutil"
-	"os"
 	"strings"
 	"sync"
 
@@ -20,18 +19,15 @@ import (
 
 var _ = Describe("upgrade validate-start-cluster", func() {
 	var (
-		dir           string
-		hub           *services.Hub
-		commandExecer *testutils.FakeCommandExecer
-		outChan       chan []byte
-		errChan       chan error
+		hub                *services.Hub
+		commandExecer      *testutils.FakeCommandExecer
+		outChan            chan []byte
+		errChan            chan error
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -39,7 +35,7 @@ var _ = Describe("upgrade validate-start-cluster", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: 6416,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -59,7 +55,6 @@ var _ = Describe("upgrade validate-start-cluster", func() {
 
 	AfterEach(func() {
 		hub.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 

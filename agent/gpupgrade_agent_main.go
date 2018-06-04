@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/spf13/cobra"
 	"github.com/greenplum-db/gpupgrade/agent/services"
 	"github.com/greenplum-db/gpupgrade/helpers"
+	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -45,12 +45,7 @@ func main() {
 	}
 
 	RootCmd.Flags().StringVar(&logdir, "log-directory", "", "command_listener log directory")
-	homeDir := os.Getenv("HOME")
-	if homeDir == "" {
-		gplog.Error("$HOME is empty")
-		os.Exit(1)
-	}
-	RootCmd.Flags().StringVar(&statedir, "state-directory", filepath.Join(homeDir, ".gpupgrade"), "Agent state directory")
+	RootCmd.Flags().StringVar(&statedir, "state-directory", utils.GetStateDir(), "Agent state directory")
 
 	if err := RootCmd.Execute(); err != nil {
 		gplog.Error(err.Error())

@@ -1,7 +1,6 @@
 package integrations_test
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,17 +11,10 @@ import (
 )
 
 var _ = Describe("Start Hub", func() {
-	var (
-		dir string
-	)
 
 	BeforeEach(func() {
 		killCommand := exec.Command("pkill", "-9", "gpupgrade_hub")
 		Start(killCommand, GinkgoWriter, GinkgoWriter)
-
-		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
@@ -45,7 +37,7 @@ var _ = Describe("Start Hub", func() {
 	})
 
 	It("does not return an error if a non-gpupgrade_hub process with gpupgrade_hub in the name is running", func() {
-		path := filepath.Join(dir, "gpupgrade_hub_test_log")
+		path := filepath.Join(testWorkspaceDir, "gpupgrade_hub_test_log")
 		f, err := os.Create(path)
 		Expect(err).ToNot(HaveOccurred())
 		f.Close()

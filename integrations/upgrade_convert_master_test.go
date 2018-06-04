@@ -22,7 +22,6 @@ import (
 
 var _ = Describe("upgrade convert master", func() {
 	var (
-		dir           string
 		hub           *services.Hub
 		mockAgent     *testutils.MockAgentServer
 		commandExecer *testutils.FakeCommandExecer
@@ -31,16 +30,13 @@ var _ = Describe("upgrade convert master", func() {
 		newDataDir    string
 		newBinDir     string
 
-		outChan chan []byte
-		errChan chan error
+		outChan            chan []byte
+		errChan            chan error
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		oldDataDir, err = ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
 		oldBinDir, err = ioutil.TempDir("", "")
@@ -57,7 +53,7 @@ var _ = Describe("upgrade convert master", func() {
 			"host": "localhost"
 		}],"BinDir":"/tmp"}`
 
-		testutils.WriteOldConfig(dir, oldConfig)
+		testutils.WriteOldConfig(testStateDir, oldConfig)
 
 		newConfig := `{"SegConfig":[{
 			"dbid": 1,
@@ -65,7 +61,7 @@ var _ = Describe("upgrade convert master", func() {
 			"host": "localhost"
 		}],"BinDir":"/tmp"}`
 
-		testutils.WriteNewConfig(dir, newConfig)
+		testutils.WriteNewConfig(testStateDir, newConfig)
 
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -76,7 +72,7 @@ var _ = Describe("upgrade convert master", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 
 		reader := configutils.NewReader()
@@ -98,7 +94,6 @@ var _ = Describe("upgrade convert master", func() {
 	AfterEach(func() {
 		hub.Stop()
 		mockAgent.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 
@@ -128,7 +123,7 @@ var _ = Describe("upgrade convert master", func() {
 				return runStatusUpgrade()
 			}).Should(ContainSubstring("RUNNING - Run pg_upgrade on master"))
 
-			f, err := os.Create(filepath.Join(dir, "pg_upgrade", "1.done"))
+			f, err := os.Create(filepath.Join(testStateDir, "pg_upgrade", "1.done"))
 			Expect(err).ToNot(HaveOccurred())
 			f.Write([]byte("Upgrade complete\n")) //need for status upgrade validation
 			f.Close()

@@ -1,7 +1,6 @@
 package integrations_test
 
 import (
-	"io/ioutil"
 	"os"
 
 	agentServices "github.com/greenplum-db/gpupgrade/agent/services"
@@ -13,32 +12,28 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"google.golang.org/grpc"
 
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
-	"path/filepath"
 )
 
 var _ = Describe("status", func() {
 	var (
-		dir           string
-		hub           *services.Hub
-		agent         *agentServices.AgentServer
-		commandExecer *testutils.FakeCommandExecer
+		hub                *services.Hub
+		agent              *agentServices.AgentServer
+		commandExecer      *testutils.FakeCommandExecer
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
-		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		agentPort, err := testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
 		agentConf := agentServices.AgentConfig{
 			Port:     agentPort,
-			StateDir: dir,
+			StateDir: testStateDir,
 		}
 
 		agentExecer := &testutils.FakeCommandExecer{}
@@ -53,7 +48,7 @@ var _ = Describe("status", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -68,7 +63,6 @@ var _ = Describe("status", func() {
 	AfterEach(func() {
 		hub.Stop()
 		agent.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 
@@ -85,9 +79,9 @@ var _ = Describe("status", func() {
   			  "hostname": "localhost"
   			}],"BinDir":"/tmp"}`
 
-			testutils.WriteOldConfig(dir, config)
+			testutils.WriteOldConfig(testStateDir, config)
 
-			pathToSegUpgrade := filepath.Join(dir, "pg_upgrade", "seg-2")
+			pathToSegUpgrade := filepath.Join(testStateDir, "pg_upgrade", "seg-2")
 			err := os.MkdirAll(pathToSegUpgrade, 0700)
 			Expect(err).ToNot(HaveOccurred())
 

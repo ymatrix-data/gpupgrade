@@ -28,7 +28,7 @@ func main() {
 
 	root.AddCommand(prepare, status, check, version, upgrade)
 
-	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents)
+	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
 	status.AddCommand(subUpgrade, subConversion)
 	check.AddCommand(subVersion, subObjectCount, subDiskSpace, subConfig, subSeginstall)
 	upgrade.AddCommand(subConvertMaster, subConvertPrimaries, subShareOids, subValidateStartCluster, subReconfigurePorts)
@@ -61,6 +61,7 @@ func addFlagOptions() {
 	addFlagOptionsToValidateStartCluster()
 	addFlagOptionsToConvertPrimaries()
 	addFlagOptionsToConfig()
+	addFlagOptionsToInit()
 }
 
 func addFlagOptionsToConvertMaster() {
@@ -111,4 +112,9 @@ func addFlagOptionsToValidateStartCluster() {
 	subValidateStartCluster.MarkFlagRequired("new-datadir")
 	subValidateStartCluster.Flags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
 	subValidateStartCluster.MarkFlagRequired("new-bindir")
+}
+
+func addFlagOptionsToInit() {
+	subInit.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	subInit.MarkPersistentFlagRequired("old-bindir")
 }

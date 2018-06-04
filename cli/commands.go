@@ -6,6 +6,7 @@ import (
 
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	pb "github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
@@ -377,5 +378,15 @@ var subReconfigurePorts = &cobra.Command{
 			gplog.Error(err.Error())
 			os.Exit(1)
 		}
+	},
+}
+
+var subInit = &cobra.Command{
+	Use:   "init",
+	Short: "Setup state dir and config file",
+	Long:  `Setup state dir and config file`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		stateDir := utils.GetStateDir()
+		return commanders.DoInit(stateDir, oldBinDir)
 	},
 }

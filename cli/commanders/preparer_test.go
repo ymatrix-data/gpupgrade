@@ -2,17 +2,22 @@ package commanders_test
 
 import (
 	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
+	"github.com/greenplum-db/gpupgrade/hub/configutils"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	mockpb "github.com/greenplum-db/gpupgrade/mock_idl"
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 
+	"github.com/greenplum-db/gpupgrade/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 var _ = Describe("preparer", func() {
@@ -117,6 +122,30 @@ var _ = Describe("preparer", func() {
 			err := preparer.StartAgents()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("Started Agents in progress, check gpupgrade_agent logs for details"))
+		})
+	})
+	Describe("Prepare init", func() {
+		It("creates dir when none exists", func() {
+			dir, err := ioutil.TempDir("", "")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.RemoveAll(dir)
+
+			stateDir := filepath.Join(dir, "foo")
+			err = commanders.DoInit(stateDir, "/does/not/exist")
+			Expect(err).To(BeNil())
+
+			reader := configutils.NewReader()
+			reader.OfOldClusterConfig(stateDir)
+			reader.Read()
+			Expect(reader.GetBinDir()).To(Equal("/does/not/exist"))
+		})
+		It("errs out when dir exists", func() {
+			dir, err := ioutil.TempDir("", "")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.RemoveAll(dir)
+
+			err = commanders.DoInit(dir, "/does/not/exist")
+			Expect(err).ToNot(BeNil())
 		})
 	})
 })

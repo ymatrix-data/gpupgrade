@@ -2,8 +2,6 @@ package integrations_test
 
 import (
 	"errors"
-	"io/ioutil"
-	"os"
 
 	agentServices "github.com/greenplum-db/gpupgrade/agent/services"
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
@@ -20,21 +18,18 @@ import (
 
 var _ = Describe("upgrade share oids", func() {
 	var (
-		dir       string
 		hub       *hubServices.Hub
 		agent     *agentServices.AgentServer
 		hubExecer *testutils.FakeCommandExecer
 		agentPort int
 
-		outChan chan []byte
-		errChan chan error
+		outChan            chan []byte
+		errChan            chan error
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		config := `{"SegConfig":[{
 			"dbid": 1,
@@ -42,15 +37,15 @@ var _ = Describe("upgrade share oids", func() {
 			"host": "localhost"
 		}],"BinDir":"/tmp"}`
 
-		testutils.WriteOldConfig(dir, config)
-		testutils.WriteNewConfig(dir, config)
+		testutils.WriteOldConfig(testStateDir, config)
+		testutils.WriteNewConfig(testStateDir, config)
 
 		agentPort, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
 		agentConfig := agentServices.AgentConfig{
 			Port:     agentPort,
-			StateDir: dir,
+			StateDir: testStateDir,
 		}
 
 		agentExecer := &testutils.FakeCommandExecer{}
@@ -65,7 +60,7 @@ var _ = Describe("upgrade share oids", func() {
 		conf := &hubServices.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 
 		reader := configutils.NewReader()
@@ -86,8 +81,6 @@ var _ = Describe("upgrade share oids", func() {
 	AfterEach(func() {
 		hub.Stop()
 		agent.Stop()
-
-		os.RemoveAll(dir)
 
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 		Expect(checkPortIsAvailable(agentPort)).To(BeTrue())

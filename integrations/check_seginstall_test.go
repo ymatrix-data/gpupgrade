@@ -1,27 +1,25 @@
 package integrations_test
 
 import (
-	"io/ioutil"
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 	"google.golang.org/grpc"
-	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"time"
-	"strings"
-	"sync"
-	"os"
 )
 
 var _ = Describe("check", func() {
 	var (
-		dir           string
 		hub           *services.Hub
 		mockAgent     *testutils.MockAgentServer
 		commandExecer *testutils.FakeCommandExecer
@@ -31,16 +29,14 @@ var _ = Describe("check", func() {
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		config := `"SegConfig":[{
 			"content": 2,
 			"dbid": 7,
 			"hostname": "localhost"
 		}],"BinDir":"/tmp/bin"`
-		testutils.WriteOldConfig(dir, config)
-		testutils.WriteNewConfig(dir, config)
+		testutils.WriteOldConfig(testStateDir, config)
+		testutils.WriteNewConfig(testStateDir, config)
 
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -51,7 +47,7 @@ var _ = Describe("check", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := &testutils.SpyReader{
 			Hostnames: []string{"localhost"},
@@ -78,7 +74,6 @@ var _ = Describe("check", func() {
 	AfterEach(func() {
 		hub.Stop()
 		mockAgent.Stop()
-		os.RemoveAll(dir)
 	})
 
 	// `gpupgrade check seginstall` verifies that the user has installed the software on all hosts

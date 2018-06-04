@@ -69,11 +69,6 @@ func (h *Hub) CheckConfig(ctx context.Context,
 }
 
 func SaveOldClusterConfig(dbConnector *dbconn.DBConn, stateDir string, oldBinDir string) error {
-	err := os.MkdirAll(stateDir, 0700)
-	if err != nil {
-		return err
-	}
-
 	configQuery := CONFIGQUERY6
 	if dbConnector.Version.Before("6") {
 		configQuery = CONFIGQUERY5

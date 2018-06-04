@@ -79,3 +79,12 @@ func GetHost() (string, error) {
 	hostname, err := System.Hostname()
 	return hostname, err
 }
+
+func GetStateDir() string {
+	stateDir := os.Getenv("GPUPGRADE_HOME")
+	if stateDir == "" {
+		stateDir = filepath.Join(os.Getenv("HOME"), ".gpupgrade")
+	}
+
+	return stateDir
+}

@@ -2,6 +2,7 @@ package integrations_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -31,6 +32,8 @@ var (
 	testout                  *gbytes.Buffer
 	testerr                  *gbytes.Buffer
 	testlog                  *gbytes.Buffer
+	testWorkspaceDir         string
+	testStateDir             string //what would normally be ~/.gpupgrade
 )
 
 var _ = BeforeSuite(func() {
@@ -66,8 +69,19 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = BeforeEach(func() {
+	testWorkspaceDir, err := ioutil.TempDir("", "")
+	Expect(err).ToNot(HaveOccurred())
+	testStateDir = filepath.Join(testWorkspaceDir, ".gpupgrade")
+	os.Setenv("GPUPGRADE_HOME", testStateDir)
+	session := runCommand("prepare", "init", "--old-bindir", "/tmp")
+	Expect(session).To(Exit(0))
+
 	port = 7527
 	killAll()
+})
+
+var _ = AfterEach(func() {
+	os.RemoveAll(testWorkspaceDir)
 })
 
 var _ = AfterSuite(func() {

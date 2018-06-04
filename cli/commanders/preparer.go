@@ -3,14 +3,19 @@ package commanders
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/greenplum-db/gpupgrade/hub/configutils"
+	"github.com/greenplum-db/gpupgrade/hub/services"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gp-common-go-libs/operating"
 )
 
 type Preparer struct {
@@ -102,4 +107,30 @@ func HowManyHubsRunning() (int, error) {
 
 	// only needed if the command errors, but somehow put a parsable & negative value on stdout
 	return -1, err
+}
+
+func DoInit(stateDir string, oldBinDir string) error {
+	err := os.Mkdir(stateDir, 0700)
+	if os.IsExist(err) {
+		return fmt.Errorf("gpupgrade state dir (%s) already exists. Did you already run gpupgrade prepare init?", stateDir)
+	} else if err != nil {
+		return err
+	}
+
+	configFile := configutils.GetConfigFilePath(stateDir)
+	configFileHandle, err := operating.System.OpenFileWrite(configFile, os.O_CREATE|os.O_WRONLY, 0700)
+	if err != nil {
+		errMsg := fmt.Sprintf("Unable to write to config file %s. Err: %s", configFile, err.Error())
+		return errors.New(errMsg)
+	}
+	defer configFileHandle.Close()
+
+	segConfig := make(configutils.SegmentConfiguration, 0)
+
+	configJSON := &configutils.ClusterConfig{
+		SegConfig: segConfig,
+		BinDir:    oldBinDir,
+	}
+
+	return services.SaveQueryResultToJSON(configJSON, configFileHandle)
 }

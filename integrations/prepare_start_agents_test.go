@@ -2,7 +2,6 @@ package integrations_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -13,38 +12,35 @@ import (
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 
+	"time"
+
+	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 	"google.golang.org/grpc"
-	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"time"
 )
 
 var _ = Describe("prepare", func() {
 	var (
-		dir           string
 		hub           *services.Hub
 		mockAgent     *testutils.MockAgentServer
 		commandExecer *testutils.FakeCommandExecer
 	)
 
 	BeforeEach(func() {
-		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		var agentPort int
 		mockAgent, agentPort = testutils.NewMockAgentServer()
 
+		var err error
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -71,16 +67,15 @@ var _ = Describe("prepare", func() {
               "role": "m",
               "status": "u",
               "port": %s
-        }],"BinDir":"/tmp"}`, dir, pgPort)
+        }],"BinDir":"/tmp"}`, testStateDir, pgPort)
 
-		testutils.WriteOldConfig(dir, clusterConfig)
+		testutils.WriteOldConfig(testStateDir, clusterConfig)
 		go hub.Start()
 	})
 
 	AfterEach(func() {
 		hub.Stop()
 		mockAgent.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 

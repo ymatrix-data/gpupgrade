@@ -3,26 +3,25 @@ package integrations_test
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
 	"github.com/greenplum-db/gpupgrade/hub/configutils"
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/testutils"
 
+	"time"
+
+	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 	"google.golang.org/grpc"
-	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"time"
 )
 
 // needs the cli and the hub
 var _ = Describe("check config", func() {
 	var (
-		dir            string
 		hub            *services.Hub
 		commandExecer  *testutils.FakeCommandExecer
 		hubToAgentPort int
@@ -32,15 +31,6 @@ var _ = Describe("check config", func() {
 		hubToAgentPort = 6416
 
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
-		// We only needed to get the name of the temp directory, so we delete it.
-		// The actual directory will be created by the
-		// SaveOldClusterConfigAndVersion() routine.
-		// Being a temp dir, Go will remove the directory at the end of test also.
-		err = os.RemoveAll(dir)
-		Expect(err).ToNot(HaveOccurred())
 
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -48,7 +38,7 @@ var _ = Describe("check config", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: hubToAgentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -66,7 +56,6 @@ var _ = Describe("check config", func() {
 
 	AfterEach(func() {
 		hub.Stop()
-		os.RemoveAll(dir)
 	})
 
 	Describe("when a greenplum master db on localhost is up and running", func() {
@@ -78,11 +67,11 @@ var _ = Describe("check config", func() {
 			}
 			Expect(session).To(Exit(0))
 
-			_, err := ioutil.ReadFile(configutils.GetConfigFilePath(dir))
+			_, err := ioutil.ReadFile(configutils.GetConfigFilePath(testStateDir))
 			testutils.Check("cannot read file", err)
 
 			reader := configutils.Reader{}
-			reader.OfOldClusterConfig(dir)
+			reader.OfOldClusterConfig(testStateDir)
 			err = reader.Read()
 			testutils.Check("cannot read config", err)
 

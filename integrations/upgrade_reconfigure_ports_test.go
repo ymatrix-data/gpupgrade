@@ -2,8 +2,6 @@ package integrations_test
 
 import (
 	"errors"
-	"io/ioutil"
-	"os"
 
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
 	"github.com/greenplum-db/gpupgrade/hub/configutils"
@@ -20,20 +18,17 @@ import (
 var _ = Describe("upgrade reconfigure ports", func() {
 
 	var (
-		dir       string
 		hub       *services.Hub
 		hubExecer *testutils.FakeCommandExecer
 		agentPort int
 
-		outChan chan []byte
-		errChan chan error
+		outChan            chan []byte
+		errChan            chan error
 		stubRemoteExecutor *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
 
 		config := `[{
 			"dbid": 1,
@@ -41,8 +36,8 @@ var _ = Describe("upgrade reconfigure ports", func() {
 			"host": "localhost"
 		}]`
 
-		testutils.WriteOldConfig(dir, config)
-		testutils.WriteNewConfig(dir, config)
+		testutils.WriteOldConfig(testStateDir, config)
+		testutils.WriteNewConfig(testStateDir, config)
 
 		agentPort, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
@@ -53,7 +48,7 @@ var _ = Describe("upgrade reconfigure ports", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: agentPort,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 
 		reader := configutils.NewReader()
@@ -73,8 +68,6 @@ var _ = Describe("upgrade reconfigure ports", func() {
 
 	AfterEach(func() {
 		hub.Stop()
-
-		os.RemoveAll(dir)
 
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 		Expect(checkPortIsAvailable(agentPort)).To(BeTrue())

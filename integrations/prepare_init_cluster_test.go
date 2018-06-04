@@ -1,7 +1,6 @@
 package integrations_test
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
@@ -12,34 +11,31 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"google.golang.org/grpc"
 
+	"time"
+
+	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
-	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"time"
 )
 
 // the `prepare start-hub` tests are currently in master_only_integration_test
 var _ = Describe("prepare", func() {
 	var (
-		dir           string
 		hub           *services.Hub
 		commandExecer *testutils.FakeCommandExecer
 	)
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		port, err = testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: 6416,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -57,7 +53,6 @@ var _ = Describe("prepare", func() {
 
 	AfterEach(func() {
 		hub.Stop()
-		os.RemoveAll(dir)
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 
@@ -82,7 +77,7 @@ var _ = Describe("prepare", func() {
 			Expect(runStatusUpgrade()).To(ContainSubstring("COMPLETE - Initialize upgrade target cluster"))
 
 			reader := configutils.NewReader()
-			reader.OfNewClusterConfig(dir)
+			reader.OfNewClusterConfig(testStateDir)
 			err := reader.Read()
 			Expect(err).ToNot(HaveOccurred())
 

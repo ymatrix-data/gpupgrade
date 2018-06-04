@@ -3,19 +3,21 @@ package main
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
+
 	"github.com/greenplum-db/gpupgrade/helpers"
 	"github.com/greenplum-db/gpupgrade/hub/cluster"
 	"github.com/greenplum-db/gpupgrade/hub/configutils"
 	"github.com/greenplum-db/gpupgrade/hub/services"
+	"github.com/greenplum-db/gpupgrade/utils"
+
+	"runtime/debug"
+	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"time"
-	"runtime/debug"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 // This directory to have the implementation code for the gRPC server to serve
@@ -34,7 +36,7 @@ func main() {
 			conf := &services.HubConfig{
 				CliToHubPort:   7527,
 				HubToAgentPort: 6416,
-				StateDir:       filepath.Join(os.Getenv("HOME"), ".gpupgrade"),
+				StateDir:       utils.GetStateDir(),
 				LogDir:         logdir,
 			}
 			reader := configutils.NewReader()

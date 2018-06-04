@@ -21,7 +21,6 @@ import (
 
 var _ = Describe("upgrade convert primaries", func() {
 	var (
-		dir                string
 		hub                *services.Hub
 		agent              *agentServices.AgentServer
 		hubCommandExecer   *testutils.FakeCommandExecer
@@ -36,9 +35,6 @@ var _ = Describe("upgrade convert primaries", func() {
 
 	BeforeEach(func() {
 		var err error
-		dir, err = ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-
 		oldBinDir, err = ioutil.TempDir("", "")
 		Expect(err).ToNot(HaveOccurred())
 		newBinDir, err = ioutil.TempDir("", "")
@@ -59,13 +55,13 @@ var _ = Describe("upgrade convert primaries", func() {
 			"port": 12345
 		}],"BinDir":"/tmp"}`, segmentDataDir)
 
-		testutils.WriteOldConfig(dir, config)
-		testutils.WriteNewConfig(dir, config)
+		testutils.WriteOldConfig(testStateDir, config)
+		testutils.WriteNewConfig(testStateDir, config)
 
-		err = os.MkdirAll(filepath.Join(dir, "pg_upgrade"), 0700)
+		err = os.MkdirAll(filepath.Join(testStateDir, "pg_upgrade"), 0700)
 		Expect(err).ToNot(HaveOccurred())
 
-		oidFile = filepath.Join(dir, "pg_upgrade", "pg_upgrade_dump_seg1_oids.sql")
+		oidFile = filepath.Join(testStateDir, "pg_upgrade", "pg_upgrade_dump_seg1_oids.sql")
 		f, err := os.Create(oidFile)
 		Expect(err).ToNot(HaveOccurred())
 		f.Close()
@@ -76,7 +72,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		conf := &services.HubConfig{
 			CliToHubPort:   port,
 			HubToAgentPort: 6416,
-			StateDir:       dir,
+			StateDir:       testStateDir,
 		}
 		reader := configutils.NewReader()
 
@@ -99,7 +95,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		})
 		agent = agentServices.NewAgentServer(agentCommandExecer.Exec, agentServices.AgentConfig{
 			Port:     6416,
-			StateDir: dir,
+			StateDir: testStateDir,
 		})
 		go agent.Start()
 	})
@@ -108,7 +104,6 @@ var _ = Describe("upgrade convert primaries", func() {
 		hub.Stop()
 		agent.Stop()
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
-		os.RemoveAll(dir)
 	})
 
 	It("updates status PENDING to RUNNING then to COMPLETE if successful", func() {
@@ -130,7 +125,7 @@ var _ = Describe("upgrade convert primaries", func() {
 			return runStatusUpgrade()
 		}()).To(ContainSubstring("RUNNING - Primary segment upgrade"))
 
-		f, err := os.Create(filepath.Join(dir, "pg_upgrade", "seg-1", ".done"))
+		f, err := os.Create(filepath.Join(testStateDir, "pg_upgrade", "seg-1", ".done"))
 		Expect(err).ToNot(HaveOccurred())
 		f.Write([]byte("Upgrade complete\n"))
 		f.Close()
