@@ -17,15 +17,14 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 
 	checkconfigStatePath := filepath.Join(h.conf.StateDir, "check-config")
 	checkconfigState := upgradestatus.NewStateCheck(checkconfigStatePath, pb.UpgradeSteps_CHECK_CONFIG)
-	// XXX why do we ignore the error?
-	checkconfigStatus, _ := checkconfigState.GetStatus()
+	checkconfigStatus := checkconfigState.GetStatus()
 
 	prepareInitStatus, _ := h.GetPrepareNewClusterConfigStatus()
 
 	seginstallStatePath := filepath.Join(h.conf.StateDir, "seginstall")
 	gplog.Debug("looking for seginstall state at %s", seginstallStatePath)
 	seginstallState := upgradestatus.NewStateCheck(seginstallStatePath, pb.UpgradeSteps_SEGINSTALL)
-	seginstallStatus, _ := seginstallState.GetStatus()
+	seginstallStatus := seginstallState.GetStatus()
 
 	gpstopStatePath := filepath.Join(h.conf.StateDir, "gpstop")
 	gplog.Debug("looking for gpstop state at %s", gpstopStatePath)
@@ -40,15 +39,15 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 	startAgentsStatePath := filepath.Join(h.conf.StateDir, "start-agents")
 	gplog.Debug("looking for start-agents state at %s", startAgentsStatePath)
 	prepareStartAgentsState := upgradestatus.NewStateCheck(startAgentsStatePath, pb.UpgradeSteps_PREPARE_START_AGENTS)
-	startAgentsStatus, _ := prepareStartAgentsState.GetStatus()
+	startAgentsStatus := prepareStartAgentsState.GetStatus()
 
 	shareOidsPath := filepath.Join(h.conf.StateDir, "share-oids")
 	shareOidsState := upgradestatus.NewStateCheck(shareOidsPath, pb.UpgradeSteps_SHARE_OIDS)
-	shareOidsStatus, _ := shareOidsState.GetStatus()
+	shareOidsStatus := shareOidsState.GetStatus()
 
 	validateStartClusterPath := filepath.Join(h.conf.StateDir, "validate-start-cluster")
 	validateStartClusterState := upgradestatus.NewStateCheck(validateStartClusterPath, pb.UpgradeSteps_VALIDATE_START_CLUSTER)
-	validateStartClusterStatus, _ := validateStartClusterState.GetStatus()
+	validateStartClusterStatus := validateStartClusterState.GetStatus()
 
 	conversionStatus, _ := h.StatusConversion(nil, &pb.StatusConversionRequest{})
 	upgradeConvertPrimariesStatus := &pb.UpgradeStepStatus{
@@ -57,7 +56,7 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 
 	reconfigurePortsPath := filepath.Join(h.conf.StateDir, "reconfigure-ports")
 	reconfigurePortsState := upgradestatus.NewStateCheck(reconfigurePortsPath, pb.UpgradeSteps_RECONFIGURE_PORTS)
-	reconfigurePortsStatus, _ := reconfigurePortsState.GetStatus()
+	reconfigurePortsStatus := reconfigurePortsState.GetStatus()
 
 	statuses := strings.Join(conversionStatus.GetConversionStatuses(), " ")
 	if strings.Contains(statuses, "FAILED") {
