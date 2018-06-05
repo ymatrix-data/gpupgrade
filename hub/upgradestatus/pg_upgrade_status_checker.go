@@ -33,7 +33,7 @@ func NewPGUpgradeStatusChecker(pgUpgradePath, oldDataDir string, execer helpers.
 	- pg_upgrade will not fail without error before writing an inprogress file
 	- when a new pg_upgrade is started it deletes all *.done and *.inprogress files
 */
-func (c *ConvertMaster) GetStatus() (*pb.UpgradeStepStatus, error) {
+func (c *ConvertMaster) GetStatus() *pb.UpgradeStepStatus {
 	var masterUpgradeStatus *pb.UpgradeStepStatus
 	pgUpgradePath := c.pgUpgradePath
 
@@ -42,7 +42,7 @@ func (c *ConvertMaster) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_MASTERUPGRADE,
 			Status: pb.StepStatus_PENDING,
 		}
-		return masterUpgradeStatus, nil
+		return masterUpgradeStatus
 	}
 
 	if c.pgUpgradeRunning() {
@@ -50,7 +50,7 @@ func (c *ConvertMaster) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_MASTERUPGRADE,
 			Status: pb.StepStatus_RUNNING,
 		}
-		return masterUpgradeStatus, nil
+		return masterUpgradeStatus
 	}
 
 	if !inProgressFilesExist(pgUpgradePath) && c.IsUpgradeComplete(pgUpgradePath) {
@@ -58,7 +58,7 @@ func (c *ConvertMaster) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_MASTERUPGRADE,
 			Status: pb.StepStatus_COMPLETE,
 		}
-		return masterUpgradeStatus, nil
+		return masterUpgradeStatus
 	}
 
 	masterUpgradeStatus = &pb.UpgradeStepStatus{
@@ -66,7 +66,7 @@ func (c *ConvertMaster) GetStatus() (*pb.UpgradeStepStatus, error) {
 		Status: pb.StepStatus_FAILED,
 	}
 
-	return masterUpgradeStatus, nil
+	return masterUpgradeStatus
 }
 
 func (c *ConvertMaster) pgUpgradeRunning() bool {

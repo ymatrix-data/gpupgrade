@@ -49,8 +49,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 			return true
 		}
 		subject := upgradestatus.NewPGUpgradeStatusChecker("/tmp", "", commandExecer.Exec)
-		status, err := subject.GetStatus()
-		Expect(err).To(BeNil())
+		status := subject.GetStatus()
 		Expect(status.Status).To(Equal(pb.StepStatus_PENDING))
 
 	})
@@ -66,8 +65,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 		outChan <- []byte("I'm running")
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker("/tmp", "", commandExecer.Exec)
-		status, err := subject.GetStatus()
-		Expect(err).To(BeNil())
+		status := subject.GetStatus()
 		Expect(status.Status).To(Equal(pb.StepStatus_RUNNING))
 	})
 
@@ -109,8 +107,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 		}
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker("/tmp", "/data/dir", commandExecer.Exec)
-		status, err := subject.GetStatus()
-		Expect(err).To(BeNil())
+		status := subject.GetStatus()
 		Expect(status.Status).To(Equal(pb.StepStatus_COMPLETE))
 
 		Expect(commandExecer.Calls()).To(Equal([]string{"pgrep pg_upgrade | grep --old-datadir=/data/dir"}))
@@ -130,8 +127,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 		errChan <- errors.New("pg_upgrade failed")
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker("/tmp", "", commandExecer.Exec)
-		status, err := subject.GetStatus()
-		Expect(err).To(BeNil())
+		status := subject.GetStatus()
 		Expect(status.Status).To(Equal(pb.StepStatus_FAILED))
 	})
 })

@@ -311,8 +311,7 @@ var _ = Describe("status upgrade", func() {
 			utils.System.Stat = func(filename string) (os.FileInfo, error) {
 				return nil, errors.New("cannot find file") /* This is normally a PathError */
 			}
-			stepStatus, err := hub.GetPrepareNewClusterConfigStatus()
-			Expect(err).To(BeNil()) // convert file-not-found errors into stepStatus
+			stepStatus := hub.GetPrepareNewClusterConfigStatus()
 			Expect(stepStatus.Step).To(Equal(pb.UpgradeSteps_PREPARE_INIT_CLUSTER))
 			Expect(stepStatus.Status).To(Equal(pb.StepStatus_PENDING))
 		})
@@ -322,8 +321,7 @@ var _ = Describe("status upgrade", func() {
 				return nil, nil
 			}
 
-			stepStatus, err := hub.GetPrepareNewClusterConfigStatus()
-			Expect(err).To(BeNil())
+			stepStatus := hub.GetPrepareNewClusterConfigStatus()
 			Expect(stepStatus.Step).To(Equal(pb.UpgradeSteps_PREPARE_INIT_CLUSTER))
 			Expect(stepStatus.Status).To(Equal(pb.StepStatus_COMPLETE))
 

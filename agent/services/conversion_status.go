@@ -5,7 +5,6 @@ import (
 
 	"errors"
 	"fmt"
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"path/filepath"
@@ -26,11 +25,7 @@ func (s *AgentServer) CheckConversionStatus(ctx context.Context, in *pb.CheckCon
 			s.commandExecer,
 		)
 
-		status, err := conversionStatus.GetStatus()
-		if err != nil {
-			gplog.Error("Unable to get status for segment %d conversion: %s", segment.GetContent(), err)
-			return &pb.CheckConversionStatusReply{}, err
-		}
+		status := conversionStatus.GetStatus()
 
 		if segment.GetDbid() == 1 && segment.GetContent() == -1 {
 			master = fmt.Sprintf(format, status.Status.String(), segment.GetDbid(), segment.GetContent(), "MASTER", in.GetHostname())

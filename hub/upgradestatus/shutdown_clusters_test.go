@@ -49,8 +49,7 @@ var _ = Describe("hub", func() {
 				return true
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
-			status, err := subject.GetStatus()
-			Expect(err).To(BeNil())
+			status := subject.GetStatus()
 			Expect(status.Status).To(Equal(pb.StepStatus_PENDING))
 
 		})
@@ -71,8 +70,7 @@ var _ = Describe("hub", func() {
 				return nil, errors.New("Test not configured for this glob.")
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
-			status, err := subject.GetStatus()
-			Expect(err).To(BeNil())
+			status := subject.GetStatus()
 			Expect(status.Status).To(Equal(pb.StepStatus_RUNNING))
 		})
 		It("If gpstop is not running and .complete files exist and contain the string "+
@@ -102,8 +100,7 @@ var _ = Describe("hub", func() {
 				return nil, nil
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
-			status, err := subject.GetStatus()
-			Expect(err).To(BeNil())
+			status := subject.GetStatus()
 			Expect(status.Status).To(Equal(pb.StepStatus_COMPLETE))
 		})
 		// We are assuming that no inprogress actually exists in the path we're using,
@@ -120,8 +117,7 @@ var _ = Describe("hub", func() {
 			errChan <- errors.New("gpstop failed")
 
 			subject := upgradestatus.NewShutDownClusters("/tmp", commandExecer.Exec)
-			status, err := subject.GetStatus()
-			Expect(err).To(BeNil())
+			status := subject.GetStatus()
 			Expect(status.Status).To(Equal(pb.StepStatus_FAILED))
 		})
 	})

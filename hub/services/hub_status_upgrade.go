@@ -19,7 +19,7 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 	checkconfigState := upgradestatus.NewStateCheck(checkconfigStatePath, pb.UpgradeSteps_CHECK_CONFIG)
 	checkconfigStatus := checkconfigState.GetStatus()
 
-	prepareInitStatus, _ := h.GetPrepareNewClusterConfigStatus()
+	prepareInitStatus := h.GetPrepareNewClusterConfigStatus()
 
 	seginstallStatePath := filepath.Join(h.conf.StateDir, "seginstall")
 	gplog.Debug("looking for seginstall state at %s", seginstallStatePath)
@@ -29,12 +29,12 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 	gpstopStatePath := filepath.Join(h.conf.StateDir, "gpstop")
 	gplog.Debug("looking for gpstop state at %s", gpstopStatePath)
 	clusterPair := upgradestatus.NewShutDownClusters(gpstopStatePath, h.commandExecer)
-	shutdownClustersStatus, _ := clusterPair.GetStatus()
+	shutdownClustersStatus := clusterPair.GetStatus()
 
 	pgUpgradePath := filepath.Join(h.conf.StateDir, "pg_upgrade")
 	gplog.Debug("looking for pg_upgrade state at %s", pgUpgradePath)
 	convertMaster := upgradestatus.NewPGUpgradeStatusChecker(pgUpgradePath, h.clusterPair.OldCluster.GetDirForContent(-1), h.commandExecer)
-	masterUpgradeStatus, _ := convertMaster.GetStatus()
+	masterUpgradeStatus := convertMaster.GetStatus()
 
 	startAgentsStatePath := filepath.Join(h.conf.StateDir, "start-agents")
 	gplog.Debug("looking for start-agents state at %s", startAgentsStatePath)
@@ -49,6 +49,8 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 	validateStartClusterState := upgradestatus.NewStateCheck(validateStartClusterPath, pb.UpgradeSteps_VALIDATE_START_CLUSTER)
 	validateStartClusterStatus := validateStartClusterState.GetStatus()
 
+	// FIXME: this status query involves RPC communication; we should almost
+	// certainly not be ignoring an error here.
 	conversionStatus, _ := h.StatusConversion(nil, &pb.StatusConversionRequest{})
 	upgradeConvertPrimariesStatus := &pb.UpgradeStepStatus{
 		Step: pb.UpgradeSteps_CONVERT_PRIMARIES,
@@ -85,7 +87,7 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 	}, nil
 }
 
-func (h *Hub) GetPrepareNewClusterConfigStatus() (*pb.UpgradeStepStatus, error) {
+func (h *Hub) GetPrepareNewClusterConfigStatus() *pb.UpgradeStepStatus {
 	/* Treat all stat failures as cannot find file. Conceal worse failures atm.*/
 	_, err := utils.System.Stat(GetNewConfigFilePath(h.conf.StateDir))
 
@@ -94,11 +96,11 @@ func (h *Hub) GetPrepareNewClusterConfigStatus() (*pb.UpgradeStepStatus, error) 
 		return &pb.UpgradeStepStatus{
 			Step:   pb.UpgradeSteps_PREPARE_INIT_CLUSTER,
 			Status: pb.StepStatus_PENDING,
-		}, nil
+		}
 	}
 
 	return &pb.UpgradeStepStatus{
 		Step:   pb.UpgradeSteps_PREPARE_INIT_CLUSTER,
 		Status: pb.StepStatus_COMPLETE,
-	}, nil
+	}
 }

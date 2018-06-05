@@ -25,7 +25,7 @@ func NewShutDownClusters(gpstopStatePath string, execer helpers.CommandExecer) S
 	- gpstop will not fail without error before writing an inprogress file
 	- when a new gpstop is started it deletes all *.done and *.inprogress files
 */
-func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
+func (s *ShutDownClusters) GetStatus() *pb.UpgradeStepStatus {
 	var shutdownClustersStatus *pb.UpgradeStepStatus
 	gpstopStatePath := s.gpstopStatePath
 
@@ -34,7 +34,7 @@ func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_PENDING,
 		}
-		return shutdownClustersStatus, nil
+		return shutdownClustersStatus
 	}
 
 	/* There can be cases where gpstop is running but not as part of the pre-setup
@@ -47,7 +47,7 @@ func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_RUNNING,
 		}
-		return shutdownClustersStatus, nil
+		return shutdownClustersStatus
 	}
 
 	if !s.inProgressFilesExist(gpstopStatePath) && s.IsStopComplete(gpstopStatePath) {
@@ -55,7 +55,7 @@ func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
 			Status: pb.StepStatus_COMPLETE,
 		}
-		return shutdownClustersStatus, nil
+		return shutdownClustersStatus
 	}
 
 	shutdownClustersStatus = &pb.UpgradeStepStatus{
@@ -63,7 +63,7 @@ func (s *ShutDownClusters) GetStatus() (*pb.UpgradeStepStatus, error) {
 		Status: pb.StepStatus_FAILED,
 	}
 
-	return shutdownClustersStatus, nil
+	return shutdownClustersStatus
 }
 
 func (s *ShutDownClusters) isGpstopRunning() bool {
