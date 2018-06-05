@@ -386,6 +386,10 @@ var subInit = &cobra.Command{
 	Short: "Setup state dir and config file",
 	Long:  `Setup state dir and config file`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// If we got here, the args are okay and the user doesn't need a usage
+		// dump on failure.
+		cmd.SilenceUsage = true
+
 		stateDir := utils.GetStateDir()
 		return commanders.DoInit(stateDir, oldBinDir)
 	},
