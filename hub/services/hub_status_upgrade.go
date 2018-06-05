@@ -12,78 +12,113 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*pb.StatusUpgradeReply, error) {
-	gplog.Info("starting StatusUpgrade")
+// Step represents a single step during upgrade status (e.g. primary conversion,
+// check config, etc.).
+type Step struct {
+	// Name is a human-readable description of the Step, usually following the
+	// invocation on the command line. It must additionally be a valid directory
+	// name for all supported filesystems.
+	Name string
 
-	checkconfigStatePath := filepath.Join(h.conf.StateDir, "check-config")
-	checkconfigState := upgradestatus.NewStateCheck(checkconfigStatePath, pb.UpgradeSteps_CHECK_CONFIG)
-	checkconfigStatus := checkconfigState.GetStatus()
+	// StepCode is the gRPC code corresponding to this particular Step.
+	StepCode pb.UpgradeSteps
 
-	prepareInitStatus := h.GetPrepareNewClusterConfigStatus()
+	// getStatus is the private implementation of the Status method.
+	getStatus func(s Step, h *Hub) *pb.UpgradeStepStatus
+}
 
-	seginstallStatePath := filepath.Join(h.conf.StateDir, "seginstall")
-	gplog.Debug("looking for seginstall state at %s", seginstallStatePath)
-	seginstallState := upgradestatus.NewStateCheck(seginstallStatePath, pb.UpgradeSteps_SEGINSTALL)
-	seginstallStatus := seginstallState.GetStatus()
+// Status retrieves the UpgradeStepStatus (failed, completed, etc.) for this
+// Step on a given Hub.
+func (s Step) Status(h *Hub) *pb.UpgradeStepStatus {
+	return s.getStatus(s, h)
+}
 
-	gpstopStatePath := filepath.Join(h.conf.StateDir, "gpstop")
-	gplog.Debug("looking for gpstop state at %s", gpstopStatePath)
-	clusterPair := upgradestatus.NewShutDownClusters(gpstopStatePath, h.commandExecer)
-	shutdownClustersStatus := clusterPair.GetStatus()
+// StatePath returns the directory where the state for this Step is kept (if
+// applicable; not all Steps use a state directory in their implementation). It
+// is currently computed using the Hub's state directory and the Step name.
+func (s Step) StatePath(h *Hub) string {
+	path := filepath.Join(h.conf.StateDir, s.Name)
+	gplog.Debug("looking for %s state at %s", s.Name, path)
+	return path
+}
 
-	pgUpgradePath := filepath.Join(h.conf.StateDir, "pg_upgrade")
-	gplog.Debug("looking for pg_upgrade state at %s", pgUpgradePath)
-	convertMaster := upgradestatus.NewPGUpgradeStatusChecker(pgUpgradePath, h.clusterPair.OldCluster.GetDirForContent(-1), h.commandExecer)
-	masterUpgradeStatus := convertMaster.GetStatus()
+/*
+ * getStatus() Implementations
+ */
 
-	startAgentsStatePath := filepath.Join(h.conf.StateDir, "start-agents")
-	gplog.Debug("looking for start-agents state at %s", startAgentsStatePath)
-	prepareStartAgentsState := upgradestatus.NewStateCheck(startAgentsStatePath, pb.UpgradeSteps_PREPARE_START_AGENTS)
-	startAgentsStatus := prepareStartAgentsState.GetStatus()
+// stateCheckStatus uses a NewStateCheck object to retrieve status; it's the
+// most general getStatus() implementation.
+func stateCheckStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
+	state := upgradestatus.NewStateCheck(s.StatePath(h), s.StepCode)
+	return state.GetStatus()
+}
 
-	shareOidsPath := filepath.Join(h.conf.StateDir, "share-oids")
-	shareOidsState := upgradestatus.NewStateCheck(shareOidsPath, pb.UpgradeSteps_SHARE_OIDS)
-	shareOidsStatus := shareOidsState.GetStatus()
+// initStatus gets its status by checking for the existence of a new cluster
+// config.
+func initStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
+	status := h.GetPrepareNewClusterConfigStatus()
+	return status
+}
 
-	validateStartClusterPath := filepath.Join(h.conf.StateDir, "validate-start-cluster")
-	validateStartClusterState := upgradestatus.NewStateCheck(validateStartClusterPath, pb.UpgradeSteps_VALIDATE_START_CLUSTER)
-	validateStartClusterStatus := validateStartClusterState.GetStatus()
+// shutdownStatus checks whether all clusters have been stopped.
+func shutdownStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
+	state := upgradestatus.NewShutDownClusters(s.StatePath(h), h.commandExecer)
+	return state.GetStatus()
+}
 
+// pgUpgradeStatus checks the pg_upgrade progress files for its status.
+func pgUpgradeStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
+	state := upgradestatus.NewPGUpgradeStatusChecker(s.StatePath(h), h.clusterPair.OldCluster.GetDirForContent(-1), h.commandExecer)
+	return state.GetStatus()
+}
+
+// conversionStatus queries all segments for their upgrade status and
+// consolidates them into a single pass/fail.
+func conversionStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
 	// FIXME: this status query involves RPC communication; we should almost
 	// certainly not be ignoring an error here.
 	conversionStatus, _ := h.StatusConversion(nil, &pb.StatusConversionRequest{})
-	upgradeConvertPrimariesStatus := &pb.UpgradeStepStatus{
-		Step: pb.UpgradeSteps_CONVERT_PRIMARIES,
+	status := &pb.UpgradeStepStatus{
+		Step: s.StepCode,
 	}
-
-	reconfigurePortsPath := filepath.Join(h.conf.StateDir, "reconfigure-ports")
-	reconfigurePortsState := upgradestatus.NewStateCheck(reconfigurePortsPath, pb.UpgradeSteps_RECONFIGURE_PORTS)
-	reconfigurePortsStatus := reconfigurePortsState.GetStatus()
 
 	statuses := strings.Join(conversionStatus.GetConversionStatuses(), " ")
 	if strings.Contains(statuses, "FAILED") {
-		upgradeConvertPrimariesStatus.Status = pb.StepStatus_FAILED
+		status.Status = pb.StepStatus_FAILED
 	} else if strings.Contains(statuses, "RUNNING") {
-		upgradeConvertPrimariesStatus.Status = pb.StepStatus_RUNNING
+		status.Status = pb.StepStatus_RUNNING
 	} else if strings.Contains(statuses, "COMPLETE") {
-		upgradeConvertPrimariesStatus.Status = pb.StepStatus_COMPLETE
+		status.Status = pb.StepStatus_COMPLETE
 	} else {
-		upgradeConvertPrimariesStatus.Status = pb.StepStatus_PENDING
+		status.Status = pb.StepStatus_PENDING
+	}
+	return status
+}
+
+func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*pb.StatusUpgradeReply, error) {
+	gplog.Info("starting StatusUpgrade")
+
+	steps := [...]Step{
+		{"check-config", pb.UpgradeSteps_CHECK_CONFIG, stateCheckStatus},
+		{"seginstall", pb.UpgradeSteps_SEGINSTALL, stateCheckStatus},
+		{"init-cluster", pb.UpgradeSteps_PREPARE_INIT_CLUSTER, initStatus},
+		{"gpstop", pb.UpgradeSteps_STOPPED_CLUSTER, shutdownStatus},
+		{"pg_upgrade", pb.UpgradeSteps_MASTERUPGRADE, pgUpgradeStatus},
+		{"start-agents", pb.UpgradeSteps_PREPARE_START_AGENTS, stateCheckStatus},
+		{"share-oids", pb.UpgradeSteps_SHARE_OIDS, stateCheckStatus},
+		{"validate-start-cluster", pb.UpgradeSteps_VALIDATE_START_CLUSTER, stateCheckStatus},
+		{"convert-primaries", pb.UpgradeSteps_CONVERT_PRIMARIES, conversionStatus},
+		{"reconfigure-ports", pb.UpgradeSteps_RECONFIGURE_PORTS, stateCheckStatus},
+	}
+
+	statuses := make([]*pb.UpgradeStepStatus, len(steps))
+
+	for i, desc := range steps {
+		statuses[i] = desc.Status(h)
 	}
 
 	return &pb.StatusUpgradeReply{
-		ListOfUpgradeStepStatuses: []*pb.UpgradeStepStatus{
-			checkconfigStatus,
-			seginstallStatus,
-			prepareInitStatus,
-			shutdownClustersStatus,
-			masterUpgradeStatus,
-			startAgentsStatus,
-			shareOidsStatus,
-			validateStartClusterStatus,
-			upgradeConvertPrimariesStatus,
-			reconfigurePortsStatus,
-		},
+		ListOfUpgradeStepStatuses: statuses,
 	}, nil
 }
 
