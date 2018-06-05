@@ -8,6 +8,7 @@ import (
 
 	"github.com/greenplum-db/gpupgrade/db"
 	"github.com/greenplum-db/gpupgrade/hub/configutils"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -48,10 +49,23 @@ func (h *Hub) CheckConfig(ctx context.Context,
 	in *pb.CheckConfigRequest) (*pb.CheckConfigReply, error) {
 	gplog.Info("starting CheckConfig()")
 
+	c := upgradestatus.NewChecklistManager(h.conf.StateDir)
+	checkConfigStep := "check-config"
+
+	err := c.ResetStateDir(checkConfigStep)
+	if err != nil {
+		gplog.Error("error from ResetStateDir " + err.Error())
+	}
+	err = c.MarkInProgress(checkConfigStep)
+	if err != nil {
+		gplog.Error("error from MarkInProgress " + err.Error())
+	}
+
 	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")
 	defer dbConnector.Close()
-	err := dbConnector.Connect(1)
+	err = dbConnector.Connect(1)
 	if err != nil {
+		c.MarkFailed(checkConfigStep)
 		gplog.Error(err.Error())
 		return &pb.CheckConfigReply{}, utils.DatabaseConnectionError{Parent: err}
 	}
@@ -59,11 +73,13 @@ func (h *Hub) CheckConfig(ctx context.Context,
 
 	err = SaveOldClusterConfig(dbConnector, h.conf.StateDir, in.OldBinDir)
 	if err != nil {
+		c.MarkFailed(checkConfigStep)
 		gplog.Error(err.Error())
 		return &pb.CheckConfigReply{}, err
 	}
 
 	successReply := &pb.CheckConfigReply{ConfigStatus: "All good"}
+	c.MarkComplete(checkConfigStep)
 
 	return successReply, nil
 }

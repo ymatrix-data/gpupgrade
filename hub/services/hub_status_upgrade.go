@@ -16,22 +16,14 @@ import (
 func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*pb.StatusUpgradeReply, error) {
 	gplog.Info("starting StatusUpgrade")
 
-	checkConfigStatePath := filepath.Join(h.conf.StateDir, "cluster_config.json")
-	gplog.Debug("looking for check-config.json at %s", checkConfigStatePath)
-
-	checkconfigStatus := &pb.UpgradeStepStatus{
-		Step: pb.UpgradeSteps_CHECK_CONFIG,
-	}
-	if _, err := utils.System.Stat(checkConfigStatePath); utils.System.IsNotExist(err) {
-		checkconfigStatus.Status = pb.StepStatus_PENDING
-	} else {
-		checkconfigStatus.Status = pb.StepStatus_COMPLETE
-	}
+	checkconfigStatePath := filepath.Join(h.conf.StateDir, "check-config")
+	checkconfigState := upgradestatus.NewStateCheck(checkconfigStatePath, pb.UpgradeSteps_CHECK_CONFIG)
+	// XXX why do we ignore the error?
+	checkconfigStatus, _ := checkconfigState.GetStatus()
 
 	prepareInitStatus, _ := GetPrepareNewClusterConfigStatus(h.conf.StateDir)
 
 	seginstallStatePath := filepath.Join(h.conf.StateDir, "seginstall")
-	gplog.Debug("looking for seginstall State at %s", seginstallStatePath)
 	seginstallState := upgradestatus.NewStateCheck(seginstallStatePath, pb.UpgradeSteps_SEGINSTALL)
 	seginstallStatus, _ := seginstallState.GetStatus()
 

@@ -27,7 +27,7 @@ var _ = Describe("status upgrade", func() {
 		errChan                  chan error
 		outChan                  chan []byte
 		mockAgent                *testutils.MockAgentServer
-		stubRemoteExecutor *testutils.StubRemoteExecutor
+		stubRemoteExecutor       *testutils.StubRemoteExecutor
 	)
 
 	BeforeEach(func() {
@@ -64,12 +64,9 @@ var _ = Describe("status upgrade", func() {
 	})
 
 	It("responds with the statuses of the steps based on files on disk", func() {
+		setStateFile(dir, "check-config", "completed")
 		setStateFile(dir, "seginstall", "completed")
 		setStateFile(dir, "share-oids", "failed")
-
-		f, err := os.Create(filepath.Join(dir, "cluster_config.json"))
-		Expect(err).ToNot(HaveOccurred())
-		f.Close()
 
 		mockAgent.StatusConversionResponse = &pb.CheckConversionStatusReply{
 			Statuses: []string{"RUNNING", "PENDING"},
