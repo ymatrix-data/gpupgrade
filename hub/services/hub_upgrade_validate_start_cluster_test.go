@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/greenplum-db/gpupgrade/hub/cluster_ssher"
@@ -62,12 +61,12 @@ var _ = Describe("upgrade validate start cluster", func() {
 	})
 
 	It("sets status to COMPLETE when validate start cluster request has been made and returns no error", func() {
-		Expect(cm.IsPending("validate-start-cluster")).To(BeTrue())
+		Expect(cm.IsPending(upgradestatus.VALIDATE_START_CLUSTER)).To(BeTrue())
 
 		_, err := hub.UpgradeValidateStartCluster(nil, &pb.UpgradeValidateStartClusterRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
-		Eventually(func() bool { return cm.IsComplete("validate-start-cluster") }).Should(BeTrue())
+		Eventually(func() bool { return cm.IsComplete(upgradestatus.VALIDATE_START_CLUSTER) }).Should(BeTrue())
 		Expect(testExecutor.NumExecutions).To(Equal(1))
 		Expect(testExecutor.LocalCommands[0]).To(ContainSubstring("source /new/bindir/../greenplum_path.sh"))
 		Expect(testExecutor.LocalCommands[0]).To(ContainSubstring("/new/bindir/gpstart -a -d /new/datadir"))
@@ -79,14 +78,6 @@ var _ = Describe("upgrade validate start cluster", func() {
 		_, err := hub.UpgradeValidateStartCluster(nil, &pb.UpgradeValidateStartClusterRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
-		stateChecker := upgradestatus.NewStateCheck(
-			filepath.Join(dir, "validate-start-cluster"),
-			pb.UpgradeSteps_VALIDATE_START_CLUSTER,
-		)
-
-		Eventually(stateChecker.GetStatus).Should(Equal(&pb.UpgradeStepStatus{
-			Step:   pb.UpgradeSteps_VALIDATE_START_CLUSTER,
-			Status: pb.StepStatus_FAILED,
-		}))
+		Eventually(func() bool { return cm.IsFailed(upgradestatus.VALIDATE_START_CLUSTER) }).Should(BeTrue())
 	})
 })
