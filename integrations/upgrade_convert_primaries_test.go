@@ -88,6 +88,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 
+	// TODO: update to use MockChecklistManager.
 	It("updates status PENDING to RUNNING then to COMPLETE if successful", func() {
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		hubOutChan <- []byte("TEST")
@@ -117,7 +118,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		}
 
 		allCalls := strings.Join(agentCommandExecer.Calls(), " ")
-		Expect(allCalls).To(ContainSubstring(newBinDir + "/pg_upgrade"))
+		Expect(allCalls).To(ContainSubstring("/new/bindir/pg_upgrade"))
 
 		// Return no PIDs when pgrep checks if pg_upgrade is running
 		agentCommandOutput <- []byte("")
