@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -60,11 +61,9 @@ type HubConfig struct {
 	LogDir         string
 }
 
+// TODO: remove in favor of upgradestatus.StateWriter
 type ChecklistWriter interface {
-	MarkInProgress(string) error
-	ResetStateDir(string) error
-	MarkFailed(string) error
-	MarkComplete(string) error
+	StepWriter(step string) upgradestatus.StateWriter
 }
 
 func NewHub(pair *utils.ClusterPair, grpcDialer Dialer, conf *HubConfig, checklistWriter ChecklistWriter) *Hub {

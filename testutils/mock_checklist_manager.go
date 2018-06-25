@@ -1,5 +1,7 @@
 package testutils
 
+import "github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+
 type MockChecklistManager struct {
 	mapComplete   map[string]bool
 	mapFailed     map[string]bool
@@ -16,26 +18,35 @@ func NewMockChecklistManager() *MockChecklistManager {
 	}
 }
 
-func (cm *MockChecklistManager) MarkComplete(step string) error {
-	cm.mapComplete[step] = true
+func (cm *MockChecklistManager) StepWriter(step string) upgradestatus.StateWriter {
+	return MockStepWriter{step: step, manager: cm}
+}
+
+type MockStepWriter struct {
+	step    string
+	manager *MockChecklistManager
+}
+
+func (w MockStepWriter) MarkComplete() error {
+	w.manager.mapComplete[w.step] = true
 	return nil
 }
 
-func (cm *MockChecklistManager) MarkInProgress(step string) error {
-	cm.mapInProgress[step] = true
+func (w MockStepWriter) MarkInProgress() error {
+	w.manager.mapInProgress[w.step] = true
 	return nil
 }
 
-func (cm *MockChecklistManager) MarkFailed(step string) error {
-	cm.mapFailed[step] = true
+func (w MockStepWriter) MarkFailed() error {
+	w.manager.mapFailed[w.step] = true
 	return nil
 }
 
-func (cm *MockChecklistManager) ResetStateDir(step string) error {
-	cm.mapReset[step] = true
-	cm.mapComplete[step] = false
-	cm.mapFailed[step] = false
-	cm.mapInProgress[step] = false
+func (w MockStepWriter) ResetStateDir() error {
+	w.manager.mapReset[w.step] = true
+	w.manager.mapComplete[w.step] = false
+	w.manager.mapFailed[w.step] = false
+	w.manager.mapInProgress[w.step] = false
 	return nil
 }
 

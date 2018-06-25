@@ -18,13 +18,13 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 	gplog.Info("starting CheckConfig()")
 
 	c := upgradestatus.NewChecklistManager(h.conf.StateDir)
-	checkConfigStep := "check-config"
+	step := c.StepWriter(upgradestatus.CONFIG)
 
-	err := c.ResetStateDir(checkConfigStep)
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error("error from ResetStateDir " + err.Error())
 	}
-	err = c.MarkInProgress(checkConfigStep)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error("error from MarkInProgress " + err.Error())
 	}
@@ -33,7 +33,7 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 	defer dbConnector.Close()
 	err = dbConnector.Connect(1)
 	if err != nil {
-		c.MarkFailed(checkConfigStep)
+		step.MarkFailed()
 		gplog.Error(err.Error())
 		return &pb.CheckConfigReply{}, utils.DatabaseConnectionError{Parent: err}
 	}
@@ -41,13 +41,13 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 
 	err = SaveOldClusterConfig(h.clusterPair, dbConnector, h.conf.StateDir, in.OldBinDir)
 	if err != nil {
-		c.MarkFailed(checkConfigStep)
+		step.MarkFailed()
 		gplog.Error(err.Error())
 		return &pb.CheckConfigReply{}, err
 	}
 
 	successReply := &pb.CheckConfigReply{ConfigStatus: "All good"}
-	c.MarkComplete(checkConfigStep)
+	step.MarkComplete()
 
 	return successReply, nil
 }

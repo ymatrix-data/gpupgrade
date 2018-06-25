@@ -20,15 +20,15 @@ func (h *Hub) UpgradeValidateStartCluster(ctx context.Context, in *pb.UpgradeVal
 
 func (h *Hub) startNewCluster() {
 	gplog.Debug(h.conf.StateDir)
-	c := h.checklistWriter
-	err := c.ResetStateDir(upgradestatus.VALIDATE_START_CLUSTER)
+	step := h.checklistWriter.StepWriter(upgradestatus.VALIDATE_START_CLUSTER)
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error("failed to reset the state dir for validate-start-cluster")
 
 		return
 	}
 
-	err = c.MarkInProgress(upgradestatus.VALIDATE_START_CLUSTER)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error("failed to record in-progress for validate-start-cluster")
 
@@ -40,7 +40,7 @@ func (h *Hub) startNewCluster() {
 	_, err = h.clusterPair.NewCluster.ExecuteLocalCommand(fmt.Sprintf("source %s/../greenplum_path.sh; %s/gpstart -a -d %s", newBinDir, newBinDir, newDataDir))
 	if err != nil {
 		gplog.Error(err.Error())
-		cmErr := c.MarkFailed(upgradestatus.VALIDATE_START_CLUSTER)
+		cmErr := step.MarkFailed()
 		if cmErr != nil {
 			gplog.Error("failed to record failed for validate-start-cluster")
 		}
@@ -48,7 +48,7 @@ func (h *Hub) startNewCluster() {
 		return
 	}
 
-	err = c.MarkComplete(upgradestatus.VALIDATE_START_CLUSTER)
+	err = step.MarkComplete()
 	if err != nil {
 		gplog.Error("failed to record completed for validate-start-cluster")
 		return

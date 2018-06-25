@@ -19,11 +19,13 @@ const (
 func (h *Hub) UpgradeReconfigurePorts(ctx context.Context, in *pb.UpgradeReconfigurePortsRequest) (*pb.UpgradeReconfigurePortsReply, error) {
 	gplog.Info("Started processing reconfigure-ports request")
 
-	err := h.checklistWriter.ResetStateDir(upgradestatus.RECONFIGURE_PORTS)
+	step := h.checklistWriter.StepWriter(upgradestatus.RECONFIGURE_PORTS)
+
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error("error from ResetStateDir " + err.Error())
 	}
-	err = h.checklistWriter.MarkInProgress(upgradestatus.RECONFIGURE_PORTS)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error("error from MarkInProgress " + err.Error())
 	}
@@ -36,12 +38,12 @@ func (h *Hub) UpgradeReconfigurePorts(ctx context.Context, in *pb.UpgradeReconfi
 	if err != nil {
 		gplog.Error("reconfigure-ports failed %s: %s", output, err)
 
-		h.checklistWriter.MarkFailed(upgradestatus.RECONFIGURE_PORTS)
+		step.MarkFailed()
 		return nil, err
 	}
 
 	gplog.Info("reconfigure-ports succeeded")
-	h.checklistWriter.MarkComplete(upgradestatus.RECONFIGURE_PORTS)
+	step.MarkComplete()
 
 	return &pb.UpgradeReconfigurePortsReply{}, nil
 }

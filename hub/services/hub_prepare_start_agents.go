@@ -18,24 +18,26 @@ import (
 func (h *Hub) PrepareStartAgents(ctx context.Context, in *idl.PrepareStartAgentsRequest) (*idl.PrepareStartAgentsReply, error) {
 	gplog.Info("Running PrepareStartAgents()")
 
-	err := h.checklistWriter.ResetStateDir(upgradestatus.START_AGENTS)
+	step := h.checklistWriter.StepWriter(upgradestatus.START_AGENTS)
+
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error(err.Error())
 		return &idl.PrepareStartAgentsReply{}, err
 	}
 
-	err = h.checklistWriter.MarkInProgress(upgradestatus.START_AGENTS)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error(err.Error())
 		return &idl.PrepareStartAgentsReply{}, err
 	}
 
-	go StartAgents(h.clusterPair, h.checklistWriter)
+	go StartAgents(h.clusterPair, step)
 
 	return &idl.PrepareStartAgentsReply{}, nil
 }
 
-func StartAgents(cp *utils.ClusterPair, cw ChecklistWriter) {
+func StartAgents(cp *utils.ClusterPair, step upgradestatus.StateWriter) {
 	var err error
 
 	// TODO: if this finds nothing, should we err out? do a fallback check based on $GPHOME?
@@ -51,14 +53,14 @@ func StartAgents(cp *utils.ClusterPair, cw ChecklistWriter) {
 	cp.OldCluster.CheckClusterError(remoteOutput, errStr, errMessage, true)
 
 	if remoteOutput.NumErrors > 0 {
-		err = cw.MarkFailed(upgradestatus.START_AGENTS)
+		err = step.MarkFailed()
 		if err != nil {
 			gplog.Error(err.Error())
 			return
 		}
 	}
 
-	err = cw.MarkComplete(upgradestatus.START_AGENTS)
+	err = step.MarkComplete()
 	if err != nil {
 		gplog.Error(err.Error())
 		return

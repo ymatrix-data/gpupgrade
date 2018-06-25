@@ -21,13 +21,14 @@ func (h *Hub) UpgradeShareOids(ctx context.Context, in *pb.UpgradeShareOidsReque
 }
 
 func (h *Hub) shareOidFiles() {
+	step := h.checklistWriter.StepWriter(upgradestatus.SHARE_OIDS)
 
-	err := h.checklistWriter.ResetStateDir(upgradestatus.SHARE_OIDS)
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error("error from ResetStateDir " + err.Error())
 		return
 	}
-	err = h.checklistWriter.MarkInProgress(upgradestatus.SHARE_OIDS)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error("error from MarkInProgress " + err.Error())
 		return
@@ -53,12 +54,12 @@ func (h *Hub) shareOidFiles() {
 		}
 	}
 	if anyFailed {
-		h.checklistWriter.MarkFailed(upgradestatus.SHARE_OIDS)
+		step.MarkFailed()
 		if err != nil {
 			gplog.Error("error from MarkFailed " + err.Error())
 		}
 	} else {
-		h.checklistWriter.MarkComplete(upgradestatus.SHARE_OIDS)
+		step.MarkComplete()
 		if err != nil {
 			gplog.Error("error from MarkComplete " + err.Error())
 		}

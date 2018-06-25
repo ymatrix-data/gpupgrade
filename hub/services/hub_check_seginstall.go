@@ -18,24 +18,26 @@ import (
 func (h *Hub) CheckSeginstall(ctx context.Context, in *idl.CheckSeginstallRequest) (*idl.CheckSeginstallReply, error) {
 	gplog.Info("Running CheckSeginstall()")
 
-	err := h.checklistWriter.ResetStateDir(upgradestatus.SEGINSTALL)
+	step := h.checklistWriter.StepWriter(upgradestatus.SEGINSTALL)
+
+	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error(err.Error())
 		return &idl.CheckSeginstallReply{}, err
 	}
 
-	err = h.checklistWriter.MarkInProgress(upgradestatus.SEGINSTALL)
+	err = step.MarkInProgress()
 	if err != nil {
 		gplog.Error(err.Error())
 		return &idl.CheckSeginstallReply{}, err
 	}
 
-	go VerifyAgentsInstalled(h.clusterPair, h.checklistWriter)
+	go VerifyAgentsInstalled(h.clusterPair, step)
 
 	return &idl.CheckSeginstallReply{}, nil
 }
 
-func VerifyAgentsInstalled(cp *utils.ClusterPair, cw ChecklistWriter) {
+func VerifyAgentsInstalled(cp *utils.ClusterPair, step upgradestatus.StateWriter) {
 	var err error
 
 	// TODO: if this finds nothing, should we err out? do a fallback check based on $GPHOME?
@@ -51,14 +53,14 @@ func VerifyAgentsInstalled(cp *utils.ClusterPair, cw ChecklistWriter) {
 	cp.OldCluster.CheckClusterError(remoteOutput, errStr, errMessage, true)
 
 	if remoteOutput.NumErrors > 0 {
-		err = cw.MarkFailed(upgradestatus.SEGINSTALL)
+		err = step.MarkFailed()
 		if err != nil {
 			gplog.Error(err.Error())
 			return
 		}
 	}
 
-	err = cw.MarkComplete(upgradestatus.SEGINSTALL)
+	err = step.MarkComplete()
 	if err != nil {
 		gplog.Error(err.Error())
 		return

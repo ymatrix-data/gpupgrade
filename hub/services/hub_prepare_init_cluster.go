@@ -37,14 +37,15 @@ func SaveTargetClusterConfig(clusterPair *utils.ClusterPair, dbConnector *dbconn
 func (h *Hub) PrepareInitCluster(ctx context.Context, in *pb.PrepareInitClusterRequest) (*pb.PrepareInitClusterReply, error) {
 	gplog.Info("starting PrepareInitCluster()")
 
-	h.checklistWriter.MarkInProgress(upgradestatus.INIT_CLUSTER)
+	step := h.checklistWriter.StepWriter(upgradestatus.INIT_CLUSTER)
+	step.MarkInProgress()
 
 	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")
 	defer dbConnector.Close()
 	err := dbConnector.Connect(1)
 	if err != nil {
 		gplog.Error(err.Error())
-		h.checklistWriter.MarkFailed(upgradestatus.INIT_CLUSTER)
+		step.MarkFailed()
 		return &pb.PrepareInitClusterReply{}, utils.DatabaseConnectionError{Parent: err}
 	}
 	dbConnector.Version.Initialize(dbConnector)
@@ -52,10 +53,10 @@ func (h *Hub) PrepareInitCluster(ctx context.Context, in *pb.PrepareInitClusterR
 	err = SaveTargetClusterConfig(h.clusterPair, dbConnector, h.conf.StateDir, in.NewBinDir)
 	if err != nil {
 		gplog.Error(err.Error())
-		h.checklistWriter.MarkFailed(upgradestatus.INIT_CLUSTER)
+		step.MarkFailed()
 		return &pb.PrepareInitClusterReply{}, err
 	}
 
-	h.checklistWriter.MarkComplete(upgradestatus.INIT_CLUSTER)
+	step.MarkComplete()
 	return &pb.PrepareInitClusterReply{}, nil
 }

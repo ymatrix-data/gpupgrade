@@ -6,10 +6,10 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
-	_ "github.com/greenplum-db/gpupgrade/hub/services"
-	"github.com/greenplum-db/gpupgrade/utils"
 
 	"github.com/greenplum-db/gpupgrade/hub/services"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/utils"
 
 	"github.com/greenplum-db/gpupgrade/testutils"
 	. "github.com/onsi/ginkgo"
@@ -34,9 +34,12 @@ var _ = Describe("hub CheckSeginstall", func() {
 		testExecutor.ClusterOutput = &cluster.RemoteOutput{}
 		cp.OldCluster.Executor = testExecutor
 
-		services.VerifyAgentsInstalled(cp, cm)
+		step := cm.StepWriter(upgradestatus.SEGINSTALL)
+		step.MarkInProgress()
+		services.VerifyAgentsInstalled(cp, step)
 
 		Expect(testExecutor.NumExecutions).To(Equal(1))
+		Expect(cm.IsComplete(upgradestatus.SEGINSTALL)).To(BeTrue())
 
 		lsCmd := fmt.Sprintf("ls %s/bin/gpupgrade_agent", os.Getenv("GPHOME"))
 		clusterCommands := testExecutor.ClusterCommands[0]

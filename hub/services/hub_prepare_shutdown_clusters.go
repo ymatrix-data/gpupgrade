@@ -21,10 +21,10 @@ func (h *Hub) PrepareShutdownClusters(ctx context.Context, in *pb.PrepareShutdow
 }
 
 func (h *Hub) ShutdownClusters() {
-	step := upgradestatus.SHUTDOWN_CLUSTERS
+	step := h.checklistWriter.StepWriter(upgradestatus.SHUTDOWN_CLUSTERS)
 
-	h.checklistWriter.ResetStateDir(step)
-	h.checklistWriter.MarkInProgress(step)
+	step.ResetStateDir()
+	step.MarkInProgress()
 
 	var errOld error
 	errOld = StopCluster(h.clusterPair.OldCluster, h.clusterPair.OldBinDir)
@@ -39,11 +39,11 @@ func (h *Hub) ShutdownClusters() {
 	}
 
 	if errOld != nil || errNew != nil {
-		h.checklistWriter.MarkFailed(step)
+		step.MarkFailed()
 		return
 	}
 
-	h.checklistWriter.MarkComplete(step)
+	step.MarkComplete()
 }
 
 func StopCluster(c *cluster.Cluster, binDir string) error {
