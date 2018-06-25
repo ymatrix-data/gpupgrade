@@ -21,7 +21,7 @@ func (h *Hub) UpgradeShareOids(ctx context.Context, in *pb.UpgradeShareOidsReque
 }
 
 func (h *Hub) shareOidFiles() {
-	step := h.checklistWriter.StepWriter(upgradestatus.SHARE_OIDS)
+	step := h.checklist.StepWriter(upgradestatus.SHARE_OIDS)
 
 	err := step.ResetStateDir()
 	if err != nil {

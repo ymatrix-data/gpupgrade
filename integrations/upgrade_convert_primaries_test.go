@@ -53,6 +53,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		clusterPair = testutils.InitClusterPairFromDB()
 		testExecutor = &testhelper.TestExecutor{}
 		clusterPair.OldCluster.Executor = testExecutor
+		cm = testutils.NewMockChecklistManager()
 		hub = services.NewHub(clusterPair, grpc.DialContext, conf, cm)
 		go hub.Start()
 
@@ -80,6 +81,10 @@ var _ = Describe("upgrade convert primaries", func() {
 		}
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		testExecutor.LocalOutput = "TEST"
+
+		step := cm.StepWriter("start-agents")
+		step.MarkInProgress()
+		step.MarkComplete()
 
 		agentExecutor.LocalOutput = "run pg_upgrade for segment"
 
@@ -118,6 +123,10 @@ var _ = Describe("upgrade convert primaries", func() {
 	It("updates status to FAILED if it fails to run", func() {
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		setStateFile(testStateDir, "pg_upgrade/seg-0", "1.failed")
+
+		step := cm.StepWriter("start-agents")
+		step.MarkInProgress()
+		step.MarkComplete()
 
 		upgradeConvertPrimaries := runCommand(
 			"upgrade",

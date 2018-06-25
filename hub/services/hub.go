@@ -35,11 +35,11 @@ type RemoteExecutor interface {
 type Hub struct {
 	conf *HubConfig
 
-	agentConns      []*Connection
-	clusterPair     *utils.ClusterPair
-	grpcDialer      Dialer
-	remoteExecutor  RemoteExecutor
-	checklistWriter ChecklistWriter
+	agentConns     []*Connection
+	clusterPair    *utils.ClusterPair
+	grpcDialer     Dialer
+	remoteExecutor RemoteExecutor
+	checklist      Checklist
 
 	mu      sync.Mutex
 	server  *grpc.Server
@@ -61,18 +61,18 @@ type HubConfig struct {
 	LogDir         string
 }
 
-// TODO: remove in favor of upgradestatus.StateWriter
-type ChecklistWriter interface {
+type Checklist interface {
+	StepReader(step string) upgradestatus.StateReader
 	StepWriter(step string) upgradestatus.StateWriter
 }
 
-func NewHub(pair *utils.ClusterPair, grpcDialer Dialer, conf *HubConfig, checklistWriter ChecklistWriter) *Hub {
+func NewHub(pair *utils.ClusterPair, grpcDialer Dialer, conf *HubConfig, checklist Checklist) *Hub {
 	h := &Hub{
-		stopped:         make(chan struct{}, 1),
-		conf:            conf,
-		clusterPair:     pair,
-		grpcDialer:      grpcDialer,
-		checklistWriter: checklistWriter,
+		stopped:     make(chan struct{}, 1),
+		conf:        conf,
+		clusterPair: pair,
+		grpcDialer:  grpcDialer,
+		checklist:   checklist,
 	}
 
 	return h

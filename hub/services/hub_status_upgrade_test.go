@@ -9,6 +9,7 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/greenplum-db/gpupgrade/hub/services"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -28,6 +29,7 @@ var _ = Describe("status upgrade", func() {
 		mockAgent                *testutils.MockAgentServer
 		clusterPair              *utils.ClusterPair
 		testExecutor             *testhelper.TestExecutor
+		cm                       *testutils.MockChecklistManager
 	)
 
 	BeforeEach(func() {
@@ -51,7 +53,8 @@ var _ = Describe("status upgrade", func() {
 		mockDialer := func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 			return nil, errors.New("grpc dial err")
 		}
-		hub = services.NewHub(clusterPair, mockDialer, conf, nil)
+		cm = testutils.NewMockChecklistManager()
+		hub = services.NewHub(clusterPair, mockDialer, conf, cm)
 	})
 
 	AfterEach(func() {
@@ -59,17 +62,16 @@ var _ = Describe("status upgrade", func() {
 		os.RemoveAll(dir)
 	})
 
-	// This is probably wonky because the convert primaries state check mechanism is
-	// using the MASTERUPGRADE step when upgrading primaries and needs to be fixed
-	It("responds with the statuses of the steps based on files on disk", func() {
-		setStateFile(dir, "check-config", "completed")
-		setStateFile(dir, "seginstall", "completed")
-		setStateFile(dir, "start-agents", "completed")
-		setStateFile(dir, "share-oids", "failed")
-
-		mockAgent.StatusConversionResponse = &pb.CheckConversionStatusReply{
-			Statuses: []string{"RUNNING", "PENDING"},
+	It("responds with the statuses of the steps based on checklist state", func() {
+		for _, name := range []string{upgradestatus.CONFIG, upgradestatus.SEGINSTALL, upgradestatus.START_AGENTS} {
+			step := cm.StepWriter(name)
+			step.MarkInProgress()
+			step.MarkComplete()
 		}
+
+		step := cm.StepWriter(upgradestatus.SHARE_OIDS)
+		step.MarkInProgress()
+		step.MarkFailed()
 
 		resp, err := hub.StatusUpgrade(nil, &pb.StatusUpgradeRequest{})
 		Expect(err).To(BeNil())
@@ -143,18 +145,8 @@ var _ = Describe("status upgrade", func() {
 		})
 
 		It("reports that prepare start-agents is running and then complete", func() {
-			var numInvocations int
-			utils.System.FilePathGlob = func(input string) ([]string, error) {
-				numInvocations += 1
-				if numInvocations == 1 {
-					return []string{filepath.Join(filepath.Dir(input), "in.progress")}, nil
-				}
-				return []string{filepath.Join(filepath.Dir(input), "completed")}, nil
-			}
-			utils.System.Stat = func(name string) (os.FileInfo, error) {
-				return nil, nil
-			}
-			pollStatusUpgrade := func() pb.StepStatus {
+			// TODO this is no longer a really useful test.
+			pollStatusUpgrade := func() *pb.UpgradeStepStatus {
 				response, _ := hub.StatusUpgrade(nil, &pb.StatusUpgradeRequest{})
 
 				stepStatuses := response.GetListOfUpgradeStepStatuses()
@@ -166,12 +158,21 @@ var _ = Describe("status upgrade", func() {
 						stepStatusSaved = stepStatus
 					}
 				}
-				return stepStatusSaved.GetStatus()
-
+				return stepStatusSaved
 			}
 
-			//Expect(stepStatusSaved.GetStep()).ToNot(BeZero())
-			Eventually(pollStatusUpgrade).Should(Equal(pb.StepStatus_COMPLETE))
+			step := cm.StepWriter("start-agents")
+			step.MarkInProgress()
+
+			status := pollStatusUpgrade()
+			Expect(status.GetStep()).ToNot(BeZero())
+			Expect(status.GetStatus()).To(Equal(pb.StepStatus_RUNNING))
+
+			step.MarkComplete()
+
+			status = pollStatusUpgrade()
+			Expect(status.GetStep()).ToNot(BeZero())
+			Expect(status.GetStatus()).To(Equal(pb.StepStatus_COMPLETE))
 		})
 
 		Context("master upgrade status checking requires check config to have been run", func() {
@@ -202,15 +203,17 @@ var _ = Describe("status upgrade", func() {
 					return false
 				}
 				utils.System.FilePathGlob = func(name string) ([]string, error) {
-					if strings.Contains(name, "check-config") {
-						return []string{filepath.Join(dir, "check-config", "completed")}, nil
-					} else if strings.Contains(name, "gpstop") {
+					if strings.Contains(name, "gpstop") {
 						// Not relevant to this test directly, but makes the output correct when printing the status
 						return []string{}, nil
 					} else {
 						return []string{filepath.Join(dir, "pg_upgrade", ".inprogress")}, nil
 					}
 				}
+
+				step := cm.StepWriter("check-config")
+				step.MarkInProgress()
+				step.MarkComplete()
 
 				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
 				Expect(err).To(BeNil())
@@ -231,9 +234,7 @@ var _ = Describe("status upgrade", func() {
 					return false
 				}
 				utils.System.FilePathGlob = func(name string) ([]string, error) {
-					if strings.Contains(name, "check-config") {
-						return []string{filepath.Join(dir, "check-config", "completed")}, nil
-					} else if strings.Contains(name, "done") {
+					if strings.Contains(name, "done") {
 						return []string{filepath.Join(dir, "pg_upgrade", "done")}, nil
 					} else {
 						return nil, nil
@@ -259,6 +260,10 @@ var _ = Describe("status upgrade", func() {
 
 				}
 
+				step := cm.StepWriter("check-config")
+				step.MarkInProgress()
+				step.MarkComplete()
+
 				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
 				Expect(err).To(BeNil())
 
@@ -279,9 +284,7 @@ var _ = Describe("status upgrade", func() {
 					return false
 				}
 				utils.System.FilePathGlob = func(glob string) ([]string, error) {
-					if strings.Contains(glob, "check-config") {
-						return []string{filepath.Join(dir, "check-config", "completed")}, nil
-					} else if strings.Contains(glob, "inprogress") {
+					if strings.Contains(glob, "inprogress") {
 						return nil, errors.New("fake error")
 					} else if strings.Contains(glob, "done") {
 						return []string{"found something"}, nil
@@ -301,6 +304,11 @@ var _ = Describe("status upgrade", func() {
 					return os.Open(filename)
 
 				}
+
+				step := cm.StepWriter("check-config")
+				step.MarkInProgress()
+				step.MarkComplete()
+
 				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
 				Expect(err).To(BeNil())
 

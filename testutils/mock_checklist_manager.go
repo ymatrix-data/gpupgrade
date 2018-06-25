@@ -1,6 +1,9 @@
 package testutils
 
-import "github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+import (
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	pb "github.com/greenplum-db/gpupgrade/idl"
+)
 
 type MockChecklistManager struct {
 	mapComplete   map[string]bool
@@ -18,8 +21,32 @@ func NewMockChecklistManager() *MockChecklistManager {
 	}
 }
 
+func (cm *MockChecklistManager) StepReader(step string) upgradestatus.StateReader {
+	return MockStepReader{step: step, manager: cm}
+}
+
 func (cm *MockChecklistManager) StepWriter(step string) upgradestatus.StateWriter {
 	return MockStepWriter{step: step, manager: cm}
+}
+
+type MockStepReader struct {
+	step    string
+	manager *MockChecklistManager
+}
+
+func (r MockStepReader) GetStatus() pb.StepStatus {
+	switch {
+	case r.manager.IsPending(r.step):
+		return pb.StepStatus_PENDING
+	case r.manager.IsInProgress(r.step):
+		return pb.StepStatus_RUNNING
+	case r.manager.IsComplete(r.step):
+		return pb.StepStatus_COMPLETE
+	case r.manager.IsFailed(r.step):
+		return pb.StepStatus_FAILED
+	default:
+		panic("unexpected step state in MockChecklistManager")
+	}
 }
 
 type MockStepWriter struct {

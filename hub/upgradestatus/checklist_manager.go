@@ -5,6 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
+	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
@@ -35,13 +36,38 @@ type StateWriter interface {
 	MarkComplete() error
 }
 
+type StateReader interface {
+	GetStatus() pb.StepStatus
+}
+
 type ChecklistManager struct {
 	pathToStateDir string
+	codemap        map[string]pb.UpgradeSteps // maps step name to step code
 }
 
 func NewChecklistManager(stateDirPath string) *ChecklistManager {
 	return &ChecklistManager{
 		pathToStateDir: stateDirPath,
+		codemap: map[string]pb.UpgradeSteps{
+			"check-config":           pb.UpgradeSteps_CHECK_CONFIG,
+			"seginstall":             pb.UpgradeSteps_SEGINSTALL,
+			"init-cluster":           pb.UpgradeSteps_PREPARE_INIT_CLUSTER,
+			"gpstop":                 pb.UpgradeSteps_STOPPED_CLUSTER,
+			"pg_upgrade":             pb.UpgradeSteps_MASTERUPGRADE,
+			"start-agents":           pb.UpgradeSteps_PREPARE_START_AGENTS,
+			"share-oids":             pb.UpgradeSteps_SHARE_OIDS,
+			"validate-start-cluster": pb.UpgradeSteps_VALIDATE_START_CLUSTER,
+			"convert-primaries":      pb.UpgradeSteps_CONVERT_PRIMARIES,
+			"reconfigure-ports":      pb.UpgradeSteps_RECONFIGURE_PORTS,
+		},
+	}
+}
+
+func (c *ChecklistManager) StepReader(step string) StateReader {
+	stepdir := filepath.Join(c.pathToStateDir, step)
+	return StateCheck{
+		Path: stepdir,
+		Step: c.codemap[step],
 	}
 }
 

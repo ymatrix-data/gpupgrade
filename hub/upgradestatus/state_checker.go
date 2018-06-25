@@ -10,15 +10,8 @@ import (
 )
 
 type StateCheck struct {
-	path string
-	step pb.UpgradeSteps
-}
-
-func NewStateCheck(path string, step pb.UpgradeSteps) StateCheck {
-	return StateCheck{
-		path: path,
-		step: step,
-	}
+	Path string
+	Step pb.UpgradeSteps
 }
 
 // GetStatus returns the UpgradeStepStatus corresponding to the StateCheck's
@@ -28,40 +21,35 @@ func NewStateCheck(path string, step pb.UpgradeSteps) StateCheck {
 // affected step should clear the issue).
 //
 // XXX That last assumption is unlikely to hold for the more complicated steps.
-func (c StateCheck) GetStatus() *pb.UpgradeStepStatus {
-	_, err := utils.System.Stat(c.path)
+func (c StateCheck) GetStatus() pb.StepStatus {
+	_, err := utils.System.Stat(c.Path)
 	if err != nil {
 		// It's okay if the state directory doesn't exist; that just means we
 		// haven't run the step yet.
-		return c.newStatus(pb.StepStatus_PENDING)
+		return pb.StepStatus_PENDING
 	}
 
-	files, err := utils.System.FilePathGlob(filepath.Join(c.path, "*"))
+	files, err := utils.System.FilePathGlob(filepath.Join(c.Path, "*"))
 	if err != nil {
 		// Log the error and keep the status PENDING.
-		gplog.Error("Couldn't search status directory %s: %s", c.path, err.Error())
+		gplog.Error("Couldn't search status directory %s: %s", c.Path, err.Error())
 	}
 
 	// FIXME: there's a race here: we delete the status file and then recreate
 	// it in the ChecklistManager, which means we can go from RUNNING to PENDING
 	// to COMPLETE/FAILED.
 	if len(files) > 1 {
-		gplog.Error("Status directory %s has more than one file", c.path)
-		return c.newStatus(pb.StepStatus_PENDING)
+		gplog.Error("Status directory %s has more than one file", c.Path)
+		return pb.StepStatus_PENDING
 	} else if len(files) == 1 {
 		switch files[0] {
-		case filepath.Join(c.path, "failed"):
-			return c.newStatus(pb.StepStatus_FAILED)
-		case filepath.Join(c.path, "completed"):
-			return c.newStatus(pb.StepStatus_COMPLETE)
-		case filepath.Join(c.path, "in.progress"):
-			return c.newStatus(pb.StepStatus_RUNNING)
+		case filepath.Join(c.Path, "failed"):
+			return pb.StepStatus_FAILED
+		case filepath.Join(c.Path, "completed"):
+			return pb.StepStatus_COMPLETE
+		case filepath.Join(c.Path, "in.progress"):
+			return pb.StepStatus_RUNNING
 		}
 	}
-	return c.newStatus(pb.StepStatus_PENDING)
-}
-
-// newStatus builds a pb.UpgradeStepStatus using the current step.
-func (c StateCheck) newStatus(status pb.StepStatus) *pb.UpgradeStepStatus {
-	return &pb.UpgradeStepStatus{Step: c.step, Status: status}
+	return pb.StepStatus_PENDING
 }

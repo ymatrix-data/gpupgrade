@@ -49,8 +49,8 @@ func (s Step) StatePath(h *Hub) string {
 // stateCheckStatus uses a NewStateCheck object to retrieve status; it's the
 // most general getStatus() implementation.
 func stateCheckStatus(s Step, h *Hub) *pb.UpgradeStepStatus {
-	state := upgradestatus.NewStateCheck(s.StatePath(h), s.StepCode)
-	return state.GetStatus()
+	state := h.checklist.StepReader(s.Name)
+	return &pb.UpgradeStepStatus{Step: s.StepCode, Status: state.GetStatus()}
 }
 
 // initStatus gets its status by checking for the existence of a new cluster
@@ -118,7 +118,7 @@ func (h *Hub) StatusUpgrade(ctx context.Context, in *pb.StatusUpgradeRequest) (*
 
 	steps := [...]Step{
 		{"check-config", pb.UpgradeSteps_CHECK_CONFIG, stateCheckStatus},
-		{"seginstall", pb.UpgradeSteps_SEGINSTALL, stateCheckStatus},
+		{"check-seginstall", pb.UpgradeSteps_SEGINSTALL, stateCheckStatus},
 		{"init-cluster", pb.UpgradeSteps_PREPARE_INIT_CLUSTER, initStatus},
 		{"gpstop", pb.UpgradeSteps_STOPPED_CLUSTER, shutdownStatus},
 		{"pg_upgrade", pb.UpgradeSteps_MASTERUPGRADE, pgUpgradeStatus},

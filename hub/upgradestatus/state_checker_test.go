@@ -30,10 +30,9 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 	})
 
 	It("Reports PENDING if no directory exists", func() {
-		stateChecker := upgradestatus.NewStateCheck("/fake/path", pb.UpgradeSteps_SEGINSTALL)
+		stateChecker := upgradestatus.StateCheck{"/fake/path", pb.UpgradeSteps_SEGINSTALL}
 		upgradeStepStatus := stateChecker.GetStatus()
-		Expect(upgradeStepStatus.Step).To(Equal(pb.UpgradeSteps_SEGINSTALL))
-		Expect(upgradeStepStatus.Status).To(Equal(pb.StepStatus_PENDING))
+		Expect(upgradeStepStatus).To(Equal(pb.StepStatus_PENDING))
 	})
 	It("Reports RUNNING if statedir exists and contains inprogress file", func() {
 		fakePath := "/fake/path"
@@ -49,10 +48,9 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 			}
 			return nil, errors.New("didn't match expected glob pattern")
 		}
-		stateChecker := upgradestatus.NewStateCheck(fakePath, pb.UpgradeSteps_SEGINSTALL)
+		stateChecker := upgradestatus.StateCheck{fakePath, pb.UpgradeSteps_SEGINSTALL}
 		upgradeStepStatus := stateChecker.GetStatus()
-		Expect(upgradeStepStatus.Step).To(Equal(pb.UpgradeSteps_SEGINSTALL))
-		Expect(upgradeStepStatus.Status).To(Equal(pb.StepStatus_RUNNING))
+		Expect(upgradeStepStatus).To(Equal(pb.StepStatus_RUNNING))
 	})
 	It("Reports FAILED if statedir exists and contains failed file", func() {
 		fakePath := "/fake/path"
@@ -68,10 +66,9 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 			}
 			return nil, errors.New("didn't match expected glob pattern")
 		}
-		stateChecker := upgradestatus.NewStateCheck(fakePath, pb.UpgradeSteps_SEGINSTALL)
+		stateChecker := upgradestatus.StateCheck{fakePath, pb.UpgradeSteps_SEGINSTALL}
 		upgradeStepStatus := stateChecker.GetStatus()
-		Expect(upgradeStepStatus.Step).To(Equal(pb.UpgradeSteps_SEGINSTALL))
-		Expect(upgradeStepStatus.Status).To(Equal(pb.StepStatus_FAILED))
+		Expect(upgradeStepStatus).To(Equal(pb.StepStatus_FAILED))
 	})
 
 	It("logs an error if there is more than one file at the specified path", func() {
@@ -89,7 +86,7 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 			}
 			return nil, errors.New("didn't match expected glob pattern")
 		}
-		stateChecker := upgradestatus.NewStateCheck(overabundantDirectory, pb.UpgradeSteps_SEGINSTALL)
+		stateChecker := upgradestatus.StateCheck{overabundantDirectory, pb.UpgradeSteps_SEGINSTALL}
 		upgradeStepStatus := stateChecker.GetStatus()
 
 		// This is a little brittle, sorry...
@@ -97,7 +94,6 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 		Expect(testLog).To(gbytes.Say(expectederr))
 
 		// The installation should still be marked pending.
-		Expect(upgradeStepStatus.Step).To(Equal(pb.UpgradeSteps_SEGINSTALL))
-		Expect(upgradeStepStatus.Status).To(Equal(pb.StepStatus_PENDING))
+		Expect(upgradeStepStatus).To(Equal(pb.StepStatus_PENDING))
 	})
 })

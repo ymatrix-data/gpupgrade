@@ -47,6 +47,7 @@ var _ = Describe("status", func() {
 			StateDir:       testStateDir,
 		}
 
+		cm = testutils.NewMockChecklistManager()
 		hub = hubServices.NewHub(testutils.InitClusterPairFromDB(), grpc.DialContext, conf, cm)
 		go hub.Start()
 	})
