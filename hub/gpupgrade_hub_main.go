@@ -103,20 +103,14 @@ func main() {
 			}
 
 			shutDownStatus := func(step upgradestatus.StateReader) pb.StepStatus {
-				// TODO: get rid of the "helper struct" layer here; it's not
-				// getting us much.
-				shutDownClusterPath := filepath.Join(conf.StateDir, step.Name())
-				checker := upgradestatus.NewShutDownClusters(shutDownClusterPath, cp.OldCluster.Executor)
-				return checker.GetStatus()
+				stepdir := filepath.Join(conf.StateDir, step.Name())
+				return upgradestatus.ClusterShutdownStatus(stepdir, cp.OldCluster.Executor)
 			}
 
 			convertMasterStatus := func(step upgradestatus.StateReader) pb.StepStatus {
-				// TODO: get rid of the "helper struct" layer here; it's not
-				// getting us much.
 				convertMasterPath := filepath.Join(conf.StateDir, step.Name())
 				oldDataDir := cp.OldCluster.GetDirForContent(-1)
-				checker := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, convertMasterPath, oldDataDir, cp.OldCluster.Executor)
-				return checker.GetStatus()
+				return upgradestatus.SegmentConversionStatus(convertMasterPath, oldDataDir, cp.OldCluster.Executor)
 			}
 
 			convertPrimariesStatus := func(step upgradestatus.StateReader) pb.StepStatus {

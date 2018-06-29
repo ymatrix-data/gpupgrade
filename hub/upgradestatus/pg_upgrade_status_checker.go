@@ -15,52 +15,29 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
 
-// Type of segment being upgraded
-type SegmentType int
-
-const (
-	MASTER SegmentType = iota
-	PRIMARY
-)
-
-type ConvertSegment struct {
-	segType       SegmentType
-	pgUpgradePath string
-	oldDataDir    string
-	executor      cluster.Executor
-}
-
-func NewPGUpgradeStatusChecker(segType SegmentType, pgUpgradePath, oldDataDir string, executor cluster.Executor) ConvertSegment {
-	return ConvertSegment{
-		segType:       segType,
-		pgUpgradePath: pgUpgradePath,
-		oldDataDir:    oldDataDir,
-		executor:      executor,
-	}
-}
-
 /*
  assumptions here are:
 	- pg_upgrade will not fail without error before writing an inprogress file
 	- when a new pg_upgrade is started it deletes all *.done and *.inprogress files
 */
-func (c *ConvertSegment) GetStatus() pb.StepStatus {
-	_, err := utils.System.Stat(c.pgUpgradePath)
+func SegmentConversionStatus(pgUpgradePath, oldDataDir string, execer cluster.Executor) pb.StepStatus {
+	_, err := utils.System.Stat(pgUpgradePath)
 	switch {
 	case utils.System.IsNotExist(err):
 		return pb.StepStatus_PENDING
-	case c.pgUpgradeRunning():
+	case pgUpgradeRunning(oldDataDir, execer):
 		return pb.StepStatus_RUNNING
-	case !inProgressFilesExist(c.pgUpgradePath) && c.IsUpgradeComplete(c.pgUpgradePath):
+	case !inProgressFilesExist(pgUpgradePath) && isUpgradeComplete(pgUpgradePath):
 		return pb.StepStatus_COMPLETE
 	default:
 		return pb.StepStatus_FAILED
 	}
 }
 
-func (c *ConvertSegment) pgUpgradeRunning() bool {
+func pgUpgradeRunning(oldDataDir string, execer cluster.Executor) bool {
 	//if pgrep doesnt find target, ExecCmdOutput will return empty byte array and err.Error()="exit status 1"
-	pgUpgradePids, err := c.executor.ExecuteLocalCommand(fmt.Sprintf("pgrep pg_upgrade | grep --old-datadir=%s", c.oldDataDir))
+	command := fmt.Sprintf("pgrep pg_upgrade | grep --old-datadir=%s", oldDataDir)
+	pgUpgradePids, err := execer.ExecuteLocalCommand(command)
 	if err == nil && len(pgUpgradePids) != 0 {
 		return true
 	}
@@ -81,7 +58,7 @@ func inProgressFilesExist(pgUpgradePath string) bool {
 	return true
 }
 
-func (c ConvertSegment) IsUpgradeComplete(pgUpgradePath string) bool {
+func isUpgradeComplete(pgUpgradePath string) bool {
 	doneFiles, doneErr := utils.System.FilePathGlob(pgUpgradePath + "/*.done")
 	if doneFiles == nil {
 		return false

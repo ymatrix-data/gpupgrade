@@ -39,8 +39,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 		utils.System.IsNotExist = func(error) bool {
 			return true
 		}
-		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
-		status := subject.GetStatus()
+		status := upgradestatus.SegmentConversionStatus("/tmp", "", testExecutor)
 		Expect(status).To(Equal(pb.StepStatus_PENDING))
 
 	})
@@ -55,8 +54,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 
 		testExecutor.LocalOutput = "I'm running"
 
-		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
-		status := subject.GetStatus()
+		status := upgradestatus.SegmentConversionStatus("/tmp", "", testExecutor)
 		Expect(status).To(Equal(pb.StepStatus_RUNNING))
 	})
 
@@ -97,8 +95,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 			return os.Open(filename)
 		}
 
-		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "/data/dir", testExecutor)
-		status := subject.GetStatus()
+		status := upgradestatus.SegmentConversionStatus("/tmp", "/data/dir", testExecutor)
 		Expect(status).To(Equal(pb.StepStatus_COMPLETE))
 
 		Expect(testExecutor.LocalCommands).To(Equal([]string{"pgrep pg_upgrade | grep --old-datadir=/data/dir"}))
@@ -117,8 +114,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 
 		testExecutor.LocalError = errors.New("pg_upgrade failed")
 
-		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
-		status := subject.GetStatus()
+		status := upgradestatus.SegmentConversionStatus("/tmp", "", testExecutor)
 		Expect(status).To(Equal(pb.StepStatus_FAILED))
 	})
 })

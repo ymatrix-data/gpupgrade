@@ -30,7 +30,7 @@ var _ = Describe("hub", func() {
 		utils.System = utils.InitializeSystemFunctions()
 	})
 
-	Describe("ShutDownClusters", func() {
+	Describe("ClusterShutdownStatus", func() {
 		It("If gpstop dir does not exist, return status of PENDING", func() {
 			utils.System.Stat = func(name string) (os.FileInfo, error) {
 				return nil, nil
@@ -38,8 +38,7 @@ var _ = Describe("hub", func() {
 			utils.System.IsNotExist = func(error) bool {
 				return true
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
-			status := subject.GetStatus()
+			status := upgradestatus.ClusterShutdownStatus("/tmp", testExecutor)
 			Expect(status).To(Equal(pb.StepStatus_PENDING))
 
 		})
@@ -59,8 +58,7 @@ var _ = Describe("hub", func() {
 				}
 				return nil, errors.New("Test not configured for this glob.")
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
-			status := subject.GetStatus()
+			status := upgradestatus.ClusterShutdownStatus("/tmp", testExecutor)
 			Expect(status).To(Equal(pb.StepStatus_RUNNING))
 		})
 		It("If gpstop is not running and .complete files exist and contain the string "+
@@ -89,8 +87,7 @@ var _ = Describe("hub", func() {
 				}
 				return nil, nil
 			}
-			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
-			status := subject.GetStatus()
+			status := upgradestatus.ClusterShutdownStatus("/tmp", testExecutor)
 			Expect(status).To(Equal(pb.StepStatus_COMPLETE))
 		})
 		// We are assuming that no inprogress actually exists in the path we're using,
@@ -106,8 +103,7 @@ var _ = Describe("hub", func() {
 
 			testExecutor.LocalError = errors.New("gpstop failed")
 
-			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
-			status := subject.GetStatus()
+			status := upgradestatus.ClusterShutdownStatus("/tmp", testExecutor)
 			Expect(status).To(Equal(pb.StepStatus_FAILED))
 		})
 	})

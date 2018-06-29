@@ -19,14 +19,11 @@ func (s *AgentServer) CheckConversionStatus(ctx context.Context, in *pb.CheckCon
 	var replies []string
 	var master string
 	for _, segment := range in.GetSegments() {
-		conversionStatus := upgradestatus.NewPGUpgradeStatusChecker(
-			upgradestatus.PRIMARY,
+		status := upgradestatus.SegmentConversionStatus(
 			filepath.Join(s.conf.StateDir, "pg_upgrade", fmt.Sprintf("seg-%d", segment.GetContent())),
 			segment.GetDataDir(),
 			s.executor,
 		)
-
-		status := conversionStatus.GetStatus()
 
 		// FIXME: we have status codes; why convert to strings?
 		if segment.GetDbid() == 1 && segment.GetContent() == -1 {
