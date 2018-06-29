@@ -10,6 +10,8 @@ type MockChecklistManager struct {
 	mapFailed     map[string]bool
 	mapInProgress map[string]bool
 	mapReset      map[string]bool
+	loadedNames   []string
+	loadedCodes   map[string]pb.UpgradeSteps
 }
 
 func NewMockChecklistManager() *MockChecklistManager {
@@ -18,11 +20,30 @@ func NewMockChecklistManager() *MockChecklistManager {
 		mapFailed:     make(map[string]bool, 0),
 		mapInProgress: make(map[string]bool, 0),
 		mapReset:      make(map[string]bool, 0),
+		loadedNames:   make([]string, 0),
+		loadedCodes:   make(map[string]pb.UpgradeSteps, 0),
 	}
 }
 
 func (cm *MockChecklistManager) StepReader(step string) upgradestatus.StateReader {
-	return MockStepReader{step: step, manager: cm}
+	return MockStepReader{step: step, code: cm.loadedCodes[step], manager: cm}
+}
+
+func (cm *MockChecklistManager) LoadSteps(steps []upgradestatus.Step) {
+	for _, step := range steps {
+		cm.loadedNames = append(cm.loadedNames, step.Name_)
+		cm.loadedCodes[step.Name_] = step.Code_
+	}
+}
+
+// Use LoadSteps() to store the list of steps that this mock should return from
+// AllSteps().
+func (cm *MockChecklistManager) AllSteps() []upgradestatus.StateReader {
+	steps := make([]upgradestatus.StateReader, len(cm.loadedNames))
+	for i, name := range cm.loadedNames {
+		steps[i] = cm.StepReader(name)
+	}
+	return steps
 }
 
 func (cm *MockChecklistManager) StepWriter(step string) upgradestatus.StateWriter {
@@ -31,10 +52,11 @@ func (cm *MockChecklistManager) StepWriter(step string) upgradestatus.StateWrite
 
 type MockStepReader struct {
 	step    string
+	code    pb.UpgradeSteps
 	manager *MockChecklistManager
 }
 
-func (r MockStepReader) GetStatus() pb.StepStatus {
+func (r MockStepReader) Status() pb.StepStatus {
 	switch {
 	case r.manager.IsPending(r.step):
 		return pb.StepStatus_PENDING
@@ -47,6 +69,14 @@ func (r MockStepReader) GetStatus() pb.StepStatus {
 	default:
 		panic("unexpected step state in MockChecklistManager")
 	}
+}
+
+func (r MockStepReader) Name() string {
+	return r.step
+}
+
+func (r MockStepReader) Code() pb.UpgradeSteps {
+	return r.code
 }
 
 type MockStepWriter struct {

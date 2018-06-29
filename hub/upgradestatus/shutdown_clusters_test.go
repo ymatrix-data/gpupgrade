@@ -40,7 +40,7 @@ var _ = Describe("hub", func() {
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
 			status := subject.GetStatus()
-			Expect(status.Status).To(Equal(pb.StepStatus_PENDING))
+			Expect(status).To(Equal(pb.StepStatus_PENDING))
 
 		})
 		It("If gpstop is running, return status of RUNNING", func() {
@@ -61,7 +61,7 @@ var _ = Describe("hub", func() {
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
 			status := subject.GetStatus()
-			Expect(status.Status).To(Equal(pb.StepStatus_RUNNING))
+			Expect(status).To(Equal(pb.StepStatus_RUNNING))
 		})
 		It("If gpstop is not running and .complete files exist and contain the string "+
 			"'Upgrade completed',return status of COMPLETED", func() {
@@ -91,7 +91,7 @@ var _ = Describe("hub", func() {
 			}
 			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
 			status := subject.GetStatus()
-			Expect(status.Status).To(Equal(pb.StepStatus_COMPLETE))
+			Expect(status).To(Equal(pb.StepStatus_COMPLETE))
 		})
 		// We are assuming that no inprogress actually exists in the path we're using,
 		// so we don't need to mock the checks out.
@@ -108,7 +108,7 @@ var _ = Describe("hub", func() {
 
 			subject := upgradestatus.NewShutDownClusters("/tmp", testExecutor)
 			status := subject.GetStatus()
-			Expect(status.Status).To(Equal(pb.StepStatus_FAILED))
+			Expect(status).To(Equal(pb.StepStatus_FAILED))
 		})
 	})
 })

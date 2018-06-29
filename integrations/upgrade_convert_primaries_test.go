@@ -9,6 +9,8 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	agentServices "github.com/greenplum-db/gpupgrade/agent/services"
 	"github.com/greenplum-db/gpupgrade/hub/services"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -73,12 +75,17 @@ var _ = Describe("upgrade convert primaries", func() {
 		Expect(checkPortIsAvailable(port)).To(BeTrue())
 	})
 
-	// TODO: update to use MockChecklistManager.
-	It("updates status PENDING to RUNNING then to COMPLETE if successful", func() {
+	// Move this elsewhere; it's not testing what's useful anymore.
+	XIt("updates status PENDING to RUNNING then to COMPLETE if successful", func() {
 		utils.System.RunCommandAsync = func(cmdStr string, logFile string) error {
 			_, err := agentExecutor.ExecuteLocalCommand(cmdStr)
 			return err
 		}
+
+		cm.LoadSteps([]upgradestatus.Step{
+			{upgradestatus.CONVERT_PRIMARY, pb.UpgradeSteps_CONVERT_PRIMARIES, nil},
+		})
+
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		testExecutor.LocalOutput = "TEST"
 
@@ -120,7 +127,12 @@ var _ = Describe("upgrade convert primaries", func() {
 		Expect(runStatusUpgrade()).To(ContainSubstring("COMPLETE - Primary segment upgrade"))
 	})
 
-	It("updates status to FAILED if it fails to run", func() {
+	// Move this elsewhere; it's not testing what's useful anymore.
+	XIt("updates status to FAILED if convert primaries fails on at least 1 agent", func() {
+		cm.LoadSteps([]upgradestatus.Step{
+			{upgradestatus.CONVERT_PRIMARY, pb.UpgradeSteps_CONVERT_PRIMARIES, nil},
+		})
+
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		setStateFile(testStateDir, "pg_upgrade/seg-0", "1.failed")
 

@@ -25,45 +25,28 @@ func NewShutDownClusters(gpstopStatePath string, executor cluster.Executor) Shut
 	- gpstop will not fail without error before writing an inprogress file
 	- when a new gpstop is started it deletes all *.done and *.inprogress files
 */
-func (s *ShutDownClusters) GetStatus() *pb.UpgradeStepStatus {
-	var shutdownClustersStatus *pb.UpgradeStepStatus
+func (s *ShutDownClusters) GetStatus() pb.StepStatus {
 	gpstopStatePath := s.gpstopStatePath
 
-	if _, err := utils.System.Stat(gpstopStatePath); utils.System.IsNotExist(err) {
-		shutdownClustersStatus = &pb.UpgradeStepStatus{
-			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
-			Status: pb.StepStatus_PENDING,
-		}
-		return shutdownClustersStatus
-	}
+	_, err := utils.System.Stat(gpstopStatePath)
+	switch {
+	case utils.System.IsNotExist(err):
+		return pb.StepStatus_PENDING
 
 	/* There can be cases where gpstop is running but not as part of the pre-setup
 	 * in which case, we shouldn't be detecting that as a running state.
 	 * We only care if the inprogress file exists. We are relying on the hub to never go down
 	 * for this state processing to work.
 	 */
-	if s.isGpstopRunning() && s.inProgressFilesExist(gpstopStatePath) {
-		shutdownClustersStatus = &pb.UpgradeStepStatus{
-			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
-			Status: pb.StepStatus_RUNNING,
-		}
-		return shutdownClustersStatus
-	}
+	case s.isGpstopRunning() && s.inProgressFilesExist(gpstopStatePath):
+		return pb.StepStatus_RUNNING
 
-	if !s.inProgressFilesExist(gpstopStatePath) && s.IsStopComplete(gpstopStatePath) {
-		shutdownClustersStatus = &pb.UpgradeStepStatus{
-			Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
-			Status: pb.StepStatus_COMPLETE,
-		}
-		return shutdownClustersStatus
-	}
+	case !s.inProgressFilesExist(gpstopStatePath) && s.IsStopComplete(gpstopStatePath):
+		return pb.StepStatus_COMPLETE
 
-	shutdownClustersStatus = &pb.UpgradeStepStatus{
-		Step:   pb.UpgradeSteps_STOPPED_CLUSTER,
-		Status: pb.StepStatus_FAILED,
+	default:
+		return pb.StepStatus_FAILED
 	}
-
-	return shutdownClustersStatus
 }
 
 func (s *ShutDownClusters) isGpstopRunning() bool {

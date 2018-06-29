@@ -6,6 +6,8 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	agentServices "github.com/greenplum-db/gpupgrade/agent/services"
 	hubServices "github.com/greenplum-db/gpupgrade/hub/services"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 
 	"github.com/onsi/gomega/gbytes"
@@ -77,8 +79,16 @@ var _ = Describe("status", func() {
 		})
 	})
 
+	// FIXME: The LoadSteps() method is ugly. It kind of proves that this should
+	// be an end-to-end acceptance test, which ensures that `status upgrade`
+	// does something actually useful.
 	Describe("upgrade", func() {
-		It("Reports some demo status from the hub", func() {
+		It("Reports status from the hub Checklist", func() {
+			cm.LoadSteps([]upgradestatus.Step{
+				{upgradestatus.CONFIG, pb.UpgradeSteps_CHECK_CONFIG, nil},
+				{upgradestatus.SEGINSTALL, pb.UpgradeSteps_SEGINSTALL, nil},
+			})
+
 			statusSession := runCommand("status", "upgrade")
 			Eventually(statusSession).Should(Exit(0))
 

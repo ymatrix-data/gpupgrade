@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/greenplum-db/gpupgrade/hub/services"
@@ -53,7 +52,22 @@ var _ = Describe("status upgrade", func() {
 		mockDialer := func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 			return nil, errors.New("grpc dial err")
 		}
+
 		cm = testutils.NewMockChecklistManager()
+		// XXX this is wrong
+		cm.LoadSteps([]upgradestatus.Step{
+			{upgradestatus.CONFIG, pb.UpgradeSteps_CHECK_CONFIG, nil},
+			{upgradestatus.INIT_CLUSTER, pb.UpgradeSteps_PREPARE_INIT_CLUSTER, nil},
+			{upgradestatus.SEGINSTALL, pb.UpgradeSteps_SEGINSTALL, nil},
+			{upgradestatus.SHUTDOWN_CLUSTERS, pb.UpgradeSteps_STOPPED_CLUSTER, nil},
+			{upgradestatus.CONVERT_MASTER, pb.UpgradeSteps_MASTERUPGRADE, nil},
+			{upgradestatus.START_AGENTS, pb.UpgradeSteps_PREPARE_START_AGENTS, nil},
+			{upgradestatus.SHARE_OIDS, pb.UpgradeSteps_SHARE_OIDS, nil},
+			{upgradestatus.VALIDATE_START_CLUSTER, pb.UpgradeSteps_VALIDATE_START_CLUSTER, nil},
+			{upgradestatus.CONVERT_PRIMARY, pb.UpgradeSteps_CONVERT_PRIMARIES, nil},
+			{upgradestatus.RECONFIGURE_PORTS, pb.UpgradeSteps_RECONFIGURE_PORTS, nil},
+		})
+
 		hub = services.NewHub(clusterPair, mockDialer, conf, cm)
 	})
 
@@ -174,153 +188,6 @@ var _ = Describe("status upgrade", func() {
 			Expect(status.GetStep()).ToNot(BeZero())
 			Expect(status.GetStatus()).To(Equal(pb.StepStatus_COMPLETE))
 		})
-
-		Context("master upgrade status checking requires check config to have been run", func() {
-			BeforeEach(func() {
-				setStateFile(dir, "check-config", "completed")
-			})
-			It("reports that master upgrade is pending when pg_upgrade dir does not exist", func() {
-				utils.System.IsNotExist = func(error) bool {
-					return true
-				}
-
-				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
-				Expect(err).To(BeNil())
-
-				stepStatuses := formulatedResponse.GetListOfUpgradeStepStatuses()
-
-				for _, stepStatus := range stepStatuses {
-					if stepStatus.GetStep() == pb.UpgradeSteps_MASTERUPGRADE {
-						Expect(stepStatus.GetStatus()).To(Equal(pb.StepStatus_PENDING))
-					}
-				}
-			})
-
-			It("reports that master upgrade is running when pg_upgrade/*.inprogress files exists", func() {
-				testExecutor.LocalOutput = "stdout/stderr message"
-
-				utils.System.IsNotExist = func(error) bool {
-					return false
-				}
-				utils.System.FilePathGlob = func(name string) ([]string, error) {
-					if strings.Contains(name, "gpstop") {
-						// Not relevant to this test directly, but makes the output correct when printing the status
-						return []string{}, nil
-					} else {
-						return []string{filepath.Join(dir, "pg_upgrade", ".inprogress")}, nil
-					}
-				}
-
-				step := cm.StepWriter("check-config")
-				step.MarkInProgress()
-				step.MarkComplete()
-
-				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
-				Expect(err).To(BeNil())
-
-				stepStatuses := formulatedResponse.GetListOfUpgradeStepStatuses()
-				for _, stepStatus := range stepStatuses {
-					if stepStatus.GetStep() == pb.UpgradeSteps_MASTERUPGRADE {
-						Expect(stepStatus.GetStatus()).To(Equal(pb.StepStatus_RUNNING))
-					}
-				}
-			})
-
-			It("reports that master upgrade is done when no *.inprogress files exist in ~/.gpupgrade/pg_upgrade", func() {
-				testExecutor.LocalOutput = "stdout/stderr message"
-				testExecutor.LocalError = errors.New("bogus error")
-
-				utils.System.IsNotExist = func(error) bool {
-					return false
-				}
-				utils.System.FilePathGlob = func(name string) ([]string, error) {
-					if strings.Contains(name, "done") {
-						return []string{filepath.Join(dir, "pg_upgrade", "done")}, nil
-					} else {
-						return nil, nil
-					}
-				}
-
-				utils.System.Stat = func(filename string) (os.FileInfo, error) {
-					if strings.Contains(filename, "done") {
-						return &testutils.FakeFileInfo{}, nil
-					}
-					return nil, nil
-				}
-
-				utils.System.Open = func(name string) (*os.File, error) {
-					// Temporarily create a file that we can read as a real file descriptor
-					fd, err := ioutil.TempFile("/tmp", "hub_status_upgrade_test")
-					Expect(err).To(BeNil())
-
-					filename := fd.Name()
-					fd.WriteString("12312312;Upgrade complete;\n")
-					fd.Close()
-					return os.Open(filename)
-
-				}
-
-				step := cm.StepWriter("check-config")
-				step.MarkInProgress()
-				step.MarkComplete()
-
-				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
-				Expect(err).To(BeNil())
-
-				stepStatuses := formulatedResponse.GetListOfUpgradeStepStatuses()
-
-				for _, stepStatus := range stepStatuses {
-					if stepStatus.GetStep() == pb.UpgradeSteps_MASTERUPGRADE {
-						Expect(stepStatus.GetStatus()).To(Equal(pb.StepStatus_COMPLETE))
-					}
-				}
-			})
-
-			It("reports pg_upgrade has failed", func() {
-				testExecutor.LocalOutput = "stdout/stderr message"
-				testExecutor.LocalError = errors.New("bogus error")
-
-				utils.System.IsNotExist = func(error) bool {
-					return false
-				}
-				utils.System.FilePathGlob = func(glob string) ([]string, error) {
-					if strings.Contains(glob, "inprogress") {
-						return nil, errors.New("fake error")
-					} else if strings.Contains(glob, "done") {
-						return []string{"found something"}, nil
-					}
-
-					return nil, errors.New("test not configured for this glob")
-				}
-
-				utils.System.Open = func(name string) (*os.File, error) {
-					// Temporarily create a file that we can read as a real file descriptor
-					fd, err := ioutil.TempFile("/tmp", "hub_status_upgrade_test")
-					Expect(err).To(BeNil())
-
-					filename := fd.Name()
-					fd.WriteString("12312312;Upgrade failed;\n")
-					fd.Close()
-					return os.Open(filename)
-
-				}
-
-				step := cm.StepWriter("check-config")
-				step.MarkInProgress()
-				step.MarkComplete()
-
-				formulatedResponse, err := hub.StatusUpgrade(nil, fakeStatusUpgradeRequest)
-				Expect(err).To(BeNil())
-
-				stepStatuses := formulatedResponse.GetListOfUpgradeStepStatuses()
-
-				for _, stepStatus := range stepStatuses {
-					if stepStatus.GetStep() == pb.UpgradeSteps_MASTERUPGRADE {
-						Expect(stepStatus.GetStatus()).To(Equal(pb.StepStatus_FAILED))
-					}
-				}
-			})
-		})
 	})
 
 	Describe("Status of PrepareNewClusterConfig", func() {
@@ -328,9 +195,8 @@ var _ = Describe("status upgrade", func() {
 			utils.System.Stat = func(filename string) (os.FileInfo, error) {
 				return nil, errors.New("cannot find file") /* This is normally a PathError */
 			}
-			stepStatus := hub.GetPrepareNewClusterConfigStatus()
-			Expect(stepStatus.Step).To(Equal(pb.UpgradeSteps_PREPARE_INIT_CLUSTER))
-			Expect(stepStatus.Status).To(Equal(pb.StepStatus_PENDING))
+			status := services.GetPrepareNewClusterConfigStatus(dir)
+			Expect(status).To(Equal(pb.StepStatus_PENDING))
 		})
 
 		It("marks this step complete if there is a new cluster config file", func() {
@@ -338,12 +204,9 @@ var _ = Describe("status upgrade", func() {
 				return nil, nil
 			}
 
-			stepStatus := hub.GetPrepareNewClusterConfigStatus()
-			Expect(stepStatus.Step).To(Equal(pb.UpgradeSteps_PREPARE_INIT_CLUSTER))
-			Expect(stepStatus.Status).To(Equal(pb.StepStatus_COMPLETE))
-
+			status := services.GetPrepareNewClusterConfigStatus(dir)
+			Expect(status).To(Equal(pb.StepStatus_COMPLETE))
 		})
-
 	})
 
 	Describe("Status of ShutdownClusters", func() {

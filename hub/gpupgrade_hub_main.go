@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime/debug"
 	"syscall"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -79,8 +81,61 @@ func main() {
 				StateDir:       utils.GetStateDir(),
 				LogDir:         logdir,
 			}
+			cp := &utils.ClusterPair{}
 			cm := upgradestatus.NewChecklistManager(conf.StateDir)
-			hub := services.NewHub(&utils.ClusterPair{}, grpc.DialContext, conf, cm)
+
+			hub := services.NewHub(cp, grpc.DialContext, conf, cm)
+
+			// TODO: make sure the implementations here, and the Checklist below, are
+			// fully exercised in end-to-end tests. It feels like we should be able to
+			// pull these into a Hub method or helper function, but currently the
+			// interfaces aren't well componentized.
+			stateCheck := func(step upgradestatus.StateReader) pb.StepStatus {
+				checker := upgradestatus.StateCheck{
+					Path: filepath.Join(conf.StateDir, step.Name()),
+					Step: step.Code(),
+				}
+				return checker.GetStatus()
+			}
+
+			initStatus := func(step upgradestatus.StateReader) pb.StepStatus {
+				return services.GetPrepareNewClusterConfigStatus(conf.StateDir)
+			}
+
+			shutDownStatus := func(step upgradestatus.StateReader) pb.StepStatus {
+				// TODO: get rid of the "helper struct" layer here; it's not
+				// getting us much.
+				shutDownClusterPath := filepath.Join(conf.StateDir, step.Name())
+				checker := upgradestatus.NewShutDownClusters(shutDownClusterPath, cp.OldCluster.Executor)
+				return checker.GetStatus()
+			}
+
+			convertMasterStatus := func(step upgradestatus.StateReader) pb.StepStatus {
+				// TODO: get rid of the "helper struct" layer here; it's not
+				// getting us much.
+				convertMasterPath := filepath.Join(conf.StateDir, step.Name())
+				oldDataDir := cp.OldCluster.GetDirForContent(-1)
+				checker := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, convertMasterPath, oldDataDir, cp.OldCluster.Executor)
+				return checker.GetStatus()
+			}
+
+			convertPrimariesStatus := func(step upgradestatus.StateReader) pb.StepStatus {
+				return services.PrimaryConversionStatus(hub)
+			}
+
+			cm.LoadSteps([]upgradestatus.Step{
+				{upgradestatus.CONFIG, pb.UpgradeSteps_CHECK_CONFIG, stateCheck},
+				{upgradestatus.SEGINSTALL, pb.UpgradeSteps_SEGINSTALL, stateCheck},
+				{upgradestatus.INIT_CLUSTER, pb.UpgradeSteps_PREPARE_INIT_CLUSTER, initStatus},
+				{upgradestatus.SHUTDOWN_CLUSTERS, pb.UpgradeSteps_STOPPED_CLUSTER, shutDownStatus},
+				{upgradestatus.CONVERT_MASTER, pb.UpgradeSteps_MASTERUPGRADE, convertMasterStatus},
+				{upgradestatus.START_AGENTS, pb.UpgradeSteps_PREPARE_START_AGENTS, stateCheck},
+				{upgradestatus.SHARE_OIDS, pb.UpgradeSteps_SHARE_OIDS, stateCheck},
+				{upgradestatus.VALIDATE_START_CLUSTER, pb.UpgradeSteps_VALIDATE_START_CLUSTER, stateCheck},
+				{upgradestatus.CONVERT_PRIMARY, pb.UpgradeSteps_CONVERT_PRIMARIES, convertPrimariesStatus},
+				{upgradestatus.RECONFIGURE_PORTS, pb.UpgradeSteps_RECONFIGURE_PORTS, stateCheck},
+			})
+
 			if daemon {
 				hub.MakeDaemon()
 			}

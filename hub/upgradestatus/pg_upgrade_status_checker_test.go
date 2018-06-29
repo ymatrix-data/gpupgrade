@@ -41,7 +41,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 		}
 		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
 		status := subject.GetStatus()
-		Expect(status.Status).To(Equal(pb.StepStatus_PENDING))
+		Expect(status).To(Equal(pb.StepStatus_PENDING))
 
 	})
 
@@ -57,7 +57,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
 		status := subject.GetStatus()
-		Expect(status.Status).To(Equal(pb.StepStatus_RUNNING))
+		Expect(status).To(Equal(pb.StepStatus_RUNNING))
 	})
 
 	It("If pg_upgrade is not running and .done files exist and contain the string "+
@@ -99,7 +99,7 @@ var _ = Describe("pg_upgrade status checker", func() {
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "/data/dir", testExecutor)
 		status := subject.GetStatus()
-		Expect(status.Status).To(Equal(pb.StepStatus_COMPLETE))
+		Expect(status).To(Equal(pb.StepStatus_COMPLETE))
 
 		Expect(testExecutor.LocalCommands).To(Equal([]string{"pgrep pg_upgrade | grep --old-datadir=/data/dir"}))
 	})
@@ -119,6 +119,6 @@ var _ = Describe("pg_upgrade status checker", func() {
 
 		subject := upgradestatus.NewPGUpgradeStatusChecker(upgradestatus.MASTER, "/tmp", "", testExecutor)
 		status := subject.GetStatus()
-		Expect(status.Status).To(Equal(pb.StepStatus_FAILED))
+		Expect(status).To(Equal(pb.StepStatus_FAILED))
 	})
 })

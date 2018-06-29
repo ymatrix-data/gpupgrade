@@ -29,6 +29,19 @@ const (
 	fs_completed  = "completed"
 )
 
+type Checklist interface {
+	LoadSteps(steps []Step) // XXX Feels like this is an implementation detail.
+	AllSteps() []StateReader
+	StepReader(step string) StateReader
+	StepWriter(step string) StateWriter
+}
+
+type StateReader interface {
+	Name() string
+	Code() pb.UpgradeSteps
+	Status() pb.StepStatus
+}
+
 type StateWriter interface {
 	MarkInProgress() error
 	ResetStateDir() error
@@ -36,39 +49,52 @@ type StateWriter interface {
 	MarkComplete() error
 }
 
-type StateReader interface {
-	GetStatus() pb.StepStatus
-}
-
 type ChecklistManager struct {
 	pathToStateDir string
-	codemap        map[string]pb.UpgradeSteps // maps step name to step code
+	steps          []StateReader
+	stepmap        map[string]StateReader // maps step name to StateReader implementation
+}
+
+type Step struct {
+	Name_   string
+	Code_   pb.UpgradeSteps
+	Status_ func(r StateReader) pb.StepStatus
+}
+
+func (s Step) Name() string {
+	return s.Name_
+}
+
+func (s Step) Code() pb.UpgradeSteps {
+	return s.Code_
+}
+
+func (s Step) Status() pb.StepStatus {
+	return s.Status_(s)
 }
 
 func NewChecklistManager(stateDirPath string) *ChecklistManager {
 	return &ChecklistManager{
 		pathToStateDir: stateDirPath,
-		codemap: map[string]pb.UpgradeSteps{
-			"check-config":           pb.UpgradeSteps_CHECK_CONFIG,
-			"seginstall":             pb.UpgradeSteps_SEGINSTALL,
-			"init-cluster":           pb.UpgradeSteps_PREPARE_INIT_CLUSTER,
-			"gpstop":                 pb.UpgradeSteps_STOPPED_CLUSTER,
-			"pg_upgrade":             pb.UpgradeSteps_MASTERUPGRADE,
-			"start-agents":           pb.UpgradeSteps_PREPARE_START_AGENTS,
-			"share-oids":             pb.UpgradeSteps_SHARE_OIDS,
-			"validate-start-cluster": pb.UpgradeSteps_VALIDATE_START_CLUSTER,
-			"convert-primaries":      pb.UpgradeSteps_CONVERT_PRIMARIES,
-			"reconfigure-ports":      pb.UpgradeSteps_RECONFIGURE_PORTS,
-		},
+		stepmap:        map[string]StateReader{},
+	}
+}
+
+func (c *ChecklistManager) LoadSteps(steps []Step) {
+	c.steps = make([]StateReader, len(steps))
+	c.stepmap = map[string]StateReader{}
+	for i, step := range steps {
+		c.steps[i] = step
+		c.stepmap[step.Name_] = step
 	}
 }
 
 func (c *ChecklistManager) StepReader(step string) StateReader {
-	stepdir := filepath.Join(c.pathToStateDir, step)
-	return StateCheck{
-		Path: stepdir,
-		Step: c.codemap[step],
-	}
+	return c.stepmap[step]
+}
+
+func (c *ChecklistManager) AllSteps() []StateReader {
+	return c.steps
 }
 
 func (c *ChecklistManager) StepWriter(step string) StateWriter {

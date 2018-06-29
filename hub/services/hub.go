@@ -39,7 +39,7 @@ type Hub struct {
 	clusterPair    *utils.ClusterPair
 	grpcDialer     Dialer
 	remoteExecutor RemoteExecutor
-	checklist      Checklist
+	checklist      upgradestatus.Checklist
 
 	mu      sync.Mutex
 	server  *grpc.Server
@@ -61,12 +61,7 @@ type HubConfig struct {
 	LogDir         string
 }
 
-type Checklist interface {
-	StepReader(step string) upgradestatus.StateReader
-	StepWriter(step string) upgradestatus.StateWriter
-}
-
-func NewHub(pair *utils.ClusterPair, grpcDialer Dialer, conf *HubConfig, checklist Checklist) *Hub {
+func NewHub(pair *utils.ClusterPair, grpcDialer Dialer, conf *HubConfig, checklist upgradestatus.Checklist) *Hub {
 	h := &Hub{
 		stopped:     make(chan struct{}, 1),
 		conf:        conf,
@@ -155,6 +150,11 @@ func (h *Hub) AgentConns() ([]*Connection, error) {
 	}
 
 	return h.agentConns, nil
+}
+
+// GetConfig returns a copy of the hub's current configuration.
+func (h *Hub) GetConfig() HubConfig {
+	return *h.conf
 }
 
 func EnsureConnsAreReady(agentConns []*Connection) error {

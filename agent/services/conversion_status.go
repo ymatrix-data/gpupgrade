@@ -28,10 +28,11 @@ func (s *AgentServer) CheckConversionStatus(ctx context.Context, in *pb.CheckCon
 
 		status := conversionStatus.GetStatus()
 
+		// FIXME: we have status codes; why convert to strings?
 		if segment.GetDbid() == 1 && segment.GetContent() == -1 {
-			master = fmt.Sprintf(format, status.Status.String(), segment.GetDbid(), segment.GetContent(), "MASTER", in.GetHostname())
+			master = fmt.Sprintf(format, status.String(), segment.GetDbid(), segment.GetContent(), "MASTER", in.GetHostname())
 		} else {
-			replies = append(replies, fmt.Sprintf(format, status.Status.String(), segment.GetDbid(), segment.GetContent(), "PRIMARY", in.GetHostname()))
+			replies = append(replies, fmt.Sprintf(format, status.String(), segment.GetDbid(), segment.GetContent(), "PRIMARY", in.GetHostname()))
 		}
 	}
 

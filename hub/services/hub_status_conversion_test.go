@@ -81,4 +81,49 @@ var _ = Describe("hub", func() {
 		_, err := hub.StatusConversion(nil, &pb.StatusConversionRequest{})
 		Expect(err).To(HaveOccurred())
 	})
+
+	Describe("PrimaryConversionStatus", func() {
+		It("returns FAILED if any agents report failure", func() {
+			agentA.StatusConversionResponse = &pb.CheckConversionStatusReply{
+				Statuses: []string{"FAILED", "RUNNING"},
+			}
+
+			status := services.PrimaryConversionStatus(hub)
+			Expect(status).To(Equal(pb.StepStatus_FAILED))
+		})
+
+		It("returns RUNNING if any agents report progress", func() {
+			agentA.StatusConversionResponse = &pb.CheckConversionStatusReply{
+				Statuses: []string{"COMPLETE", "RUNNING"},
+			}
+
+			status := services.PrimaryConversionStatus(hub)
+			Expect(status).To(Equal(pb.StepStatus_RUNNING))
+		})
+
+		It("returns COMPLETE if all agents report completion", func() {
+			agentA.StatusConversionResponse = &pb.CheckConversionStatusReply{
+				Statuses: []string{"COMPLETE", "COMPLETE"},
+			}
+
+			status := services.PrimaryConversionStatus(hub)
+			Expect(status).To(Equal(pb.StepStatus_COMPLETE))
+		})
+
+		It("returns PENDING if no agents report any other state", func() {
+			agentA.StatusConversionResponse = &pb.CheckConversionStatusReply{
+				Statuses: []string{"PENDING", "PENDING"},
+			}
+
+			status := services.PrimaryConversionStatus(hub)
+			Expect(status).To(Equal(pb.StepStatus_PENDING))
+		})
+
+		It("returns PENDING if the status is not retrievable", func() {
+			agentA.Err <- errors.New("any error")
+
+			status := services.PrimaryConversionStatus(hub)
+			Expect(status).To(Equal(pb.StepStatus_PENDING))
+		})
+	})
 })

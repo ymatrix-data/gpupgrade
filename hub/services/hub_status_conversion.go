@@ -2,9 +2,11 @@ package services
 
 import (
 	"fmt"
+	"strings"
 
 	pb "github.com/greenplum-db/gpupgrade/idl"
 
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"golang.org/x/net/context"
 )
 
@@ -27,6 +29,7 @@ func (h *Hub) StatusConversion(ctx context.Context, in *pb.StatusConversionReque
 			})
 		}
 
+		// TODO: allow the client to be mocked out.
 		status, err := pb.NewAgentClient(conn.Conn).CheckConversionStatus(context.Background(), &pb.CheckConversionStatusRequest{
 			Segments: agentSegments,
 			Hostname: conn.Hostname,
@@ -41,4 +44,25 @@ func (h *Hub) StatusConversion(ctx context.Context, in *pb.StatusConversionReque
 	return &pb.StatusConversionReply{
 		ConversionStatuses: statuses,
 	}, nil
+}
+
+func PrimaryConversionStatus(hub *Hub) pb.StepStatus {
+	// We can't determine the actual status if there's an error, so we log it and return PENDING
+	conversionStatus, err := hub.StatusConversion(nil, &pb.StatusConversionRequest{})
+	if err != nil {
+		gplog.Error("Could not get primary conversion status: %s", err)
+		return pb.StepStatus_PENDING
+	}
+
+	statuses := strings.Join(conversionStatus.GetConversionStatuses(), "\n")
+	switch {
+	case strings.Contains(statuses, "FAILED"):
+		return pb.StepStatus_FAILED
+	case strings.Contains(statuses, "RUNNING"):
+		return pb.StepStatus_RUNNING
+	case strings.Contains(statuses, "COMPLETE"):
+		return pb.StepStatus_COMPLETE
+	default:
+		return pb.StepStatus_PENDING
+	}
 }
