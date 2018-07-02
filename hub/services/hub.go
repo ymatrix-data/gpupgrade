@@ -13,6 +13,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/daemon"
 
 	"github.com/pkg/errors"
 
@@ -94,12 +95,9 @@ func (h *Hub) Start() {
 	pb.RegisterCliToHubServer(server, h)
 	reflection.Register(server)
 
-	// TODO: Research daemonize to see what else may need to be
-	// done for the child process to safely detach from the parent
 	if h.daemon {
 		fmt.Printf("Hub started on port %d (pid %d)\n", h.conf.CliToHubPort, os.Getpid())
-		os.Stderr.Close()
-		os.Stdout.Close()
+		daemon.Daemonize()
 	}
 
 	err = server.Serve(lis)

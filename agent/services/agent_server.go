@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	pb "github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils/daemon"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
@@ -63,12 +64,9 @@ func (a *AgentServer) Start() {
 	pb.RegisterAgentServer(server, a)
 	reflection.Register(server)
 
-	// TODO: Research daemonize to see what else may need to be
-	// done for the child process to safely detach from the parent
 	if a.daemon {
 		fmt.Printf("Agent started on port %d (pid %d)\n", a.conf.Port, os.Getpid())
-		os.Stderr.Close()
-		os.Stdout.Close()
+		daemon.Daemonize()
 	}
 
 	err = server.Serve(lis)

@@ -1,4 +1,4 @@
-package utils
+package daemon
 
 import (
 	"bytes"
@@ -73,7 +73,7 @@ func (m *MockDaemonizableCommand) StderrPipe() (io.ReadCloser, error) {
 	return NewReadCloser(m.StderrBuf), nil
 }
 
-var _ = Describe("Daemonize", func() {
+var _ = Describe("waitForDaemon", func() {
 	outbuf := new(bytes.Buffer)
 	errbuf := new(bytes.Buffer)
 
@@ -84,7 +84,7 @@ var _ = Describe("Daemonize", func() {
 
 	It("starts the passed command", func() {
 		cmd := MockDaemonizableCommand{}
-		err := Daemonize(&cmd, outbuf, errbuf, 0)
+		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cmd.Started).To(BeTrue())
@@ -92,7 +92,7 @@ var _ = Describe("Daemonize", func() {
 
 	It("does not wait for the command to complete if there is no stderr", func() {
 		cmd := MockDaemonizableCommand{}
-		err := Daemonize(&cmd, outbuf, errbuf, 0)
+		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cmd.Waited).To(BeFalse())
@@ -103,7 +103,7 @@ var _ = Describe("Daemonize", func() {
 		exitErr := fmt.Errorf("process exited with code 1")
 		cmd := MockDaemonizableCommand{StderrBuf: errput, WaitError: exitErr}
 
-		err := Daemonize(&cmd, outbuf, errbuf, 0)
+		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 		Expect(err).To(Equal(exitErr))
 		Expect(cmd.Waited).To(BeTrue())
 	})
@@ -116,7 +116,7 @@ var _ = Describe("Daemonize", func() {
 		}
 
 		for i, cmd := range cmds {
-			err := Daemonize(&cmd, outbuf, errbuf, 0)
+			err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 			Expect(err).To(Equal(pipeErr), "in iteration %d:", i)
 			Expect(cmd.Started).To(BeFalse(), "in iteration %d:", i)
 		}
@@ -126,7 +126,7 @@ var _ = Describe("Daemonize", func() {
 		startErr := fmt.Errorf("start failure")
 		cmd := MockDaemonizableCommand{StartError: startErr}
 
-		err := Daemonize(&cmd, outbuf, errbuf, 0)
+		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 		Expect(err).To(Equal(startErr))
 	})
 
@@ -135,7 +135,7 @@ var _ = Describe("Daemonize", func() {
 		errput := []byte("this is an error\n")
 
 		cmd := MockDaemonizableCommand{StdoutBuf: output, StderrBuf: errput}
-		Daemonize(&cmd, outbuf, errbuf, 0)
+		waitForDaemon(&cmd, outbuf, errbuf, 0)
 
 		Expect(outbuf.Bytes()).To(Equal(output))
 		Expect(errbuf.Bytes()).To(Equal(errput))
@@ -144,7 +144,7 @@ var _ = Describe("Daemonize", func() {
 	It("times out if an error is reported but the command does not exit", func() {
 		errput := []byte("this is an error\n")
 		cmd := MockDaemonizableCommand{StderrBuf: errput, Hang: true}
-		err := Daemonize(&cmd, outbuf, errbuf, 1*time.Millisecond)
+		err := waitForDaemon(&cmd, outbuf, errbuf, 1*time.Millisecond)
 
 		Expect(cmd.Waited).To(BeTrue())
 		Expect(errbuf.Bytes()).To(Equal(errput))
@@ -157,8 +157,8 @@ var _ = Describe("Daemonize", func() {
 
 		c := make(chan error, 1)
 		go func() {
-			// Daemonize() should NOT return to write to the channel.
-			c <- Daemonize(&cmd, outbuf, errbuf, 0)
+			// waitForDaemon() should NOT return to write to the channel.
+			c <- waitForDaemon(&cmd, outbuf, errbuf, 0)
 		}()
 
 		Consistently(c).ShouldNot(Receive())
