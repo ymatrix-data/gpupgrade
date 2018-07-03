@@ -2,10 +2,12 @@ package daemon
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 
+	"github.com/greenplum-db/gpupgrade/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -82,6 +84,10 @@ var _ = Describe("waitForDaemon", func() {
 		errbuf.Reset()
 	})
 
+	AfterEach(func() {
+		utils.System = utils.InitializeSystemFunctions()
+	})
+
 	It("starts the passed command", func() {
 		cmd := MockDaemonizableCommand{}
 		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
@@ -139,6 +145,19 @@ var _ = Describe("waitForDaemon", func() {
 
 		Expect(outbuf.Bytes()).To(Equal(output))
 		Expect(errbuf.Bytes()).To(Equal(errput))
+	})
+
+	It("errors out if it cannot copy from child pipe", func() {
+		copyErr := errors.New("copy error")
+		utils.System.Copy = func(io.Writer, io.Reader) (int64, error) {
+			return 0, copyErr
+		}
+
+		cmd := MockDaemonizableCommand{}
+		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
+
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(copyErr.Error()))
 	})
 
 	It("times out if an error is reported but the command does not exit", func() {

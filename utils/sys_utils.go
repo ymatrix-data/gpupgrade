@@ -3,6 +3,7 @@ package utils
 import (
 	//"github.com/jmoiron/sqlx"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -44,6 +45,7 @@ type SystemFunctions struct {
 	FilePathGlob    func(pattern string) ([]string, error)
 	Create          func(name string) (*os.File, error)
 	RunCommandAsync func(cmdStr, logFile string) error
+	Copy            func(io.Writer, io.Reader) (int64, error)
 }
 
 func InitializeSystemFunctions() *SystemFunctions {
@@ -65,6 +67,7 @@ func InitializeSystemFunctions() *SystemFunctions {
 		WriteFile:       ioutil.WriteFile,
 		Create:          os.Create,
 		RunCommandAsync: RunCommandAsync,
+		Copy:            io.Copy,
 	}
 }
 

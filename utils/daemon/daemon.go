@@ -180,14 +180,16 @@ The full system looks like this:
 package daemon
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"sync"
 	"syscall"
 	"time"
 
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -228,29 +230,27 @@ func waitForDaemon(command daemonizableCommand, output, errput io.Writer, timeou
 
 	// Spin up two goroutines to copy the entire contents of both pipes to our
 	// output Writers.
-	done := make(chan error)
+	var wg sync.WaitGroup
+	done := make(chan error, 2)
 	connectPipe := func(out io.Writer, in io.Reader, written *bool) {
-		num, err := io.Copy(out, in)
+		defer wg.Done()
+		num, err := utils.System.Copy(out, in)
 		if written != nil {
 			*written = (num > 0)
 		}
-		done <- err
+		if err != nil {
+			done <- errors.New(fmt.Sprintf("Could not copy from child pipe: %v", err))
+		}
 	}
 
 	var hadStderr bool
+	wg.Add(2)
 	go connectPipe(output, stdout, nil)
 	go connectPipe(errput, stderr, &hadStderr)
+	wg.Wait()
 
-	// Wait for both pipes to fully drain.
-	for waiting := 2; waiting > 0; {
-		select {
-		case err := <-done:
-			if err != nil {
-				// TODO: anything?
-				gplog.Error("Could not copy from child pipe: %v", err)
-			}
-			waiting--
-		}
+	if len(done) > 0 {
+		return <-done
 	}
 
 	// If we got stderr, wait for the process to exit.
