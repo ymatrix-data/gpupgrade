@@ -34,7 +34,7 @@ var _ = Describe("hub CheckSeginstall", func() {
 		testExecutor.ClusterOutput = &cluster.RemoteOutput{}
 		cp.OldCluster.Executor = testExecutor
 
-		step := cm.StepWriter(upgradestatus.SEGINSTALL)
+		step := cm.GetStepWriter(upgradestatus.SEGINSTALL)
 		step.MarkInProgress()
 		services.VerifyAgentsInstalled(cp, step)
 

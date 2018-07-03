@@ -19,7 +19,7 @@ const (
 func (h *Hub) UpgradeReconfigurePorts(ctx context.Context, in *pb.UpgradeReconfigurePortsRequest) (*pb.UpgradeReconfigurePortsReply, error) {
 	gplog.Info("Started processing reconfigure-ports request")
 
-	step := h.checklist.StepWriter(upgradestatus.RECONFIGURE_PORTS)
+	step := h.checklist.GetStepWriter(upgradestatus.RECONFIGURE_PORTS)
 
 	err := step.ResetStateDir()
 	if err != nil {

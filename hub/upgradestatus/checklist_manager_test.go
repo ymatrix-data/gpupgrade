@@ -23,7 +23,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 			tempdir, _ := ioutil.TempDir("", "")
 
 			cm := upgradestatus.NewChecklistManager(filepath.Join(tempdir, ".gpupgrade"))
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			step.ResetStateDir()
 			err := step.MarkInProgress()
 			Expect(err).ToNot(HaveOccurred())
@@ -36,7 +36,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 			tempdir, _ := ioutil.TempDir("", "")
 
 			cm := upgradestatus.NewChecklistManager(filepath.Join(tempdir, ".gpupgrade"))
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			step.ResetStateDir()
 			step.MarkInProgress() // lay the file down once
 			err := step.MarkInProgress()
@@ -54,7 +54,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 			tempdir, _ := ioutil.TempDir("", "")
 
 			cm := upgradestatus.NewChecklistManager(filepath.Join(tempdir, ".gpupgrade"))
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			step.ResetStateDir()
 			err := step.MarkInProgress()
 			Expect(err).To(HaveOccurred())
@@ -67,7 +67,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return errors.New("cant remove all")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			err := step.ResetStateDir()
 			Expect(err).To(HaveOccurred())
 		})
@@ -80,7 +80,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return errors.New("cant make dir")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			err := step.ResetStateDir()
 			Expect(err).To(HaveOccurred())
 		})
@@ -92,7 +92,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return nil
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("fancy_step")
+			step := cm.GetStepWriter("fancy_step")
 			err := step.ResetStateDir()
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -104,7 +104,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return errors.New("remove failed")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkFailed()
 			Expect(err.Error()).To(ContainSubstring("remove failed"))
 		})
@@ -116,7 +116,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return nil, errors.New("open file failed")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkFailed()
 			Expect(err.Error()).To(ContainSubstring("open file failed"))
 		})
@@ -128,7 +128,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return nil, nil
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkFailed()
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -140,7 +140,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return errors.New("remove failed")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkFailed()
 			Expect(err.Error()).To(ContainSubstring("remove failed"))
 		})
@@ -152,7 +152,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return nil, errors.New("open file failed")
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkComplete()
 			Expect(err.Error()).To(ContainSubstring("open file failed"))
 		})
@@ -164,7 +164,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 				return nil, nil
 			}
 			cm := upgradestatus.NewChecklistManager("/some/random/dir")
-			step := cm.StepWriter("step")
+			step := cm.GetStepWriter("step")
 			err := step.MarkComplete()
 			Expect(err).ToNot(HaveOccurred())
 		})

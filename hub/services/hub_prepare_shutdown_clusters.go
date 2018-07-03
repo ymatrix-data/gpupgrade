@@ -21,7 +21,7 @@ func (h *Hub) PrepareShutdownClusters(ctx context.Context, in *pb.PrepareShutdow
 }
 
 func (h *Hub) ShutdownClusters() {
-	step := h.checklist.StepWriter(upgradestatus.SHUTDOWN_CLUSTERS)
+	step := h.checklist.GetStepWriter(upgradestatus.SHUTDOWN_CLUSTERS)
 
 	step.ResetStateDir()
 	step.MarkInProgress()

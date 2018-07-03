@@ -18,7 +18,7 @@ import (
 func (h *Hub) CheckSeginstall(ctx context.Context, in *idl.CheckSeginstallRequest) (*idl.CheckSeginstallReply, error) {
 	gplog.Info("Running CheckSeginstall()")
 
-	step := h.checklist.StepWriter(upgradestatus.SEGINSTALL)
+	step := h.checklist.GetStepWriter(upgradestatus.SEGINSTALL)
 
 	err := step.ResetStateDir()
 	if err != nil {

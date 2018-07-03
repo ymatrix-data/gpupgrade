@@ -34,7 +34,7 @@ var _ = Describe("hub PrepareStartAgents", func() {
 		testExecutor.ClusterOutput = &cluster.RemoteOutput{}
 		cp.OldCluster.Executor = testExecutor
 
-		step := cm.StepWriter(upgradestatus.START_AGENTS)
+		step := cm.GetStepWriter(upgradestatus.START_AGENTS)
 		step.MarkInProgress()
 		services.StartAgents(cp, step)
 

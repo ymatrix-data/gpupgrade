@@ -32,8 +32,8 @@ const (
 type Checklist interface {
 	LoadSteps(steps []Step) // XXX Feels like this is an implementation detail.
 	AllSteps() []StateReader
-	StepReader(step string) StateReader
-	StepWriter(step string) StateWriter
+	GetStepReader(step string) StateReader
+	GetStepWriter(step string) StateWriter
 }
 
 type StateReader interface {
@@ -89,7 +89,7 @@ func (c *ChecklistManager) LoadSteps(steps []Step) {
 	}
 }
 
-func (c *ChecklistManager) StepReader(step string) StateReader {
+func (c *ChecklistManager) GetStepReader(step string) StateReader {
 	return c.stepmap[step]
 }
 
@@ -97,7 +97,7 @@ func (c *ChecklistManager) AllSteps() []StateReader {
 	return c.steps
 }
 
-func (c *ChecklistManager) StepWriter(step string) StateWriter {
+func (c *ChecklistManager) GetStepWriter(step string) StateWriter {
 	stepdir := filepath.Join(c.pathToStateDir, step)
 	return StepWriter{stepdir: stepdir}
 }

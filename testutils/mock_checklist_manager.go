@@ -25,7 +25,7 @@ func NewMockChecklistManager() *MockChecklistManager {
 	}
 }
 
-func (cm *MockChecklistManager) StepReader(step string) upgradestatus.StateReader {
+func (cm *MockChecklistManager) GetStepReader(step string) upgradestatus.StateReader {
 	return MockStepReader{step: step, code: cm.loadedCodes[step], manager: cm}
 }
 
@@ -41,12 +41,12 @@ func (cm *MockChecklistManager) LoadSteps(steps []upgradestatus.Step) {
 func (cm *MockChecklistManager) AllSteps() []upgradestatus.StateReader {
 	steps := make([]upgradestatus.StateReader, len(cm.loadedNames))
 	for i, name := range cm.loadedNames {
-		steps[i] = cm.StepReader(name)
+		steps[i] = cm.GetStepReader(name)
 	}
 	return steps
 }
 
-func (cm *MockChecklistManager) StepWriter(step string) upgradestatus.StateWriter {
+func (cm *MockChecklistManager) GetStepWriter(step string) upgradestatus.StateWriter {
 	return MockStepWriter{step: step, manager: cm}
 }
 

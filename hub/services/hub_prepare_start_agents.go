@@ -18,7 +18,7 @@ import (
 func (h *Hub) PrepareStartAgents(ctx context.Context, in *idl.PrepareStartAgentsRequest) (*idl.PrepareStartAgentsReply, error) {
 	gplog.Info("Running PrepareStartAgents()")
 
-	step := h.checklist.StepWriter(upgradestatus.START_AGENTS)
+	step := h.checklist.GetStepWriter(upgradestatus.START_AGENTS)
 
 	err := step.ResetStateDir()
 	if err != nil {

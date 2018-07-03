@@ -37,7 +37,7 @@ func SaveTargetClusterConfig(clusterPair *utils.ClusterPair, dbConnector *dbconn
 func (h *Hub) PrepareInitCluster(ctx context.Context, in *pb.PrepareInitClusterRequest) (*pb.PrepareInitClusterReply, error) {
 	gplog.Info("starting PrepareInitCluster()")
 
-	step := h.checklist.StepWriter(upgradestatus.INIT_CLUSTER)
+	step := h.checklist.GetStepWriter(upgradestatus.INIT_CLUSTER)
 	step.MarkInProgress()
 
 	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")

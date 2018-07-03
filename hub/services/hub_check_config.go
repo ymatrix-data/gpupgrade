@@ -18,7 +18,7 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 	gplog.Info("starting CheckConfig()")
 
 	c := upgradestatus.NewChecklistManager(h.conf.StateDir)
-	step := c.StepWriter(upgradestatus.CONFIG)
+	step := c.GetStepWriter(upgradestatus.CONFIG)
 
 	err := step.ResetStateDir()
 	if err != nil {

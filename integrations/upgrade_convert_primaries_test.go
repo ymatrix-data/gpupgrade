@@ -89,7 +89,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		testExecutor.LocalOutput = "TEST"
 
-		step := cm.StepWriter("start-agents")
+		step := cm.GetStepWriter("start-agents")
 		step.MarkInProgress()
 		step.MarkComplete()
 
@@ -136,7 +136,7 @@ var _ = Describe("upgrade convert primaries", func() {
 		Expect(runStatusUpgrade()).To(ContainSubstring("PENDING - Primary segment upgrade"))
 		setStateFile(testStateDir, "pg_upgrade/seg-0", "1.failed")
 
-		step := cm.StepWriter("start-agents")
+		step := cm.GetStepWriter("start-agents")
 		step.MarkInProgress()
 		step.MarkComplete()
 

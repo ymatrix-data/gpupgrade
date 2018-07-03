@@ -78,12 +78,12 @@ var _ = Describe("status upgrade", func() {
 
 	It("responds with the statuses of the steps based on checklist state", func() {
 		for _, name := range []string{upgradestatus.CONFIG, upgradestatus.SEGINSTALL, upgradestatus.START_AGENTS} {
-			step := cm.StepWriter(name)
+			step := cm.GetStepWriter(name)
 			step.MarkInProgress()
 			step.MarkComplete()
 		}
 
-		step := cm.StepWriter(upgradestatus.SHARE_OIDS)
+		step := cm.GetStepWriter(upgradestatus.SHARE_OIDS)
 		step.MarkInProgress()
 		step.MarkFailed()
 
@@ -175,7 +175,7 @@ var _ = Describe("status upgrade", func() {
 				return stepStatusSaved
 			}
 
-			step := cm.StepWriter("start-agents")
+			step := cm.GetStepWriter("start-agents")
 			step.MarkInProgress()
 
 			status := pollStatusUpgrade()
