@@ -7,7 +7,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/greenplum-db/gpupgrade/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -30,6 +29,22 @@ func NewReadCloser(buf []byte) io.ReadCloser {
 	}
 }
 
+// errorReadCloser will error out after filling its buffer during Read().
+type errorReadCloser struct {
+	ReadErr error
+}
+
+func (_ errorReadCloser) Close() error {
+	return nil
+}
+
+func (e errorReadCloser) Read(p []byte) (int, error) {
+	for i := 0; i < len(p); i++ {
+		p[i] = byte('x')
+	}
+	return len(p), e.ReadErr
+}
+
 // MockDaemonizableCommand is an implementation of main.DaemonizableCommand that
 // provides some test helpers.
 type MockDaemonizableCommand struct {
@@ -38,10 +53,12 @@ type MockDaemonizableCommand struct {
 	Waited     bool
 	WaitError  error
 
-	StdoutBuf   []byte
-	StdoutError error
-	StderrBuf   []byte
-	StderrError error
+	StdoutBuf         []byte
+	StdoutErrorOnPipe error
+	StdoutErrorOnRead error
+	StderrBuf         []byte
+	StderrErrorOnPipe error
+	StderrErrorOnRead error
 
 	Hang bool
 }
@@ -62,17 +79,31 @@ func (m *MockDaemonizableCommand) Wait() (err error) {
 }
 
 func (m *MockDaemonizableCommand) StdoutPipe() (io.ReadCloser, error) {
-	if m.StdoutError != nil {
-		return nil, m.StdoutError
+	if m.StdoutErrorOnPipe != nil {
+		return nil, m.StdoutErrorOnPipe
 	}
-	return NewReadCloser(m.StdoutBuf), nil
+
+	var reader io.ReadCloser
+	if m.StdoutErrorOnRead != nil {
+		reader = errorReadCloser{ReadErr: m.StdoutErrorOnRead}
+	} else {
+		reader = NewReadCloser(m.StdoutBuf)
+	}
+	return reader, nil
 }
 
 func (m *MockDaemonizableCommand) StderrPipe() (io.ReadCloser, error) {
-	if m.StderrError != nil {
-		return nil, m.StderrError
+	if m.StderrErrorOnPipe != nil {
+		return nil, m.StderrErrorOnPipe
 	}
-	return NewReadCloser(m.StderrBuf), nil
+
+	var reader io.ReadCloser
+	if m.StderrErrorOnRead != nil {
+		reader = errorReadCloser{ReadErr: m.StderrErrorOnRead}
+	} else {
+		reader = NewReadCloser(m.StderrBuf)
+	}
+	return reader, nil
 }
 
 var _ = Describe("waitForDaemon", func() {
@@ -82,10 +113,6 @@ var _ = Describe("waitForDaemon", func() {
 	BeforeEach(func() {
 		outbuf.Reset()
 		errbuf.Reset()
-	})
-
-	AfterEach(func() {
-		utils.System = utils.InitializeSystemFunctions()
 	})
 
 	It("starts the passed command", func() {
@@ -117,8 +144,8 @@ var _ = Describe("waitForDaemon", func() {
 	It("does not start the command if standard pipes cannot be created", func() {
 		pipeErr := fmt.Errorf("generic failure")
 		cmds := [...]MockDaemonizableCommand{
-			{StdoutError: pipeErr},
-			{StderrError: pipeErr},
+			{StdoutErrorOnPipe: pipeErr},
+			{StderrErrorOnPipe: pipeErr},
 		}
 
 		for i, cmd := range cmds {
@@ -148,16 +175,21 @@ var _ = Describe("waitForDaemon", func() {
 	})
 
 	It("errors out if it cannot copy from child pipe", func() {
-		copyErr := errors.New("copy error")
-		utils.System.Copy = func(io.Writer, io.Reader) (int64, error) {
-			return 0, copyErr
+		copyErrs := [...]error{
+			errors.New("copy error during stdout"),
+			errors.New("copy error during stderr"),
+		}
+		cmds := [...]MockDaemonizableCommand{
+			{StdoutErrorOnRead: copyErrs[0]},
+			{StderrErrorOnRead: copyErrs[1]},
 		}
 
-		cmd := MockDaemonizableCommand{}
-		err := waitForDaemon(&cmd, outbuf, errbuf, 0)
+		for i, cmd := range cmds {
+			err := waitForDaemon(&cmd, outbuf, errbuf, 0)
 
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring(copyErr.Error()))
+			Expect(err).To(HaveOccurred(), "in iteration %d:", i)
+			Expect(err.Error()).To(ContainSubstring(copyErrs[i].Error()), "in iteration %d:", i)
+		}
 	})
 
 	It("times out if an error is reported but the command does not exit", func() {

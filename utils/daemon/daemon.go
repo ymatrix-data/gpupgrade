@@ -189,7 +189,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -234,7 +233,7 @@ func waitForDaemon(command daemonizableCommand, output, errput io.Writer, timeou
 	done := make(chan error, 2)
 	connectPipe := func(out io.Writer, in io.Reader, written *bool) {
 		defer wg.Done()
-		num, err := utils.System.Copy(out, in)
+		num, err := io.Copy(out, in)
 		if written != nil {
 			*written = (num > 0)
 		}
