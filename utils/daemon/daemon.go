@@ -45,7 +45,7 @@ Here's an example:
 			}
 
 			if shouldDaemonize {
-				fmt.Println("daemonized successfully")
+				fmt.Println("started successfully; now daemonizing")
 				daemon.Daemonize() // disconnect standard streams
 			}
 
@@ -68,7 +68,7 @@ Here's an example:
 Telling this example server to daemonize is easy:
 
 	$ example_server --daemonize
-	daemonized successfully
+	started successfully; now daemonizing
 
 	$ # at this point, the exit code indicates success/failure of server startup
 
