@@ -1,6 +1,7 @@
 package upgradestatus
 
 import (
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -43,7 +44,7 @@ func isGpstopRunning(execer cluster.Executor) bool {
 }
 
 func stopProgressFilesExist(gpstopStatePath string) bool {
-	files, err := utils.System.FilePathGlob(gpstopStatePath + "/*/in.progress")
+	files, err := utils.System.FilePathGlob(gpstopStatePath + "/*/" + file.InProgress)
 	if files == nil {
 		return false
 	}
@@ -57,7 +58,7 @@ func stopProgressFilesExist(gpstopStatePath string) bool {
 }
 
 func isStopComplete(gpstopStatePath string) bool {
-	completeFiles, completeErr := utils.System.FilePathGlob(gpstopStatePath + "/*/completed")
+	completeFiles, completeErr := utils.System.FilePathGlob(gpstopStatePath + "/*/" + file.Complete)
 	if completeFiles == nil {
 		return false
 	}

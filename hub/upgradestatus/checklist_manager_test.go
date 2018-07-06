@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	"github.com/greenplum-db/gpupgrade/utils"
 
 	. "github.com/onsi/ginkgo"
@@ -27,7 +28,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 			step.ResetStateDir()
 			err := step.MarkInProgress()
 			Expect(err).ToNot(HaveOccurred())
-			expectedFile := filepath.Join(tempdir, ".gpupgrade", "fancy_step", "in.progress")
+			expectedFile := filepath.Join(tempdir, ".gpupgrade", "fancy_step", file.InProgress)
 			_, err = os.Stat(expectedFile)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -41,7 +42,7 @@ var _ = Describe("upgradestatus/ChecklistManager", func() {
 			step.MarkInProgress() // lay the file down once
 			err := step.MarkInProgress()
 			Expect(err).ToNot(HaveOccurred())
-			expectedFile := filepath.Join(tempdir, ".gpupgrade", "fancy_step", "in.progress")
+			expectedFile := filepath.Join(tempdir, ".gpupgrade", "fancy_step", file.InProgress)
 			_, err = os.Stat(expectedFile)
 			Expect(err).ToNot(HaveOccurred())
 		})

@@ -10,6 +10,7 @@ import (
 	agentServices "github.com/greenplum-db/gpupgrade/agent/services"
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -64,7 +65,7 @@ var _ = Describe("upgrade convert primaries", func() {
 			Port:     6416,
 			StateDir: testStateDir,
 		})
-		setStateFile(testStateDir, upgradestatus.START_AGENTS, "completed")
+		setStateFile(testStateDir, upgradestatus.START_AGENTS, file.Complete)
 		go agent.Start()
 	})
 

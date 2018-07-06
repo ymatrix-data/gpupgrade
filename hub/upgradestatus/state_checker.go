@@ -3,6 +3,7 @@ package upgradestatus
 import (
 	"path/filepath"
 
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -43,11 +44,11 @@ func (c StateCheck) GetStatus() pb.StepStatus {
 		return pb.StepStatus_PENDING
 	} else if len(files) == 1 {
 		switch files[0] {
-		case filepath.Join(c.Path, "failed"):
+		case filepath.Join(c.Path, file.Failed):
 			return pb.StepStatus_FAILED
-		case filepath.Join(c.Path, "completed"):
+		case filepath.Join(c.Path, file.Complete):
 			return pb.StepStatus_COMPLETE
-		case filepath.Join(c.Path, "in.progress"):
+		case filepath.Join(c.Path, file.InProgress):
 			return pb.StepStatus_RUNNING
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -44,7 +45,7 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 		}
 		utils.System.FilePathGlob = func(glob string) ([]string, error) {
 			if glob == fakePath+"/*" {
-				return []string{filepath.Join(fakePath, "in.progress")}, nil
+				return []string{filepath.Join(fakePath, file.InProgress)}, nil
 			}
 			return nil, errors.New("didn't match expected glob pattern")
 		}
@@ -62,7 +63,7 @@ var _ = Describe("Upgradestatus/Seginstall", func() {
 		}
 		utils.System.FilePathGlob = func(glob string) ([]string, error) {
 			if glob == fakePath+"/*" {
-				return []string{filepath.Join(fakePath, "failed")}, nil
+				return []string{filepath.Join(fakePath, file.Failed)}, nil
 			}
 			return nil, errors.New("didn't match expected glob pattern")
 		}

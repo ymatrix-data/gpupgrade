@@ -5,6 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 )
@@ -20,12 +21,6 @@ const (
 	CONVERT_PRIMARIES      = "convert-primaries"
 	VALIDATE_START_CLUSTER = "validate-start-cluster"
 	RECONFIGURE_PORTS      = "reconfigure-ports"
-)
-
-const (
-	fs_inprogress = "in.progress"
-	fs_failed     = "failed"
-	fs_completed  = "completed"
 )
 
 type Checklist interface {
@@ -108,12 +103,12 @@ type StepWriter struct {
 // FIXME: none of these operations are atomic on the FS; just move the progress
 // file from name to name instead
 func (sw StepWriter) MarkFailed() error {
-	err := utils.System.Remove(filepath.Join(sw.stepdir, fs_inprogress))
+	err := utils.System.Remove(filepath.Join(sw.stepdir, file.InProgress))
 	if err != nil {
 		return err
 	}
 
-	_, err = utils.System.OpenFile(path.Join(sw.stepdir, fs_failed), os.O_CREATE, 0700)
+	_, err = utils.System.OpenFile(path.Join(sw.stepdir, file.Failed), os.O_CREATE, 0700)
 	if err != nil {
 		return err
 	}
@@ -122,12 +117,12 @@ func (sw StepWriter) MarkFailed() error {
 }
 
 func (sw StepWriter) MarkComplete() error {
-	err := utils.System.Remove(filepath.Join(sw.stepdir, fs_inprogress))
+	err := utils.System.Remove(filepath.Join(sw.stepdir, file.InProgress))
 	if err != nil {
 		return err
 	}
 
-	_, err = utils.System.OpenFile(path.Join(sw.stepdir, fs_completed), os.O_CREATE, 0700)
+	_, err = utils.System.OpenFile(path.Join(sw.stepdir, file.Complete), os.O_CREATE, 0700)
 	if err != nil {
 		return err
 	}
@@ -136,7 +131,7 @@ func (sw StepWriter) MarkComplete() error {
 }
 
 func (sw StepWriter) MarkInProgress() error {
-	_, err := utils.System.OpenFile(path.Join(sw.stepdir, fs_inprogress), os.O_CREATE, 0700)
+	_, err := utils.System.OpenFile(path.Join(sw.stepdir, file.InProgress), os.O_CREATE, 0700)
 	if err != nil {
 		return err
 	}

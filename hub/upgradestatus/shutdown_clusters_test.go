@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus/file"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -53,7 +54,7 @@ var _ = Describe("hub", func() {
 			testExecutor.LocalOutput = "I'm running"
 
 			utils.System.FilePathGlob = func(glob string) ([]string, error) {
-				if strings.Contains(glob, "in.progress") {
+				if strings.Contains(glob, file.InProgress) {
 					return []string{"found something"}, nil
 				}
 				return nil, errors.New("Test not configured for this glob.")
@@ -73,9 +74,9 @@ var _ = Describe("hub", func() {
 			testExecutor.LocalError = errors.New("exit status 1")
 
 			utils.System.FilePathGlob = func(glob string) ([]string, error) {
-				if strings.Contains(glob, "in.progress") {
+				if strings.Contains(glob, file.InProgress) {
 					return nil, errors.New("fake error")
-				} else if strings.Contains(glob, "complete") {
+				} else if strings.Contains(glob, file.Complete) {
 					return []string{"old stop complete", "new stop complete"}, nil
 				}
 
