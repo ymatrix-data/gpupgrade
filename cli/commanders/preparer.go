@@ -122,7 +122,13 @@ func DoInit(stateDir string, oldBinDir string) error {
 
 	cp := &utils.ClusterPair{}
 	cp.OldCluster = &cluster.Cluster{}
-	cp.OldCluster.ContentIDs = []int{}
 	cp.OldBinDir = oldBinDir
-	return cp.WriteOldConfig(stateDir)
+	cp.NewCluster = &cluster.Cluster{}
+
+	err = cp.WriteOldConfig(stateDir)
+	if err != nil {
+		return err
+	}
+
+	return cp.WriteNewConfig(stateDir)
 }

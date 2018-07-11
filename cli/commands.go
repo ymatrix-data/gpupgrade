@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
 )
 
@@ -51,6 +53,12 @@ var upgrade = &cobra.Command{
 	Use:   "upgrade",
 	Short: "starts upgrade process",
 	Long:  `starts upgrade process`,
+}
+
+var config = &cobra.Command{
+	Use:   "config",
+	Short: "subcommands to set parameters for subsequent gpupgrade commands",
+	Long:  "subcommands to set parameters for subsequent gpupgrade commands",
 }
 
 var subStartHub = &cobra.Command{
@@ -138,6 +146,85 @@ var subInitCluster = &cobra.Command{
 			gplog.Error(err.Error())
 			os.Exit(1)
 		}
+	},
+}
+
+var subSet = &cobra.Command{
+	Use:   "set",
+	Short: "set an upgrade parameter",
+	Long:  "set an upgrade parameter",
+	Run: func(cmd *cobra.Command, args []string) {
+		if cmd.Flags().NFlag() != 1 {
+			gplog.Error("the set command requires exactly one flag to be specified")
+			os.Exit(1)
+		}
+		conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+		if connConfigErr != nil {
+			gplog.Error(connConfigErr.Error())
+			os.Exit(1)
+		}
+		client := pb.NewCliToHubClient(conn)
+		request := &pb.ConfigSetRequest{}
+		// We visit all 1 flag so we don't need to explicitly iterate through flag names
+		cmd.Flags().Visit(func(flag *pflag.Flag) {
+			request.FlagName = flag.Name
+			request.FlagVal = flag.Value.String()
+		})
+		gplog.Info("Static configuration setting change requested: %s = %s", request.FlagName, request.FlagVal)
+		_, err := client.ConfigSet(context.Background(), request)
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}
+		gplog.Info("Successfully set %s to %s", request.FlagName, request.FlagVal)
+	},
+}
+
+var subGet = &cobra.Command{
+	Use:   "get",
+	Short: "get the value of a configuration parameter",
+	Long:  "get the value of a configuration parameter",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+		if connConfigErr != nil {
+			return connConfigErr
+		}
+
+		client := pb.NewCliToHubClient(conn)
+		request := pb.GetConfigRequest{
+			Name: args[0],
+		}
+
+		resp, err := client.GetConfig(context.Background(), &request)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(resp.Value)
+		return nil
+	},
+}
+
+var subShow = &cobra.Command{
+	Use:   "show",
+	Short: "show all upgrade parameters",
+	Long:  "show all upgrade parameters",
+	Run: func(cmd *cobra.Command, args []string) {
+		/*conn, connConfigErr := grpc.Dial("localhost:"+hubPort, grpc.WithInsecure())
+		if connConfigErr != nil {
+			gplog.Error(connConfigErr.Error())
+			os.Exit(1)
+		}
+		//client := pb.NewCliToHubClient(conn)
+		// stuff goes here
+		var err error
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}*/
+		gplog.Error("This subcommand is not yet implemented")
+		os.Exit(1)
 	},
 }
 

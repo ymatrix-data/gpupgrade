@@ -182,11 +182,6 @@ func (h *Hub) AgentConns() ([]*Connection, error) {
 	return h.agentConns, nil
 }
 
-// GetConfig returns a copy of the hub's current configuration.
-func (h *Hub) GetConfig() HubConfig {
-	return *h.conf
-}
-
 func EnsureConnsAreReady(agentConns []*Connection) error {
 	hostnames := []string{}
 	for _, conn := range agentConns {

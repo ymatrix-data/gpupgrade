@@ -4,7 +4,7 @@
     run gpupgrade
 
     [ "$status" -eq 1 ]
-    [[ "$output" = *"Please specify one command of: check, prepare, status, upgrade, or version"* ]]
+    [[ "$output" = *"Please specify one command of: check, config, prepare, status, upgrade, or version"* ]]
 }
 
 # XXX The amount of copy-paste here is ugly, as is the fact that the test stops

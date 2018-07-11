@@ -124,26 +124,43 @@ var _ = Describe("preparer", func() {
 		})
 	})
 	Describe("Prepare init", func() {
-		It("creates dir when none exists", func() {
-			dir, err := ioutil.TempDir("", "")
-			Expect(err).ToNot(HaveOccurred())
-			defer os.RemoveAll(dir)
+		var dir string
 
+		BeforeEach(func() {
+			var err error
+			dir, err = ioutil.TempDir("", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			os.RemoveAll(dir)
+		})
+
+		It("creates dir when none exists", func() {
 			stateDir := filepath.Join(dir, "foo")
-			err = commanders.DoInit(stateDir, "/does/not/exist")
+			err := commanders.DoInit(stateDir, "/does/not/exist")
 			Expect(err).To(BeNil())
 
 			cp := &utils.ClusterPair{}
 			cp.ReadOldConfig(stateDir)
 			Expect(cp.OldBinDir).To(Equal("/does/not/exist"))
 		})
-		It("errs out when dir exists", func() {
-			dir, err := ioutil.TempDir("", "")
-			Expect(err).ToNot(HaveOccurred())
-			defer os.RemoveAll(dir)
 
-			err = commanders.DoInit(dir, "/does/not/exist")
+		It("errs out when dir exists", func() {
+			err := commanders.DoInit(dir, "/does/not/exist")
 			Expect(err).ToNot(BeNil())
+		})
+
+		It("creates both old and new cluster configs", func() {
+			stateDir := filepath.Join(dir, "foo")
+			err := commanders.DoInit(stateDir, "/does/not/exist")
+			Expect(err).ToNot(HaveOccurred())
+
+			oldConfig := utils.GetConfigFilePath(stateDir)
+			Expect(oldConfig).To(BeAnExistingFile())
+
+			newConfig := utils.GetNewConfigFilePath(stateDir)
+			Expect(newConfig).To(BeAnExistingFile())
 		})
 	})
 })

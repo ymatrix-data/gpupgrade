@@ -39,6 +39,12 @@ func main() {
 			cp := &utils.ClusterPair{}
 			cm := upgradestatus.NewChecklistManager(conf.StateDir)
 
+			// Load the cluster configuration.
+			err := cp.Load(conf.StateDir)
+			if err != nil {
+				return err
+			}
+
 			hub := services.NewHub(cp, grpc.DialContext, conf, cm)
 
 			// TODO: make sure the implementations here, and the Checklist below, are
@@ -85,7 +91,7 @@ func main() {
 				hub.MakeDaemon()
 			}
 
-			err := hub.Start()
+			err = hub.Start()
 			if err != nil {
 				return err
 			}

@@ -26,9 +26,10 @@ func main() {
 
 	confirmValidCommand()
 
-	root.AddCommand(prepare, status, check, version, upgrade)
+	root.AddCommand(prepare, config, status, check, version, upgrade)
 
 	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
+	config.AddCommand(subGet, subSet, subShow)
 	status.AddCommand(subUpgrade, subConversion)
 	check.AddCommand(subVersion, subObjectCount, subDiskSpace, subConfig, subSeginstall)
 	upgrade.AddCommand(subConvertMaster, subConvertPrimaries, subShareOids, subValidateStartCluster, subReconfigurePorts)
@@ -43,7 +44,7 @@ func main() {
 
 func confirmValidCommand() {
 	if len(os.Args[1:]) < 1 {
-		log.Fatal("Please specify one command of: check, prepare, status, upgrade, or version")
+		log.Fatal("Please specify one command of: check, config, prepare, status, upgrade, or version")
 	}
 }
 
@@ -60,8 +61,9 @@ func addFlagOptions() {
 	addFlagOptionsToConvertMaster()
 	addFlagOptionsToValidateStartCluster()
 	addFlagOptionsToConvertPrimaries()
-	addFlagOptionsToConfig()
+	addFlagOptionsToCheckConfig()
 	addFlagOptionsToInit()
+	addFlagOptionsToConfig()
 }
 
 func addFlagOptionsToConvertMaster() {
@@ -88,7 +90,7 @@ func addFlagOptionsToCheck() {
 	check.MarkPersistentFlagRequired("master-host")
 }
 
-func addFlagOptionsToConfig() {
+func addFlagOptionsToCheckConfig() {
 	subConfig.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
 	subConfig.MarkPersistentFlagRequired("old-bindir")
 }
@@ -113,4 +115,8 @@ func addFlagOptionsToValidateStartCluster() {
 func addFlagOptionsToInit() {
 	subInit.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
 	subInit.MarkPersistentFlagRequired("old-bindir")
+}
+func addFlagOptionsToConfig() {
+	subSet.Flags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	subSet.Flags().StringVar(&oldBinDir, "new-bindir", "", "install directory for new gpdb version")
 }

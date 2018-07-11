@@ -3,11 +3,24 @@
 load helpers
 
 setup() {
+    STATE_DIR=`mktemp -d`
+    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
+    gpupgrade prepare init --old-bindir /dummy # XXX get rid of this
+
     kill_hub
 }
 
 teardown() {
     kill_hub
+}
+
+@test "start-hub fails if the configuration hasn't been initialized" {
+    export GPUPGRADE_HOME=/tmp/does/not/exist
+    run gpupgrade prepare start-hub
+    [ "$status" -eq 1 ]
+
+    # TODO: improve this error message.
+    [[ "$output" = *"couldn't read old config file"* ]]
 }
 
 @test "start-hub finds the right hub binary and starts a daemonized process" {
