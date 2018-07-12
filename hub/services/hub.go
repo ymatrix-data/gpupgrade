@@ -167,10 +167,12 @@ func EnsureConnsAreReady(agentConns []*Connection) error {
 func (h *Hub) closeConns() {
 	for _, conn := range h.agentConns {
 		defer conn.CancelContext()
+		currState := conn.Conn.GetState()
 		err := conn.Conn.Close()
 		if err != nil {
 			gplog.Info(fmt.Sprintf("Error closing hub to agent connection. host: %s, err: %s", conn.Hostname, err.Error()))
 		}
+		conn.Conn.WaitForStateChange(context.Background(), currState)
 	}
 }
 
