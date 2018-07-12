@@ -5,7 +5,7 @@
 ### Prerequisites
 
 - Golang. We currently develop against latest stable Golang, which was v1.10 as of May 2018.
-- protoc. This is the compiler for the [gRPC protobuffer](https://grpc.io/) system. 
+- protoc. This is the compiler for the [gRPC protobuffer](https://grpc.io/) system.
 On macos, one way to install this is via `brew install protobuf`   
 
 ### Build and test the upgrade tool
@@ -117,6 +117,8 @@ much as possible so that the unit test coverage is driven out alongside the code
 We use dependency injection wherever possible to enable isolated unit tests
 and drive towards clear interfaces across packages
 
+Some unit tests depend on the environment variable GPHOME, though not on its value. Having GPHOME set is a prerequisite for running a GPDB cluster.
+
 We keep our `_test.go` files in the same package as the implementations they test because
 occasionally, we find it easiest and most valuable to either:
 
@@ -164,5 +166,28 @@ make target that runs a test, upgrading from version x to x. To do this, two
 clusters are setup on the local machine using demo_cluster.sh. In the root
 directory for the gpdb repo, run is `make -C contrib/pg_upgrade check`. This
 uses test_gpdb.sh to do the heavy lifting, and that can be customized to fit
-your setup. In particular, four env vars are usefor the cluster mapping:
+your setup. In particular, four env vars are used for the cluster mapping:
 NEWBINDIR, OLDBINDIR, NEWDATADIR and OLDDATADIR.
+
+### Running tests in a pipeline
+
+The gpupgrade/ci directory contains a pipeline.yml file, which references task
+files in gpupgrade/ci/tasks, and some secrets in a private repository. To set a
+pipeline, run:
+
+```
+fly -t [target-name] set-pipeline -p [pipeline-name] -c gpupgrade/ci/pipeline.yml -l path/to/secrets.yml
+```
+
+Currently the secrets file is only being used to send notifications of failures
+to a slack channel. If you wish to disable this, remove the reference to the
+`slack-alert` anchor from the `unit-tests` job's `on_failure`.
+
+To make the pipeline publicly visible, run:
+
+```
+fly --target [target-name] expose-pipeline --pipeline [pipeline-name]
+```
+
+This will allow anyone to see the pipeline and its status. The details of the
+run will not be visible unless the user is logged in to concourse.
