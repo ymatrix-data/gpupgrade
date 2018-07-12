@@ -58,8 +58,7 @@ var _ = Describe("hub pings agents test", func() {
 			err := pingerManager.PingAllAgents()
 			Expect(err).To(MatchError("call to agent fail"))
 		})
-	})
-	Describe("PingAllAgents", func() {
+
 		It("grpc calls succeed, only one ping", func() {
 			client.EXPECT().PingAgents(
 				gomock.Any(),

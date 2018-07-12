@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 
 	"github.com/greenplum-db/gpupgrade/hub/services"
@@ -12,31 +11,13 @@ import (
 	"github.com/greenplum-db/gpupgrade/testutils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("PrepareShutdownClusters", func() {
-	var (
-		conf               *services.HubConfig
-		testLog            *gbytes.Buffer
-		stubRemoteExecutor *testutils.StubRemoteExecutor
-		clusterPair        *utils.ClusterPair
-		cm                 *testutils.MockChecklistManager
-	)
 	BeforeEach(func() {
-		_, _, testLog = testhelper.SetupTestLogger()
 		utils.System.RemoveAll = func(s string) error { return nil }
 		utils.System.MkdirAll = func(s string, perm os.FileMode) error { return nil }
 
-		dir, err := ioutil.TempDir("", "")
-		Expect(err).ToNot(HaveOccurred())
-		conf = &services.HubConfig{
-			StateDir: dir,
-		}
-		stubRemoteExecutor = testutils.NewStubRemoteExecutor()
-		clusterPair = testutils.CreateSampleClusterPair()
-		clusterPair.OldCluster.Executor = &testhelper.TestExecutor{}
-		cm = testutils.NewMockChecklistManager()
 	})
 
 	AfterEach(func() {
