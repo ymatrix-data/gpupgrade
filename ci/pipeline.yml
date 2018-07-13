@@ -1,0 +1,38 @@
+---
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: gpupgrade
+  type: git
+  source:
+    uri: https://github.com/greenplum-db/gpupgrade
+    branch: master
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{cm_webhook_url}}
+    
+
+jobs:
+- name: unit-tests
+  plan:
+  - get: gpupgrade
+    trigger: true
+  - task: unit-tests
+    file: gpupgrade/ci/tasks/unit-tests.yml
+    on_failure:
+      do:
+      - *slack_alert
+
+
+slack_alert_anchor: &slack_alert
+  put: slack-alert
+  params:
+    text: |
+      Hey team, <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|gpupgrade/$BUILD_JOB_NAME> failed.
