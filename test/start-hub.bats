@@ -80,3 +80,45 @@ teardown() {
     ! PATH= $GPUPGRADE prepare start-hub
     # TODO: check for a useful error message
 }
+
+outputContains() {
+    [[ "$output" = *"$1"* ]]
+}
+
+@test "subcommands return an error if the hub is not started" {
+    commands=(
+        'prepare shutdown-clusters'
+        'prepare start-agents'
+        'prepare init-cluster'
+        'config set --old-bindir /dummy'
+        'config show'
+        'check version'
+        'check object-count'
+        'check disk-space'
+        'check config'
+        'check seginstall'
+        'status upgrade'
+        'status conversion'
+        'upgrade convert-master'
+        'upgrade convert-primaries'
+        'upgrade share-oids'
+        'upgrade validate-start-cluster'
+        'upgrade reconfigure-ports'
+    )
+
+    # We don't want to have to wait for the default one-second timeout for all
+    # of these commands.
+    export GPUPGRADE_CONNECTION_TIMEOUT=0
+
+    # Run every subcommand.
+    for command in "${commands[@]}"; do
+        run gpupgrade $command
+
+        # Trace which command we're on to make debugging easier.
+        echo "\$ gpupgrade $command"
+        echo "$output"
+
+        [ "$status" -eq 1 ]
+        outputContains "couldn't connect to the upgrade hub (did you run 'gpupgrade prepare start-hub'?)"
+    done
+}
