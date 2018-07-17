@@ -127,3 +127,17 @@ clean:
 .Gopkg.updated: Gopkg.lock Gopkg.toml
 	dep ensure
 	touch $@
+
+.PHONY: deploy-pipeline expose-pipeline
+
+# You can override these two from the command line.
+FLY_TARGET := gpdb-dev
+PIPELINE_NAME := gpupgrade
+
+deploy-pipeline:
+	fly -t $(FLY_TARGET) set-pipeline -p $(PIPELINE_NAME) \
+		-c ci/pipeline.yml \
+		-l ~/workspace/continuous-integration/secrets/gpupgrade.dev.yml
+
+expose-pipeline:
+	fly --target $(FLY_TARGET) expose-pipeline --pipeline $(PIPELINE_NAME)

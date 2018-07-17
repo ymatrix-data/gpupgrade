@@ -179,6 +179,13 @@ pipeline, run:
 fly -t [target-name] set-pipeline -p [pipeline-name] -c gpupgrade/ci/pipeline.yml -l path/to/secrets.yml
 ```
 
+If you want to use the defaults and have access to the continuous-integration
+secrets, there is a convenience recipe:
+
+```
+make deploy-pipeline
+```
+
 Currently the secrets file is only being used to send notifications of failures
 to a slack channel. If you wish to disable this, remove the reference to the
 `slack-alert` anchor from the `unit-tests` job's `on_failure`.
@@ -188,6 +195,9 @@ To make the pipeline publicly visible, run:
 ```
 fly --target [target-name] expose-pipeline --pipeline [pipeline-name]
 ```
+
+(Similarly, there is a `make expose-pipeline` convenience recipe in the
+Makefile.)
 
 This will allow anyone to see the pipeline and its status. The details of the
 run will not be visible unless the user is logged in to concourse.
