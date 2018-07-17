@@ -34,8 +34,7 @@ var _ = Describe("Hub", func() {
 		agentA.Stop()
 	})
 
-	It("closes open connections when shutting down", func(done Done) {
-		defer close(done)
+	It("closes open connections when shutting down", func() {
 		hubConfig := &services.HubConfig{
 			HubToAgentPort: port,
 		}
