@@ -2,6 +2,7 @@ package utils
 
 import (
 	//"github.com/jmoiron/sqlx"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -117,4 +118,30 @@ func GetStateDir() string {
 	}
 
 	return stateDir
+}
+
+func WriteJSONFile(fileName string, contents interface{}) error {
+	body, err := json.Marshal(contents)
+	if err != nil {
+		return err
+	}
+
+	// Write to a temporary file and move it over the old one, because WriteFile
+	// will not truncate the original file, and it provides an atomic write
+	// FIXME: What happens if this file already exists?
+	tempFilePath := fileName + ".tmp"
+	err = System.WriteFile(tempFilePath, body, 0644)
+	if err != nil {
+		errMsg := fmt.Sprintf("Unable to write temp file %s: %s", tempFilePath, err.Error())
+		return errors.New(errMsg)
+	}
+	defer os.Remove(tempFilePath)
+
+	err = os.Rename(tempFilePath, fileName)
+	if err != nil {
+		errMsg := fmt.Sprintf("Unable to rename temp file to %s: %s", fileName, err.Error())
+		return errors.New(errMsg)
+	}
+
+	return nil
 }

@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
 	"os/user"
 
 	"github.com/pkg/errors"
@@ -11,20 +14,8 @@ import (
 
 var _ = Describe("user utils", func() {
 
-	var saveGetenv func(string) string
-	var saveCurrentUser func() (*user.User, error)
-	var saveHostname func() (string, error)
-
-	BeforeEach(func() {
-		saveGetenv = System.Getenv
-		saveCurrentUser = System.CurrentUser
-		saveHostname = System.Hostname
-	})
-
 	AfterEach(func() {
-		System.Getenv = saveGetenv
-		System.CurrentUser = saveCurrentUser
-		System.Hostname = saveHostname
+		System = InitializeSystemFunctions()
 	})
 
 	Describe("#TryEnv", func() {
@@ -102,4 +93,106 @@ var _ = Describe("user utils", func() {
 
 	})
 
+	Describe("#WriteJSONFile", func() {
+		var (
+			dir      string
+			fileName string
+		)
+
+		BeforeEach(func() {
+			var err error
+			dir, err = ioutil.TempDir("", "")
+			Expect(err).ToNot(HaveOccurred())
+
+			fileName = dir + "/upgrade_settings.json"
+		})
+
+		AfterEach(func() {
+			err := os.RemoveAll(dir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		readJSON := func(fileName string) map[string]string {
+			_, err := os.Open(fileName)
+			Expect(err).ToNot(HaveOccurred())
+
+			contents, err := System.ReadFile(fileName)
+			Expect(err).ToNot(HaveOccurred())
+
+			result := make(map[string]string)
+			err = json.Unmarshal([]byte(contents), &result)
+			Expect(err).ToNot(HaveOccurred())
+
+			return result
+		}
+
+		It("writes a map to a json file", func() {
+			expected := map[string]string{}
+			expected["someFlag"] = "some-value"
+
+			err := WriteJSONFile(fileName, expected)
+			Expect(err).ToNot(HaveOccurred())
+
+			result := readJSON(fileName)
+			Expect(expected).To(Equal(result))
+		})
+
+		It("writes map to a existing file, correctly truncating old contents", func() {
+			f, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			Expect(err).ToNot(HaveOccurred())
+
+			brother_says := `...And Saint Attila raised the hand grenade up on high,
+			saying, "O LORD, bless this Thy hand grenade that with it Thou mayest
+			blow Thine enemies to tiny bits, in Thy mercy." And the LORD did grin and
+			the people did feast upon the lambs and sloths and carp and anchovies and
+			orangutans and breakfast cereals, and fruit bats and large chu ---`
+
+			_, err = f.Write([]byte(brother_says))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = f.Close()
+			Expect(err).ToNot(HaveOccurred())
+
+			expected := map[string]string{}
+			expected["someFlag"] = "some-value"
+
+			err = WriteJSONFile(fileName, expected)
+			Expect(err).ToNot(HaveOccurred())
+
+			result := readJSON(fileName)
+			Expect(result).To(Equal(expected))
+		})
+
+		It("fails when passing an object that can't be json.Marshal()'d", func() {
+			badStruct := map[interface{}]string{}
+			key := struct{}{}
+			badStruct[key] = "dummy_val"
+
+			err := WriteJSONFile(fileName, badStruct)
+			Expect(err).To(HaveOccurred())
+		})
+
+		// XXX: This is an implementation specific regression test
+		It("doesn't remove temp file if exists and write fails", func() {
+			tempFileName := fileName + ".tmp"
+
+			f, err := os.OpenFile(tempFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = f.Close()
+			Expect(err).ToNot(HaveOccurred())
+
+			failedUpdate := map[string]string{}
+			failedUpdate["someFlag"] = "updated-value"
+
+			System.WriteFile = func(_ string, _ []byte, _ os.FileMode) error {
+				return errors.New("Mock write failed")
+			}
+			err = WriteJSONFile(fileName, failedUpdate)
+			Expect(err).To(HaveOccurred())
+
+			_, err = os.Stat(tempFileName)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

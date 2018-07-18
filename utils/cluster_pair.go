@@ -3,10 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 )
@@ -67,32 +64,14 @@ func ReadClusterConfig(configFilePath string) (*cluster.Cluster, string, error) 
 func WriteClusterConfig(configFilePath string, c *cluster.Cluster, binDir string) error {
 	segConfigs := make([]cluster.SegConfig, 0)
 	clusterConfig := &ClusterConfig{BinDir: binDir}
+
 	for _, contentID := range c.ContentIDs {
 		segConfigs = append(segConfigs, c.Segments[contentID])
 	}
+
 	clusterConfig.SegConfigs = segConfigs
-	contents, err := json.Marshal(clusterConfig)
-	if err != nil {
-		errMsg := fmt.Sprintf("Unable to Marshal cluster config Json: %s", err.Error())
-		return errors.New(errMsg)
-	}
-	// Write to a temporary file and move it over the old one, because WriteFile
-	// will not truncate the original file, and it provides an atomic write
-	tempFilePath := configFilePath + ".tmp"
-	defer os.Remove(tempFilePath)
-	err = System.WriteFile(tempFilePath, contents, 0644)
-	if err != nil {
-		errMsg := fmt.Sprintf("Unable to write temp config file: %s", err.Error())
-		return errors.New(errMsg)
-	}
 
-	err = os.Rename(tempFilePath, configFilePath)
-	if err != nil {
-		errMsg := fmt.Sprintf("Unable to Rename temp config file to \"cluster_config.json\": %s", err.Error())
-		return errors.New(errMsg)
-	}
-
-	return err
+	return WriteJSONFile(configFilePath, clusterConfig)
 }
 
 func (cp *ClusterPair) ReadOldConfig(baseDir string) error {
