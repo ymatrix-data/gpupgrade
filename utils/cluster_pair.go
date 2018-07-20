@@ -2,8 +2,9 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 )
@@ -15,19 +16,32 @@ type ClusterPair struct {
 	NewBinDir  string
 }
 
-func (cp *ClusterPair) Init(baseDir, OldBinDir, NewBinDir string) error {
+func (cp *ClusterPair) Load(stateDir string) error {
 	var err error
 
-	err = cp.ReadOldConfig(baseDir)
+	err = cp.ReadOldConfig(stateDir)
 	if err != nil {
-		return fmt.Errorf("Couldn't read old config file: %+v", err)
+		return errors.Wrap(err, "couldn't read old config file")
 	}
-	err = cp.ReadNewConfig(baseDir)
+	err = cp.ReadNewConfig(stateDir)
 	if err != nil {
-		return fmt.Errorf("Couldn't read new config file: %+v", err)
+		return errors.Wrap(err, "couldn't read new config file")
 	}
-	cp.OldBinDir = OldBinDir
-	cp.NewBinDir = NewBinDir
+
+	return nil
+}
+
+func (cp *ClusterPair) Commit(stateDir string) error {
+	err := cp.WriteOldConfig(stateDir)
+	if err != nil {
+		return errors.Wrap(err, "couldn't write old config file")
+	}
+
+	err = cp.WriteNewConfig(stateDir)
+	if err != nil {
+		return errors.Wrap(err, "couldn't write new config file")
+	}
+
 	return nil
 }
 

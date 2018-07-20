@@ -49,4 +49,17 @@ var _ = Describe("ClusterPair", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	It("can commit and load to/from disk", func() {
+		expected := testutils.CreateMultinodeSampleClusterPair("/tmp")
+		expected.Commit(testStateDir)
+
+		actual := &utils.ClusterPair{}
+		actual.Load(testStateDir)
+
+		// Executors aren't serialized, so copy them over for ease of testing
+		actual.OldCluster.Executor = expected.OldCluster.Executor
+		actual.NewCluster.Executor = expected.NewCluster.Executor
+		Expect(actual).To(Equal(expected))
+	})
 })
