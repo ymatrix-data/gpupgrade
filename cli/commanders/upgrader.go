@@ -16,14 +16,8 @@ func NewUpgrader(client pb.CliToHubClient) *Upgrader {
 	return &Upgrader{client: client}
 }
 
-func (u *Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir string, newBinDir string) error {
-	upgradeConvertMasterRequest := pb.UpgradeConvertMasterRequest{
-		OldDataDir: oldDataDir,
-		OldBinDir:  oldBinDir,
-		NewDataDir: newDataDir,
-		NewBinDir:  newBinDir,
-	}
-	_, err := u.client.UpgradeConvertMaster(context.Background(), &upgradeConvertMasterRequest)
+func (u *Upgrader) ConvertMaster() error {
+	_, err := u.client.UpgradeConvertMaster(context.Background(), &pb.UpgradeConvertMasterRequest{})
 	if err != nil {
 		// TODO: Change the logging message?
 		gplog.Error("ERROR - Unable to connect to hub")
@@ -34,11 +28,8 @@ func (u *Upgrader) ConvertMaster(oldDataDir string, oldBinDir string, newDataDir
 	return nil
 }
 
-func (u *Upgrader) ConvertPrimaries(oldBinDir, newBinDir string) error {
-	_, err := u.client.UpgradeConvertPrimaries(context.Background(), &pb.UpgradeConvertPrimariesRequest{
-		OldBinDir: oldBinDir,
-		NewBinDir: newBinDir,
-	})
+func (u *Upgrader) ConvertPrimaries() error {
+	_, err := u.client.UpgradeConvertPrimaries(context.Background(), &pb.UpgradeConvertPrimariesRequest{})
 	if err != nil {
 		// TODO: Change the logging message?
 		gplog.Error("Error when calling hub upgrade convert primaries: %v", err.Error())

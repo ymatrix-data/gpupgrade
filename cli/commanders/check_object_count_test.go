@@ -46,11 +46,11 @@ var _ = Describe("object count tests", func() {
 
 			client.EXPECT().CheckObjectCount(
 				gomock.Any(),
-				&pb.CheckObjectCountRequest{DbPort: 9999},
+				&pb.CheckObjectCountRequest{},
 			).Return(fakeCheckObjectCountReply, nil)
 
 			request := commanders.NewObjectCountChecker(client)
-			err := request.Execute(9999)
+			err := request.Execute()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("Checking object counts in database: template1"))
 			Eventually(testStdout).Should(gbytes.Say("Number of AO objects - 1"))
@@ -65,11 +65,11 @@ var _ = Describe("object count tests", func() {
 			_, testStderr, _ := testhelper.SetupTestLogger()
 			client.EXPECT().CheckObjectCount(
 				gomock.Any(),
-				&pb.CheckObjectCountRequest{DbPort: 9999},
+				&pb.CheckObjectCountRequest{},
 			).Return(nil, errors.New("Force failure connection"))
 
 			request := commanders.NewObjectCountChecker(client)
-			err := request.Execute(9999)
+			err := request.Execute()
 			Expect(err).ToNot(BeNil())
 			Eventually(testStderr).Should(gbytes.Say("ERROR - gRPC call to hub failed"))
 

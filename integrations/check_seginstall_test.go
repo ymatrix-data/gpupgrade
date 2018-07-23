@@ -23,7 +23,7 @@ var _ = Describe("check seginstall", func() {
 	It("updates status PENDING to RUNNING then to COMPLETE if successful", func() {
 		Expect(cm.IsPending(upgradestatus.SEGINSTALL)).To(BeTrue())
 
-		checkSeginstallSession := runCommand("check", "seginstall", "--master-host", "localhost")
+		checkSeginstallSession := runCommand("check", "seginstall")
 		Eventually(checkSeginstallSession).Should(Exit(0))
 
 		// These assertions are identical to the ones in the hub_check_seginstall unit tests but just to be safe we are leaving it in.

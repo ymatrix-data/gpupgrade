@@ -18,9 +18,9 @@ func NewVersionChecker(client pb.CliToHubClient) VersionChecker {
 	}
 }
 
-func (req VersionChecker) Execute(masterHost string, dbPort int) error {
-	resp, err := req.client.CheckVersion(context.Background(),
-		&pb.CheckVersionRequest{Host: masterHost, DbPort: int32(dbPort)})
+// TODO: fold into check config or something?
+func (req VersionChecker) Execute() error {
+	resp, err := req.client.CheckVersion(context.Background(), &pb.CheckVersionRequest{})
 	if err != nil {
 		gplog.Error("ERROR - gRPC call to hub failed")
 		return err

@@ -39,7 +39,7 @@ var _ = Describe("prepare shutdown-clusters", func() {
 
 		Expect(cm.IsPending(upgradestatus.SHUTDOWN_CLUSTERS)).To(BeTrue())
 
-		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters", "--old-bindir", cp.OldBinDir, "--new-bindir", cp.NewBinDir)
+		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters")
 		Eventually(prepareShutdownClustersSession).Should(Exit(0))
 
 		Expect(testExecutorOld.NumExecutions).To(Equal(2))
@@ -65,7 +65,7 @@ var _ = Describe("prepare shutdown-clusters", func() {
 		testExecutorOld.LocalError = errors.New("stop failed")
 		testExecutorNew.LocalError = errors.New("stop failed")
 
-		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters", "--old-bindir", cp.OldBinDir, "--new-bindir", cp.NewBinDir)
+		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters")
 		Eventually(prepareShutdownClustersSession).Should(Exit(0))
 
 		Expect(testExecutorOld.NumExecutions).To(Equal(2))

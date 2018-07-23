@@ -15,11 +15,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var masterHost string
-var dbPort int
-var newClusterDbPort int
-var oldDataDir, oldBinDir, newDataDir, newBinDir string
-
+var oldBinDir string
 var root = &cobra.Command{Use: "gpupgrade"}
 
 var prepare = &cobra.Command{
@@ -101,7 +97,7 @@ var subShutdownClusters = &cobra.Command{
 		}
 		client := pb.NewCliToHubClient(conn)
 		preparer := commanders.NewPreparer(client)
-		err := preparer.ShutdownClusters(oldBinDir, newBinDir)
+		err := preparer.ShutdownClusters()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)
@@ -141,7 +137,7 @@ var subInitCluster = &cobra.Command{
 		}
 		client := pb.NewCliToHubClient(conn)
 		preparer := commanders.NewPreparer(client)
-		err := preparer.InitCluster(newClusterDbPort, newBinDir)
+		err := preparer.InitCluster()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)
@@ -261,7 +257,7 @@ var subVersion = &cobra.Command{
 			os.Exit(1)
 		}
 		client := pb.NewCliToHubClient(conn)
-		return commanders.NewVersionChecker(client).Execute(masterHost, dbPort)
+		return commanders.NewVersionChecker(client).Execute()
 	},
 }
 
@@ -278,7 +274,7 @@ var subObjectCount = &cobra.Command{
 			os.Exit(1)
 		}
 		client := pb.NewCliToHubClient(conn)
-		return commanders.NewObjectCountChecker(client).Execute(dbPort)
+		return commanders.NewObjectCountChecker(client).Execute()
 	},
 }
 
@@ -331,7 +327,7 @@ var subConfig = &cobra.Command{
 			os.Exit(1)
 		}
 		client := pb.NewCliToHubClient(conn)
-		err := commanders.NewConfigChecker(client).Execute(dbPort, oldBinDir)
+		err := commanders.NewConfigChecker(client).Execute()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)
@@ -376,7 +372,7 @@ var subConvertMaster = &cobra.Command{
 		}
 
 		client := pb.NewCliToHubClient(conn)
-		err := commanders.NewUpgrader(client).ConvertMaster(oldDataDir, oldBinDir, newDataDir, newBinDir)
+		err := commanders.NewUpgrader(client).ConvertMaster()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)
@@ -397,7 +393,7 @@ var subConvertPrimaries = &cobra.Command{
 		}
 
 		client := pb.NewCliToHubClient(conn)
-		err := commanders.NewUpgrader(client).ConvertPrimaries(oldBinDir, newBinDir)
+		err := commanders.NewUpgrader(client).ConvertPrimaries()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)

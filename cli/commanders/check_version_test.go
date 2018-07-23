@@ -36,10 +36,10 @@ var _ bool = Describe("object count tests", func() {
 			testStdout, _, _ := testhelper.SetupTestLogger()
 			client.EXPECT().CheckVersion(
 				gomock.Any(),
-				&pb.CheckVersionRequest{DbPort: 9999, Host: "localhost"},
+				&pb.CheckVersionRequest{},
 			).Return(&pb.CheckVersionReply{IsVersionCompatible: true}, nil)
 			request := commanders.NewVersionChecker(client)
-			err := request.Execute("localhost", 9999)
+			err := request.Execute()
 			Expect(err).To(BeNil())
 			// this eventually should actually be an expect -- convert it
 			Eventually(string(testStdout.Contents())).Should(ContainSubstring("gpupgrade: Version Compatibility Check [OK]\n"))
@@ -49,10 +49,10 @@ var _ bool = Describe("object count tests", func() {
 			testStdout, _, _ := testhelper.SetupTestLogger()
 			client.EXPECT().CheckVersion(
 				gomock.Any(),
-				&pb.CheckVersionRequest{DbPort: 9999, Host: "localhost"},
+				&pb.CheckVersionRequest{},
 			).Return(&pb.CheckVersionReply{IsVersionCompatible: false}, nil)
 			request := commanders.NewVersionChecker(client)
-			err := request.Execute("localhost", 9999)
+			err := request.Execute()
 			Expect(err).To(BeNil())
 			// this eventually should actually be an expect -- convert it
 			Eventually(string(testStdout.Contents())).Should(ContainSubstring("gpupgrade: Version Compatibility Check [Failed]\n"))
@@ -62,10 +62,10 @@ var _ bool = Describe("object count tests", func() {
 			_, testStderr, _ := testhelper.SetupTestLogger()
 			client.EXPECT().CheckVersion(
 				gomock.Any(),
-				&pb.CheckVersionRequest{DbPort: 9999, Host: "localhost"},
+				&pb.CheckVersionRequest{},
 			).Return(&pb.CheckVersionReply{IsVersionCompatible: false}, errors.New("something went wrong"))
 			request := commanders.NewVersionChecker(client)
-			err := request.Execute("localhost", 9999)
+			err := request.Execute()
 			Expect(err).ToNot(BeNil())
 			Expect(err.Error()).Should(ContainSubstring("something went wrong"))
 			// this eventually should actually be an expect -- convert it

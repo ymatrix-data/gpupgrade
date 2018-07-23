@@ -27,9 +27,9 @@ func NewPreparer(client pb.CliToHubClient) Preparer {
 
 var NumberOfConnectionAttempt = 100
 
-func (p Preparer) ShutdownClusters(oldBinDir string, newBinDir string) error {
+func (p Preparer) ShutdownClusters() error {
 	_, err := p.client.PrepareShutdownClusters(context.Background(),
-		&pb.PrepareShutdownClustersRequest{OldBinDir: oldBinDir, NewBinDir: newBinDir})
+		&pb.PrepareShutdownClustersRequest{})
 	if err != nil {
 		gplog.Error(err.Error())
 	}
@@ -63,8 +63,8 @@ func (p Preparer) StartHub() error {
 	return nil
 }
 
-func (p Preparer) InitCluster(dbPort int, newBinDir string) error {
-	_, err := p.client.PrepareInitCluster(context.Background(), &pb.PrepareInitClusterRequest{DbPort: int32(dbPort), NewBinDir: newBinDir})
+func (p Preparer) InitCluster() error {
+	_, err := p.client.PrepareInitCluster(context.Background(), &pb.PrepareInitClusterRequest{})
 	if err != nil {
 		return err
 	}

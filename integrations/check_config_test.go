@@ -14,7 +14,7 @@ import (
 // needs the cli and the hub
 var _ = Describe("check config", func() {
 	It("happy: the database configuration is saved to a specified location", func() {
-		session := runCommand("check", "config", "--master-host", "localhost", "--old-bindir", "/old/bin/dir")
+		session := runCommand("check", "config")
 		if session.ExitCode() != 0 {
 			fmt.Println("make sure greenplum is running")
 		}

@@ -32,8 +32,8 @@ func (h *Hub) UpgradeConvertPrimaries(ctx context.Context, in *pb.UpgradeConvert
 			defer wg.Done()
 
 			_, err := pb.NewAgentClient(c.Conn).UpgradeConvertPrimarySegments(context.Background(), &pb.UpgradeConvertPrimarySegmentsRequest{
-				OldBinDir:    in.OldBinDir,
-				NewBinDir:    in.NewBinDir,
+				OldBinDir:    h.clusterPair.OldBinDir,
+				NewBinDir:    h.clusterPair.NewBinDir,
 				DataDirPairs: dataDirPair[c.Hostname],
 			})
 

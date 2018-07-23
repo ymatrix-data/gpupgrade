@@ -1,10 +1,7 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/greenplum-db/gpupgrade/db"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
@@ -14,12 +11,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.CheckConfigReply, error) {
+func (h *Hub) CheckConfig(ctx context.Context, _ *pb.CheckConfigRequest) (*pb.CheckConfigReply, error) {
 	gplog.Info("starting CheckConfig()")
 
 	c := upgradestatus.NewChecklistManager(h.conf.StateDir)
 	step := c.GetStepWriter(upgradestatus.CONFIG)
 
+	// TODO: bubble these errors up.
 	err := step.ResetStateDir()
 	if err != nil {
 		gplog.Error("error from ResetStateDir " + err.Error())
@@ -29,17 +27,7 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 		gplog.Error("error from MarkInProgress " + err.Error())
 	}
 
-	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")
-	defer dbConnector.Close()
-	err = dbConnector.Connect(1)
-	if err != nil {
-		step.MarkFailed()
-		gplog.Error(err.Error())
-		return &pb.CheckConfigReply{}, utils.DatabaseConnectionError{Parent: err}
-	}
-	dbConnector.Version.Initialize(dbConnector)
-
-	err = SaveOldClusterConfig(h.clusterPair, dbConnector, h.conf.StateDir, in.OldBinDir)
+	err = RetrieveAndSaveOldConfig(h.conf.StateDir, h.clusterPair)
 	if err != nil {
 		step.MarkFailed()
 		gplog.Error(err.Error())
@@ -52,15 +40,24 @@ func (h *Hub) CheckConfig(ctx context.Context, in *pb.CheckConfigRequest) (*pb.C
 	return successReply, nil
 }
 
-func SaveOldClusterConfig(clusterPair *utils.ClusterPair, dbConnector *dbconn.DBConn, stateDir string, oldBinDir string) error {
+// RetrieveAndSaveOldConfig() fills in the rest of the clusterPair.OldCluster by
+// querying the database located at its host and port. The results will
+// additionally be written to disk.
+func RetrieveAndSaveOldConfig(stateDir string, clusterPair *utils.ClusterPair) error {
+	dbConnector := db.NewDBConn("localhost", clusterPair.OldCluster.GetPortForContent(-1), "template1")
+	err := dbConnector.Connect(1)
+	if err != nil {
+		return utils.DatabaseConnectionError{Parent: err}
+	}
+	defer dbConnector.Close()
+
+	dbConnector.Version.Initialize(dbConnector)
+
 	segConfigs, err := cluster.GetSegmentConfiguration(dbConnector)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to get segment configuration for old cluster: %s", err.Error())
-		return errors.New(errMsg)
+		return errors.Wrap(err, "Unable to get segment configuration for old cluster")
 	}
-	clusterPair.OldCluster = cluster.NewCluster(segConfigs)
-	clusterPair.OldBinDir = oldBinDir
 
-	err = clusterPair.WriteOldConfig(stateDir)
-	return err
+	clusterPair.OldCluster = cluster.NewCluster(segConfigs)
+	return clusterPair.WriteOldConfig(stateDir)
 }

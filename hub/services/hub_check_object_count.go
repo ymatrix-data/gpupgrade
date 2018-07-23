@@ -16,7 +16,9 @@ func (h *Hub) CheckObjectCount(ctx context.Context,
 
 	gplog.Info("starting CheckObjectCount")
 
-	dbConnector := db.NewDBConn("localhost", int(in.DbPort), "template1")
+	masterPort := h.clusterPair.OldCluster.GetPortForContent(-1)
+
+	dbConnector := db.NewDBConn("localhost", masterPort, "template1")
 	defer dbConnector.Close()
 	err := dbConnector.Connect(1)
 	if err != nil {
@@ -33,7 +35,7 @@ func (h *Hub) CheckObjectCount(ctx context.Context,
 	var results []*pb.CountPerDb
 	for i := 0; i < len(names); i++ {
 
-		dbConnector = db.NewDBConn("localhost", int(in.DbPort), names[i])
+		dbConnector = db.NewDBConn("localhost", masterPort, names[i])
 		defer dbConnector.Close()
 		err = dbConnector.Connect(1)
 		if err != nil {

@@ -16,9 +16,9 @@ func NewObjectCountChecker(client pb.CliToHubClient) ObjectCountChecker {
 	return ObjectCountChecker{client: client}
 }
 
-func (req ObjectCountChecker) Execute(dbPort int) error {
+func (req ObjectCountChecker) Execute() error {
 	reply, err := req.client.CheckObjectCount(context.Background(),
-		&pb.CheckObjectCountRequest{DbPort: int32(dbPort)})
+		&pb.CheckObjectCountRequest{})
 	if err != nil {
 		gplog.Error("ERROR - gRPC call to hub failed")
 		return err

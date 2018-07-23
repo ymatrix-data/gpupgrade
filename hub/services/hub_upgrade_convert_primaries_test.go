@@ -23,7 +23,6 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 		hub         *services.Hub
 		mockAgent   *testutils.MockAgentServer
 		port        int
-		request     *pb.UpgradeConvertPrimariesRequest
 		oldCluster  *cluster.Cluster
 		newCluster  *cluster.Cluster
 		clusterPair *utils.ClusterPair
@@ -62,11 +61,8 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 		clusterPair = &utils.ClusterPair{
 			OldCluster: oldCluster,
 			NewCluster: newCluster,
-		}
-
-		request = &pb.UpgradeConvertPrimariesRequest{
-			OldBinDir: "/old/bin",
-			NewBinDir: "/new/bin",
+			OldBinDir:  "/old/bin",
+			NewBinDir:  "/new/bin",
 		}
 
 		cm = testutils.NewMockChecklistManager()
@@ -78,7 +74,8 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 	})
 
 	It("returns nil error, and agent receives only expected segmentConfig values", func() {
-		_, err := hub.UpgradeConvertPrimaries(nil, request)
+		_, err := hub.UpgradeConvertPrimaries(nil,
+			&pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(mockAgent.UpgradeConvertPrimarySegmentsRequest.OldBinDir).To(Equal("/old/bin"))
@@ -97,7 +94,8 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 			},
 		}
 
-		_, err := hub.UpgradeConvertPrimaries(nil, request)
+		_, err := hub.UpgradeConvertPrimaries(nil,
+			&pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).To(HaveOccurred())
 		Expect(mockAgent.NumberOfCalls()).To(Equal(0))
 	})
@@ -107,7 +105,8 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 		differentSeg.Hostname = "localhost2"
 		clusterPair.NewCluster.Segments[0] = differentSeg
 
-		_, err := hub.UpgradeConvertPrimaries(nil, request)
+		_, err := hub.UpgradeConvertPrimaries(nil,
+			&pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).To(HaveOccurred())
 
 		Expect(mockAgent.NumberOfCalls()).To(Equal(0))
@@ -116,7 +115,8 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 	It("returns an error if any upgrade primary call to any agent fails", func() {
 		mockAgent.Err <- errors.New("fail upgrade primary call")
 
-		_, err := hub.UpgradeConvertPrimaries(nil, request)
+		_, err := hub.UpgradeConvertPrimaries(nil,
+			&pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).To(HaveOccurred())
 
 		Expect(mockAgent.NumberOfCalls()).To(Equal(1))

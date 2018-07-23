@@ -41,11 +41,11 @@ var _ = Describe("check config", func() {
 			fakeCheckConfigReply := &pb.CheckConfigReply{}
 			client.EXPECT().CheckConfig(
 				gomock.Any(),
-				&pb.CheckConfigRequest{DbPort: 9999, OldBinDir: "/tmp"},
+				&pb.CheckConfigRequest{},
 			).Return(fakeCheckConfigReply, nil)
 
 			request := commanders.NewConfigChecker(client)
-			err := request.Execute(9999, "/tmp")
+			err := request.Execute()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("Check config request is processed."))
 		})
@@ -54,11 +54,11 @@ var _ = Describe("check config", func() {
 			_, testStderr, _ := testhelper.SetupTestLogger()
 			client.EXPECT().CheckConfig(
 				gomock.Any(),
-				&pb.CheckConfigRequest{DbPort: 9999, OldBinDir: "/tmp"},
+				&pb.CheckConfigRequest{},
 			).Return(nil, errors.New("Force failure connection"))
 
 			request := commanders.NewConfigChecker(client)
-			err := request.Execute(9999, "/tmp")
+			err := request.Execute()
 			Expect(err).ToNot(BeNil())
 			Eventually(testStderr).Should(gbytes.Say("ERROR - gRPC call to hub failed"))
 

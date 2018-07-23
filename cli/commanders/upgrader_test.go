@@ -49,7 +49,7 @@ var _ = Describe("reporter", func() {
 				gomock.Any(),
 				&pb.UpgradeConvertMasterRequest{},
 			).Return(&pb.UpgradeConvertMasterReply{}, nil)
-			err := commanders.NewUpgrader(client).ConvertMaster("", "", "", "")
+			err := commanders.NewUpgrader(client).ConvertMaster()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("Kicked off pg_upgrade request"))
 		})
@@ -59,7 +59,7 @@ var _ = Describe("reporter", func() {
 				gomock.Any(),
 				&pb.UpgradeConvertMasterRequest{},
 			).Return(&pb.UpgradeConvertMasterReply{}, errors.New("something bad happened"))
-			err := commanders.NewUpgrader(client).ConvertMaster("", "", "", "")
+			err := commanders.NewUpgrader(client).ConvertMaster()
 			Expect(err).ToNot(BeNil())
 			Eventually(testStderr).Should(gbytes.Say("ERROR - Unable to connect to hub"))
 
@@ -68,19 +68,14 @@ var _ = Describe("reporter", func() {
 
 	Describe("ConvertPrimaries", func() {
 		It("returns no error when the hub returns no error", func() {
-			err := upgrader.ConvertPrimaries("/old/bin", "/new/bin")
+			err := upgrader.ConvertPrimaries()
 			Expect(err).ToNot(HaveOccurred())
-
-			Expect(hubClient.UpgradeConvertPrimariesRequest).To(Equal(&pb.UpgradeConvertPrimariesRequest{
-				OldBinDir: "/old/bin",
-				NewBinDir: "/new/bin",
-			}))
 		})
 
 		It("returns an error when the hub returns an error", func() {
 			hubClient.Err = errors.New("hub error")
 
-			err := upgrader.ConvertPrimaries("", "")
+			err := upgrader.ConvertPrimaries()
 			Expect(err).To(HaveOccurred())
 		})
 	})

@@ -21,6 +21,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+// TODO: consolidate with RetrieveAndSaveOldConfig(); it's basically the same
+// code
 func SaveTargetClusterConfig(clusterPair *utils.ClusterPair, dbConnector *dbconn.DBConn, stateDir string, newBinDir string) error {
 	err := os.MkdirAll(stateDir, 0700)
 	if err != nil {

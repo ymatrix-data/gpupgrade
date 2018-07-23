@@ -279,3 +279,13 @@ var _ = Describe("Hub prepare init-cluster", func() {
 	})
 
 })
+
+// Construct sqlmock in-memory rows that are structured properly
+func getFakeConfigRows() *sqlmock.Rows {
+	header := []string{"dbid", "contentid", "port", "hostname", "datadir"}
+	fakeConfigRow := []driver.Value{1, -1, 15432, "mdw", "/data/master/gpseg-1"}
+	fakeConfigRow2 := []driver.Value{2, 0, 25432, "sdw1", "/data/primary/gpseg0"}
+	rows := sqlmock.NewRows(header)
+	heapfakeResult := rows.AddRow(fakeConfigRow...).AddRow(fakeConfigRow2...)
+	return heapfakeResult
+}

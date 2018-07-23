@@ -26,10 +26,7 @@ service CliToHub {
 message UpgradeReconfigurePortsRequest {}
 message UpgradeReconfigurePortsReply {}
 
-message UpgradeConvertPrimariesRequest {
-    string OldBinDir = 1;
-    string NewBinDir = 2;
-}
+message UpgradeConvertPrimariesRequest {}
 message UpgradeConvertPrimariesReply {}
 
 message UpgradeShareOidsRequest {}
@@ -80,10 +77,7 @@ enum StepStatus {
     FAILED = 4;
 }
 
-message CheckConfigRequest {
-    int32 dbPort = 1;
-    string oldBinDir = 2;
-}
+message CheckConfigRequest {}
 
 // Consider removing the status as errors are/should be put on the error field.
 message CheckConfigReply {
@@ -101,18 +95,13 @@ message CountPerDb {
     int32 AoCount = 2;
     int32 HeapCount = 3;
 }
-message CheckObjectCountRequest {
-    int32 DbPort = 1;
-}
+message CheckObjectCountRequest {}
 
 message CheckObjectCountReply {
     repeated CountPerDb ListOfCounts = 1;
 }
 
-message CheckVersionRequest {
-    int32 DbPort = 1;
-    string Host = 2;
-}
+message CheckVersionRequest {}
 
 message CheckVersionReply {
     bool IsVersionCompatible = 1;
@@ -124,25 +113,13 @@ message CheckDiskSpaceReply {
     repeated string SegmentFileSysUsage = 1;
 }
 
-message PrepareShutdownClustersRequest {
-    string OldBinDir = 1;
-    string NewBinDir = 2;
-}
+message PrepareShutdownClustersRequest {}
 message PrepareShutdownClustersReply {}
 
-message PrepareInitClusterRequest {
-    int32 DbPort = 1;
-    string NewBinDir = 2;
-}
+message PrepareInitClusterRequest {}
 message PrepareInitClusterReply {}
 
-message UpgradeConvertMasterRequest {
-    string OldBinDir = 1;
-    string OldDataDir = 2;
-    string NewBinDir = 3;
-    string NewDataDir = 4;
-}
-
+message UpgradeConvertMasterRequest {}
 message UpgradeConvertMasterReply {}
 
 message ConfigSetRequest {

@@ -87,10 +87,10 @@ var _ = Describe("preparer", func() {
 			testStdout, _, _ := testhelper.SetupTestLogger()
 			client.EXPECT().PrepareInitCluster(
 				gomock.Any(),
-				&pb.PrepareInitClusterRequest{DbPort: int32(11111), NewBinDir: "/tmp"},
+				&pb.PrepareInitClusterRequest{},
 			).Return(&pb.PrepareInitClusterReply{}, nil)
 			preparer := commanders.NewPreparer(client)
-			err := preparer.InitCluster(11111, "/tmp")
+			err := preparer.InitCluster()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("Gleaning the new cluster config"))
 		})
@@ -101,10 +101,10 @@ var _ = Describe("preparer", func() {
 
 			client.EXPECT().PrepareShutdownClusters(
 				gomock.Any(),
-				&pb.PrepareShutdownClustersRequest{OldBinDir: "/old", NewBinDir: "/new"},
+				&pb.PrepareShutdownClustersRequest{},
 			).Return(&pb.PrepareShutdownClustersReply{}, nil)
 			preparer := commanders.NewPreparer(client)
-			err := preparer.ShutdownClusters("/old", "/new")
+			err := preparer.ShutdownClusters()
 			Expect(err).To(BeNil())
 			Eventually(testStdout).Should(gbytes.Say("request to shutdown clusters sent to hub"))
 		})
