@@ -22,15 +22,17 @@ func main() {
 
 	setUpLogging()
 
-	addFlagOptions()
-
 	confirmValidCommand()
 
 	root.AddCommand(prepare, config, status, check, version, upgrade)
 
 	subInit := createInitSubcommand()
 	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
-	config.AddCommand(subGet, subSet, subShow)
+
+	subSet := createSetSubcommand()
+	subShow := createShowSubcommand()
+	config.AddCommand(subSet, subShow)
+
 	status.AddCommand(subUpgrade, subConversion)
 	check.AddCommand(subVersion, subObjectCount, subDiskSpace, subConfig, subSeginstall)
 	upgrade.AddCommand(subConvertMaster, subConvertPrimaries, subShareOids, subValidateStartCluster, subReconfigurePorts)
@@ -53,13 +55,4 @@ func setUpLogging() {
 	debug.SetTraceback("all")
 	//empty logdir defaults to ~/gpAdminLogs
 	gplog.InitializeLogging("gpupgrade_cli", "")
-}
-
-func addFlagOptions() {
-	addFlagOptionsToConfig()
-}
-
-func addFlagOptionsToConfig() {
-	subSet.Flags().String("old-bindir", "", "install directory for old gpdb version")
-	subSet.Flags().String("new-bindir", "", "install directory for new gpdb version")
 }

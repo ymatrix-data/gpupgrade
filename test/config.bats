@@ -20,11 +20,12 @@ teardown() {
     gpupgrade config set --new-bindir /my/new/bin/dir
     gpupgrade config set --old-bindir /my/old/bin/dir
 
-    run gpupgrade config get new-bindir
+    run gpupgrade config show --new-bindir
+    echo $output
     [ "$status" -eq 0 ]
     [ "$output" = "/my/new/bin/dir" ]
 
-    run gpupgrade config get old-bindir
+    run gpupgrade config show --old-bindir
     [ "$status" -eq 0 ]
     [ "$output" = "/my/old/bin/dir" ]
 }
@@ -35,7 +36,26 @@ teardown() {
     kill_hub
     gpupgrade prepare start-hub
 
-    run gpupgrade config get new-bindir
+    run gpupgrade config show --new-bindir
     [ "$status" -eq 0 ]
     [ "$output" = "/my/bin/dir" ]
+}
+
+@test "configuration can be dumped as a whole" {
+    gpupgrade config set --new-bindir /my/new/bin/dir
+    gpupgrade config set --old-bindir /my/old/bin/dir
+
+    run gpupgrade config show
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "new-bindir - /my/new/bin/dir" ]
+    [ "${lines[1]}" = "old-bindir - /my/old/bin/dir" ]
+}
+
+@test "multiple configuration values can be set at once" {
+    gpupgrade config set --new-bindir /my/new/bin/dir --old-bindir /my/old/bin/dir
+
+    run gpupgrade config show
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "new-bindir - /my/new/bin/dir" ]
+    [ "${lines[1]}" = "old-bindir - /my/old/bin/dir" ]
 }

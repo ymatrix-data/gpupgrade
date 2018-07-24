@@ -12,7 +12,7 @@ var _ = Describe("config set", func() {
 	It("fails if no flags are passed", func() {
 		configSetSession := runCommand("config", "set")
 		Expect(configSetSession).Should(Exit(1))
-		Expect(string(configSetSession.Err.Contents())).To(ContainSubstring("the set command requires exactly one flag to be specified"))
+		Expect(string(configSetSession.Err.Contents())).To(ContainSubstring("the set command requires at least one flag to be specified"))
 	})
 
 	// XXX: Cobra handles this, so do we care to test this here?

@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq" //_ import for the side effect of having postgres driver available
 )
 
+// TODO: do we need this code anymore?
 func NewDBConn(masterHost string, masterPort int, dbname string) *dbconn.DBConn {
 	currentUser, _, _ := utils.GetUser()
 	username := utils.TryEnv("PGUSER", currentUser)
