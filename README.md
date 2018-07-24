@@ -21,8 +21,8 @@ On macos, one way to install this is via `brew install protobuf`
 make depend  # run this before the first build; it installs required Go utilities
 
 make
-make install # requires a running GPDB instance, for now
 make check   # runs tests
+make install # requires a running GPDB instance, for now
 ```
 
 ### Dependency vendoring
