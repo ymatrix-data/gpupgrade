@@ -323,22 +323,22 @@ func (mr *MockCliToHubClientMockRecorder) UpgradeReconfigurePorts(ctx, in interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeReconfigurePorts", reflect.TypeOf((*MockCliToHubClient)(nil).UpgradeReconfigurePorts), varargs...)
 }
 
-// ConfigSet mocks base method
-func (m *MockCliToHubClient) ConfigSet(ctx context.Context, in *idl.ConfigSetRequest, opts ...grpc.CallOption) (*idl.ConfigSetReply, error) {
+// SetConfig mocks base method
+func (m *MockCliToHubClient) SetConfig(ctx context.Context, in *idl.SetConfigRequest, opts ...grpc.CallOption) (*idl.SetConfigReply, error) {
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "ConfigSet", varargs...)
-	ret0, _ := ret[0].(*idl.ConfigSetReply)
+	ret := m.ctrl.Call(m, "SetConfig", varargs...)
+	ret0, _ := ret[0].(*idl.SetConfigReply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ConfigSet indicates an expected call of ConfigSet
-func (mr *MockCliToHubClientMockRecorder) ConfigSet(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+// SetConfig indicates an expected call of SetConfig
+func (mr *MockCliToHubClientMockRecorder) SetConfig(ctx, in interface{}, opts ...interface{}) *gomock.Call {
 	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigSet", reflect.TypeOf((*MockCliToHubClient)(nil).ConfigSet), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConfig", reflect.TypeOf((*MockCliToHubClient)(nil).SetConfig), varargs...)
 }
 
 // GetConfig mocks base method
@@ -590,17 +590,17 @@ func (mr *MockCliToHubServerMockRecorder) UpgradeReconfigurePorts(arg0, arg1 int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeReconfigurePorts", reflect.TypeOf((*MockCliToHubServer)(nil).UpgradeReconfigurePorts), arg0, arg1)
 }
 
-// ConfigSet mocks base method
-func (m *MockCliToHubServer) ConfigSet(arg0 context.Context, arg1 *idl.ConfigSetRequest) (*idl.ConfigSetReply, error) {
-	ret := m.ctrl.Call(m, "ConfigSet", arg0, arg1)
-	ret0, _ := ret[0].(*idl.ConfigSetReply)
+// SetConfig mocks base method
+func (m *MockCliToHubServer) SetConfig(arg0 context.Context, arg1 *idl.SetConfigRequest) (*idl.SetConfigReply, error) {
+	ret := m.ctrl.Call(m, "SetConfig", arg0, arg1)
+	ret0, _ := ret[0].(*idl.SetConfigReply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ConfigSet indicates an expected call of ConfigSet
-func (mr *MockCliToHubServerMockRecorder) ConfigSet(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigSet", reflect.TypeOf((*MockCliToHubServer)(nil).ConfigSet), arg0, arg1)
+// SetConfig indicates an expected call of SetConfig
+func (mr *MockCliToHubServerMockRecorder) SetConfig(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConfig", reflect.TypeOf((*MockCliToHubServer)(nil).SetConfig), arg0, arg1)
 }
 
 // GetConfig mocks base method

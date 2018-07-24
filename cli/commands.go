@@ -161,20 +161,20 @@ func createSetSubcommand() *cobra.Command {
 			}
 			client := pb.NewCliToHubClient(conn)
 
-			var requests []*pb.ConfigSetRequest
+			var requests []*pb.SetConfigRequest
 			cmd.Flags().Visit(func(flag *pflag.Flag) {
-				requests = append(requests, &pb.ConfigSetRequest{
-					FlagName: flag.Name,
-					FlagVal:  flag.Value.String(),
+				requests = append(requests, &pb.SetConfigRequest{
+					Name:  flag.Name,
+					Value: flag.Value.String(),
 				})
 			})
 
 			for _, request := range requests {
-				_, err := client.ConfigSet(context.Background(), request)
+				_, err := client.SetConfig(context.Background(), request)
 				if err != nil {
 					return err
 				}
-				gplog.Info("Successfully set %s to %s", request.FlagName, request.FlagVal)
+				gplog.Info("Successfully set %s to %s", request.Name, request.Value)
 			}
 
 			return nil

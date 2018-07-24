@@ -10,21 +10,21 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (h *Hub) ConfigSet(ctx context.Context, in *pb.ConfigSetRequest) (*pb.ConfigSetReply, error) {
-	switch in.FlagName {
+func (h *Hub) SetConfig(ctx context.Context, in *pb.SetConfigRequest) (*pb.SetConfigReply, error) {
+	switch in.Name {
 	case "old-bindir":
-		h.clusterPair.OldBinDir = in.FlagVal
+		h.clusterPair.OldBinDir = in.Value
 	case "new-bindir":
-		h.clusterPair.NewBinDir = in.FlagVal
+		h.clusterPair.NewBinDir = in.Value
 	default:
-		return nil, status.Errorf(codes.NotFound, "%s is not a valid configuration key", in.FlagName)
+		return nil, status.Errorf(codes.NotFound, "%s is not a valid configuration key", in.Name)
 	}
 
 	// Persist.
 	h.clusterPair.Commit(h.conf.StateDir)
 
-	gplog.Info("Successfully set %s to %s", in.FlagName, in.FlagVal)
-	return &pb.ConfigSetReply{}, nil
+	gplog.Info("Successfully set %s to %s", in.Name, in.Value)
+	return &pb.SetConfigReply{}, nil
 }
 
 func (h *Hub) GetConfig(ctx context.Context, in *pb.GetConfigRequest) (*pb.GetConfigReply, error) {

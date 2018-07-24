@@ -19,7 +19,7 @@ service CliToHub {
     rpc UpgradeValidateStartCluster(UpgradeValidateStartClusterRequest) returns (UpgradeValidateStartClusterReply) {}
     rpc UpgradeConvertPrimaries(UpgradeConvertPrimariesRequest) returns (UpgradeConvertPrimariesReply) {}
     rpc UpgradeReconfigurePorts(UpgradeReconfigurePortsRequest) returns (UpgradeReconfigurePortsReply) {}
-    rpc ConfigSet(ConfigSetRequest) returns (ConfigSetReply) {}
+    rpc SetConfig(SetConfigRequest) returns (SetConfigReply) {}
     rpc GetConfig(GetConfigRequest) returns (GetConfigReply) {}
 }
 
@@ -122,15 +122,15 @@ message PrepareInitClusterReply {}
 message UpgradeConvertMasterRequest {}
 message UpgradeConvertMasterReply {}
 
-message ConfigSetRequest {
-		string flagName = 1;
-		string flagVal = 2;
+message SetConfigRequest {
+    string name = 1;
+    string value = 2;
 }
-message ConfigSetReply {}
+message SetConfigReply {}
 
 message GetConfigRequest {
-	string name = 1;
+    string name = 1;
 }
 message GetConfigReply {
-	string value = 1;
+    string value = 1;
 }

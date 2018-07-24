@@ -91,7 +91,7 @@ func (m *MockHubClient) UpgradeReconfigurePorts(ctx context.Context, in *pb.Upgr
 	return nil, m.Err
 }
 
-func (m *MockHubClient) ConfigSet(ctx context.Context, in *pb.ConfigSetRequest, opts ...grpc.CallOption) (*pb.ConfigSetReply, error) {
+func (m *MockHubClient) SetConfig(ctx context.Context, in *pb.SetConfigRequest, opts ...grpc.CallOption) (*pb.SetConfigReply, error) {
 	return nil, m.Err
 }
 
