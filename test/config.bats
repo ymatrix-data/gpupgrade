@@ -5,7 +5,7 @@ load helpers
 setup() {
     STATE_DIR=`mktemp -d`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
-    gpupgrade prepare init --old-bindir /dummy # XXX get rid of this
+    gpupgrade prepare init --old-bindir /dummy --new-bindir /dummy
 
     kill_hub
     gpupgrade prepare start-hub

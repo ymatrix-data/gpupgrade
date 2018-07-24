@@ -15,7 +15,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-var oldBinDir string
 var root = &cobra.Command{Use: "gpupgrade"}
 
 var prepare = &cobra.Command{
@@ -464,16 +463,28 @@ var subReconfigurePorts = &cobra.Command{
 	},
 }
 
-var subInit = &cobra.Command{
-	Use:   "init",
-	Short: "Setup state dir and config file",
-	Long:  `Setup state dir and config file`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// If we got here, the args are okay and the user doesn't need a usage
-		// dump on failure.
-		cmd.SilenceUsage = true
+// gpupgrade prepare init
+func createInitSubcommand() *cobra.Command {
+	var oldBinDir, newBinDir string
 
-		stateDir := utils.GetStateDir()
-		return commanders.DoInit(stateDir, oldBinDir)
-	},
+	subInit := &cobra.Command{
+		Use:   "init",
+		Short: "Setup state dir and config file",
+		Long:  `Setup state dir and config file`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If we got here, the args are okay and the user doesn't need a usage
+			// dump on failure.
+			cmd.SilenceUsage = true
+
+			stateDir := utils.GetStateDir()
+			return commanders.DoInit(stateDir, oldBinDir, newBinDir)
+		},
+	}
+
+	subInit.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
+	subInit.MarkPersistentFlagRequired("old-bindir")
+	subInit.PersistentFlags().StringVar(&newBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subInit.MarkPersistentFlagRequired("new-bindir")
+
+	return subInit
 }

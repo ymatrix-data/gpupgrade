@@ -8,4 +8,7 @@
 }
 
 @test "gpupgrade subcommands fail when passed insufficient arguments" {
+    run gpupgrade prepare init
+    [ "$status" -eq 1 ]
+    [[ "$output" = *'Required flag(s) "new-bindir", "old-bindir" have/has not been set'* ]]
 }

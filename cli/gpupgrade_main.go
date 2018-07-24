@@ -28,6 +28,7 @@ func main() {
 
 	root.AddCommand(prepare, config, status, check, version, upgrade)
 
+	subInit := createInitSubcommand()
 	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
 	config.AddCommand(subGet, subSet, subShow)
 	status.AddCommand(subUpgrade, subConversion)
@@ -55,15 +56,10 @@ func setUpLogging() {
 }
 
 func addFlagOptions() {
-	addFlagOptionsToInit()
 	addFlagOptionsToConfig()
 }
 
-func addFlagOptionsToInit() {
-	subInit.PersistentFlags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
-	subInit.MarkPersistentFlagRequired("old-bindir")
-}
 func addFlagOptionsToConfig() {
-	subSet.Flags().StringVar(&oldBinDir, "old-bindir", "", "install directory for old gpdb version")
-	subSet.Flags().StringVar(&oldBinDir, "new-bindir", "", "install directory for new gpdb version")
+	subSet.Flags().String("old-bindir", "", "install directory for old gpdb version")
+	subSet.Flags().String("new-bindir", "", "install directory for new gpdb version")
 }

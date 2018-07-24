@@ -112,7 +112,7 @@ func HowManyHubsRunning() (int, error) {
 	return -1, err
 }
 
-func DoInit(stateDir string, oldBinDir string) error {
+func DoInit(stateDir, oldBinDir, newBinDir string) error {
 	err := os.Mkdir(stateDir, 0700)
 	if os.IsExist(err) {
 		return fmt.Errorf("gpupgrade state dir (%s) already exists. Did you already run gpupgrade prepare init?", stateDir)
@@ -124,11 +124,7 @@ func DoInit(stateDir string, oldBinDir string) error {
 	cp.OldCluster = &cluster.Cluster{}
 	cp.OldBinDir = oldBinDir
 	cp.NewCluster = &cluster.Cluster{}
+	cp.NewBinDir = newBinDir
 
-	err = cp.WriteOldConfig(stateDir)
-	if err != nil {
-		return err
-	}
-
-	return cp.WriteNewConfig(stateDir)
+	return cp.Commit(stateDir)
 }

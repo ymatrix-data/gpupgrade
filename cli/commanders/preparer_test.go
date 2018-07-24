@@ -136,24 +136,25 @@ var _ = Describe("preparer", func() {
 			os.RemoveAll(dir)
 		})
 
-		It("creates dir when none exists", func() {
+		It("populates cluster configuration files with the parameters it is passed", func() {
 			stateDir := filepath.Join(dir, "foo")
-			err := commanders.DoInit(stateDir, "/does/not/exist")
+			err := commanders.DoInit(stateDir, "/old/does/not/exist", "/new/does/not/exist")
 			Expect(err).To(BeNil())
 
 			cp := &utils.ClusterPair{}
-			cp.ReadOldConfig(stateDir)
-			Expect(cp.OldBinDir).To(Equal("/does/not/exist"))
+			cp.Load(stateDir)
+			Expect(cp.OldBinDir).To(Equal("/old/does/not/exist"))
+			Expect(cp.NewBinDir).To(Equal("/new/does/not/exist"))
 		})
 
-		It("errs out when dir exists", func() {
-			err := commanders.DoInit(dir, "/does/not/exist")
+		It("errs out when the state dir already exists", func() {
+			err := commanders.DoInit(dir, "/old/does/not/exist", "/new/does/not/exist")
 			Expect(err).ToNot(BeNil())
 		})
 
 		It("creates both old and new cluster configs", func() {
 			stateDir := filepath.Join(dir, "foo")
-			err := commanders.DoInit(stateDir, "/does/not/exist")
+			err := commanders.DoInit(stateDir, "/old/does/not/exist", "/new/does/not/exist")
 			Expect(err).ToNot(HaveOccurred())
 
 			oldConfig := utils.GetConfigFilePath(stateDir)

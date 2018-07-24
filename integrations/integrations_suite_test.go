@@ -92,7 +92,8 @@ var _ = BeforeEach(func() {
 	Expect(err).ToNot(HaveOccurred())
 	testStateDir = filepath.Join(testWorkspaceDir, ".gpupgrade")
 	os.Setenv("GPUPGRADE_HOME", testStateDir)
-	session := runCommand("prepare", "init", "--old-bindir", "/tmp")
+	session := runCommand("prepare", "init",
+		"--old-bindir", "/tmp", "--new-bindir", "/tmp")
 	Expect(session).To(Exit(0))
 	killAll()
 

@@ -18,10 +18,9 @@ func (h *Hub) CheckVersion(ctx context.Context,
 
 	gplog.Info("starting CheckVersion")
 
-	masterHost := h.clusterPair.OldCluster.GetHostForContent(-1)
 	masterPort := h.clusterPair.OldCluster.GetPortForContent(-1)
 
-	dbConnector := db.NewDBConn(masterHost, masterPort, "template1")
+	dbConnector := db.NewDBConn("localhost", masterPort, "template1")
 	defer dbConnector.Close()
 	err := dbConnector.Connect(1)
 	if err != nil {
