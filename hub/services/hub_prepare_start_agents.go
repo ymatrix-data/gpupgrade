@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
@@ -42,7 +41,7 @@ func StartAgents(source *utils.Cluster, step upgradestatus.StateWriter) {
 
 	// TODO: if this finds nothing, should we err out? do a fallback check based on $GPHOME?
 	logStr := "start agents on master and hosts"
-	agentPath := filepath.Join(os.Getenv("GPHOME"), "bin", "gpupgrade_agent")
+	agentPath := filepath.Join(source.BinDir, "gpupgrade_agent")
 	runAgentCmd := func(contentID int) string { return agentPath + " --daemonize" }
 	remoteOutput := source.GenerateAndExecuteCommand(logStr, runAgentCmd, cluster.ON_HOSTS_AND_MASTER)
 

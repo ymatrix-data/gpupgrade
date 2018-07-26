@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
@@ -41,8 +40,8 @@ func VerifyAgentsInstalled(source *utils.Cluster, step upgradestatus.StateWriter
 	var err error
 
 	// TODO: if this finds nothing, should we err out? do a fallback check based on $GPHOME?
-	logStr := "check gpupgrade_agent is installed in GPHOME on master and hosts"
-	agentPath := filepath.Join(os.Getenv("GPHOME"), "bin", "gpupgrade_agent")
+	logStr := "check gpupgrade_agent is installed in cluster's binary directory on master and hosts"
+	agentPath := filepath.Join(source.BinDir, "gpupgrade_agent")
 	returnLsCommand := func(contentID int) string { return "ls " + agentPath }
 	remoteOutput := source.GenerateAndExecuteCommand(logStr, returnLsCommand, cluster.ON_HOSTS_AND_MASTER)
 

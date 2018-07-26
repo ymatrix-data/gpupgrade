@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -38,7 +37,7 @@ var _ = Describe("hub CheckSeginstall", func() {
 		Expect(testExecutor.NumExecutions).To(Equal(1))
 		Expect(cm.IsComplete(upgradestatus.SEGINSTALL)).To(BeTrue())
 
-		lsCmd := fmt.Sprintf("ls %s/bin/gpupgrade_agent", os.Getenv("GPHOME"))
+		lsCmd := fmt.Sprintf("ls %s/gpupgrade_agent", source.BinDir)
 		clusterCommands := testExecutor.ClusterCommands[0]
 		for _, command := range clusterCommands {
 			Expect(command).To(ContainElement(lsCmd))

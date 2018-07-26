@@ -2,7 +2,6 @@ package integrations_test
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	. "github.com/onsi/ginkgo"
@@ -20,7 +19,7 @@ var _ = Describe("prepare start-agents", func() {
 		// These assertions are identical to the ones in the prepare_start_agent unit tests but just to be safe we are leaving it in.
 		Expect(testExecutor.NumExecutions).To(Equal(1))
 
-		startAgentsCmd := fmt.Sprintf("%s/bin/gpupgrade_agent --daemonize", os.Getenv("GPHOME"))
+		startAgentsCmd := fmt.Sprintf("%s/gpupgrade_agent --daemonize", source.BinDir)
 		clusterCommands := testExecutor.ClusterCommands[0]
 		for _, command := range clusterCommands {
 			Expect(command).To(ContainElement(startAgentsCmd))
