@@ -17,13 +17,6 @@ import (
 
 // the `prepare start-hub` tests are currently in master_only_integration_test
 var _ = Describe("prepare", func() {
-	/* This is demonstrating the limited implementation of init-cluster.
-	    Assuming the user has already set up their new cluster, they should `init-cluster`
-		with the port at which they stood it up, so the upgrade tool can create new_cluster_config
-
-		In the future, the upgrade tool might take responsibility for starting its own cluster,
-		in which case it won't need the port, but would still generate new_cluster_config
-	*/
 	BeforeEach(func() {
 		go agent.Start()
 	})
@@ -31,12 +24,9 @@ var _ = Describe("prepare", func() {
 		os.Remove(fmt.Sprintf("%s_upgrade", testWorkspaceDir))
 	})
 	It("can save the database configuration json under the name 'new cluster'", func() {
-		port := os.Getenv("PGPORT")
-		Expect(port).ToNot(BeEmpty())
-
 		mockdb, mock := testhelper.CreateMockDB()
 		testDriver := testhelper.TestDriver{DB: mockdb, DBName: "testdb", User: "testrole"}
-		db := dbconn.NewDBConnFromEnvironment("testdb")
+		db := dbconn.NewDBConn(testDriver.DBName, testDriver.User, "fakehost", -1 /* not used */)
 		db.Driver = testDriver
 
 		mock.ExpectQuery("SELECT version()").WillReturnRows(getFakeVersionRow())
