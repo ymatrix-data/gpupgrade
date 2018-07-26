@@ -1,11 +1,12 @@
 package integrations_test
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
+
+	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,10 +16,20 @@ import (
 // needs the cli and the hub
 var _ = Describe("check config", func() {
 	It("happy: the database configuration is saved to a specified location", func() {
-		session := runCommand("check", "config")
-		if session.ExitCode() != 0 {
-			fmt.Println("make sure greenplum is running")
+		// `check config` needs a running DB. Since this is currently the only
+		// test that does, skip it if the user doesn't have one up and running.
+		//
+		// TODO: see if we can either mock out the DB or move this to a true
+		// end-to-end-plus-DB test
+		{
+			conn := dbconn.NewDBConnFromEnvironment("template1")
+			err := conn.Connect(1)
+			if err != nil {
+				Skip("this test requires a running GPDB cluster")
+			}
 		}
+
+		session := runCommand("check", "config")
 		Expect(session).To(Exit(0))
 
 		source := &utils.Cluster{ConfigPath: filepath.Join(testStateDir, utils.SOURCE_CONFIG_FILENAME)}
