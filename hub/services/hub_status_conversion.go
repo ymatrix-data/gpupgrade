@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	pb "github.com/greenplum-db/gpupgrade/idl"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
@@ -12,18 +13,34 @@ import (
 )
 
 func (h *Hub) StatusConversion(ctx context.Context, in *pb.StatusConversionRequest) (*pb.StatusConversionReply, error) {
+	var statuses []string
+
 	agentConnections, err := h.AgentConns()
 	if err != nil {
 		return &pb.StatusConversionReply{}, err
 	}
+
+	// FIXME why are we using the source cluster's segments?
 	segments := h.segmentsByHost()
 
-	statuses, err := GetConversionStatusFromPrimaries(agentConnections, segments)
+	// Get the master status first, followed by primaries.
+	// XXX This is duplicated between agents and hub, and besides why are we
+	// returning strings instead of structs.
+	format := "%s - DBID %d - CONTENT ID %d - MASTER - %s"
+	status := h.checklist.GetStepReader(upgradestatus.CONVERT_MASTER).Status()
+	master := h.target.Segments[-1]
+	masterStatus := fmt.Sprintf(format, status.String(), master.DbID, master.ContentID, master.Hostname)
+
+	statuses = append(statuses, masterStatus)
+
+	primaryStatuses, err := GetConversionStatusFromPrimaries(agentConnections, segments)
 	if err != nil {
 		err := fmt.Errorf("Could not get conversion status from primaries. Err: \"%v\"", err)
 		gplog.Error(err.Error())
 		return &pb.StatusConversionReply{}, err
 	}
+
+	statuses = append(statuses, primaryStatuses...)
 
 	return &pb.StatusConversionReply{
 		ConversionStatuses: statuses,

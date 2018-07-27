@@ -34,7 +34,7 @@ func (h *Hub) shareOidFiles() {
 		return
 	}
 
-	hostnames := h.source.GetHostnames()
+	hostnames := h.source.PrimaryHostnames()
 
 	user := "gpadmin"
 	rsyncFlags := "-rzpogt"

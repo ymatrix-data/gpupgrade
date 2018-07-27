@@ -1,6 +1,7 @@
 package integrations_test
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -121,9 +122,6 @@ var _ = BeforeEach(func() {
 	source.Executor = testExecutor
 	target.Executor = testExecutor
 
-	hub = services.NewHub(source, target, grpc.DialContext, conf, cm)
-	go hub.Start()
-
 	agentConfig := agentServices.AgentConfig{
 		Port:     hubToAgentPort,
 		StateDir: testStateDir,
@@ -131,6 +129,16 @@ var _ = BeforeEach(func() {
 	agentExecutor = &testhelper.TestExecutor{}
 	agent = agentServices.NewAgentServer(agentExecutor, agentConfig)
 	// We initialize the agent here, but only start it in test files that require an agent
+
+	// Set up the hub's Dialer to always point to the above AgentServer, no
+	// matter which host is passed.
+	agentDialer := func(ctx context.Context, _ string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+		authority := fmt.Sprintf("127.0.0.1:%d", agentConfig.Port)
+		return grpc.DialContext(ctx, authority, opts...)
+	}
+
+	hub = services.NewHub(source, target, agentDialer, conf, cm)
+	go hub.Start()
 })
 
 var _ = AfterEach(func() {

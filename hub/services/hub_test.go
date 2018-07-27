@@ -25,10 +25,11 @@ var _ = Describe("Hub", func() {
 		source         *utils.Cluster
 		target         *utils.Cluster
 		err            error
+		mockDialer     services.Dialer
 	)
 
 	BeforeEach(func() {
-		agentA, hubToAgentPort = testutils.NewMockAgentServer()
+		agentA, mockDialer, hubToAgentPort = testutils.NewMockAgentServer()
 		source, target = testutils.CreateMultinodeSampleClusterPair("/tmp")
 	})
 
@@ -41,7 +42,7 @@ var _ = Describe("Hub", func() {
 		hubConfig := &services.HubConfig{
 			CliToHubPort: cliToHubPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 
 		hub.Stop()
 		go func() {
@@ -66,7 +67,7 @@ var _ = Describe("Hub", func() {
 		hubConfig := &services.HubConfig{
 			CliToHubPort: cliToHubPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 
 		go func() {
 			err = hub.Start()
@@ -82,7 +83,7 @@ var _ = Describe("Hub", func() {
 		hubConfig := &services.HubConfig{
 			CliToHubPort: cliToHubPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 		done := make(chan bool, 1)
 
 		go func() {
@@ -98,50 +99,59 @@ var _ = Describe("Hub", func() {
 		hubConfig := &services.HubConfig{
 			HubToAgentPort: hubToAgentPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 		go hub.Start()
 
 		By("creating connections")
 		conns, err := hub.AgentConns()
 		Expect(err).ToNot(HaveOccurred())
 
-		Eventually(func() connectivity.State { return conns[0].Conn.GetState() }).Should(Equal(connectivity.Ready))
+		for _, conn := range conns {
+			Eventually(func() connectivity.State { return conn.Conn.GetState() }).Should(Equal(connectivity.Ready))
+		}
 
 		By("closing the connections")
 		hub.Stop()
 		Expect(err).ToNot(HaveOccurred())
 
-		Eventually(func() connectivity.State { return conns[0].Conn.GetState() }).Should(Equal(connectivity.Shutdown))
+		for _, conn := range conns {
+			Eventually(func() connectivity.State { return conn.Conn.GetState() }).Should(Equal(connectivity.Shutdown))
+		}
 	})
 
-	It("retrieves the agent connections for the hosts in the cluster", func() {
+	It("retrieves the agent connections for the hosts of non-master segments", func() {
 		hubConfig := &services.HubConfig{
 			HubToAgentPort: hubToAgentPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 
 		conns, err := hub.AgentConns()
 		Expect(err).ToNot(HaveOccurred())
 
-		Eventually(func() connectivity.State { return conns[0].Conn.GetState() }).Should(Equal(connectivity.Ready))
-		Expect(conns[0].Hostname).To(Equal("localhost"))
+		for _, conn := range conns {
+			Eventually(func() connectivity.State { return conn.Conn.GetState() }).Should(Equal(connectivity.Ready))
+		}
+
+		var allHosts []string
+		for _, conn := range conns {
+			allHosts = append(allHosts, conn.Hostname)
+		}
+		Expect(allHosts).To(ConsistOf([]string{"host1", "host2"}))
 	})
 
 	It("saves grpc connections for future calls", func() {
 		hubConfig := &services.HubConfig{
 			HubToAgentPort: hubToAgentPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 
 		newConns, err := hub.AgentConns()
 		Expect(err).ToNot(HaveOccurred())
-		Expect(newConns).To(HaveLen(1))
 
 		savedConns, err := hub.AgentConns()
 		Expect(err).ToNot(HaveOccurred())
-		Expect(savedConns).To(HaveLen(1))
 
-		Expect(newConns[0]).To(Equal(savedConns[0]))
+		Expect(newConns).To(ConsistOf(savedConns))
 	})
 
 	// XXX This test takes 1.5 seconds because of EnsureConnsAreReady(...)
@@ -149,22 +159,23 @@ var _ = Describe("Hub", func() {
 		hubConfig := &services.HubConfig{
 			HubToAgentPort: hubToAgentPort,
 		}
-		hub := services.NewHub(source, target, grpc.DialContext, hubConfig, nil)
+		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
 
 		conns, err := hub.AgentConns()
 		Expect(err).ToNot(HaveOccurred())
-		Expect(conns).To(HaveLen(1))
 
 		agentA.Stop()
 
-		Eventually(func() connectivity.State { return conns[0].Conn.GetState() }).Should(Equal(connectivity.TransientFailure))
+		for _, conn := range conns {
+			Eventually(func() connectivity.State { return conn.Conn.GetState() }).Should(Equal(connectivity.TransientFailure))
+		}
 
 		_, err = hub.AgentConns()
 		Expect(err).To(HaveOccurred())
 	})
 
 	It("returns an error if any connections have non-ready states when first dialing", func() {
-		mockDialer := func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+		errDialer := func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 			return nil, errors.New("grpc dialer error")
 		}
 
@@ -172,7 +183,7 @@ var _ = Describe("Hub", func() {
 			HubToAgentPort: hubToAgentPort,
 		}
 
-		hub := services.NewHub(source, target, mockDialer, hubConfig, nil)
+		hub := services.NewHub(source, target, errDialer, hubConfig, nil)
 
 		_, err := hub.AgentConns()
 		Expect(err).To(HaveOccurred())

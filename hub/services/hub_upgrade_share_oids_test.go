@@ -21,21 +21,18 @@ var _ = Describe("UpgradeShareOids", func() {
 		source.Executor = testExecutor
 	})
 
-	It("copies files to each host", func() {
-		seg1 := source.Segments[1]
-		seg1.Hostname = "not_localhost"
-		source.Segments[1] = seg1
+	It("copies files to each primary host", func() {
 		_, err := hub.UpgradeShareOids(nil, &pb.UpgradeShareOidsRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
-		hostnames := source.GetHostnames()
+		hostnames := source.PrimaryHostnames()
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(len(hostnames)))
 
 		Expect(testExecutor.LocalCommands).To(ConsistOf([]string{
-			fmt.Sprintf("rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@localhost:%s/pg_upgrade", dir, dir),
-			fmt.Sprintf("rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@not_localhost:%s/pg_upgrade", dir, dir),
+			fmt.Sprintf("rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@host1:%s/pg_upgrade", dir, dir),
+			fmt.Sprintf("rsync -rzpogt %s/pg_upgrade/pg_upgrade_dump_*_oids.sql gpadmin@host2:%s/pg_upgrade", dir, dir),
 		}))
 	})
 
@@ -45,7 +42,7 @@ var _ = Describe("UpgradeShareOids", func() {
 		_, err := hub.UpgradeShareOids(nil, &pb.UpgradeShareOidsRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
-		hostnames := source.GetHostnames()
+		hostnames := source.PrimaryHostnames()
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(len(hostnames)))

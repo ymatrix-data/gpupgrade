@@ -2,8 +2,11 @@ package testutils
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"sync"
+
+	"github.com/greenplum-db/gpupgrade/hub/services"
 
 	pb "github.com/greenplum-db/gpupgrade/idl"
 
@@ -24,7 +27,11 @@ type MockAgentServer struct {
 	Err chan error
 }
 
-func NewMockAgentServer() (*MockAgentServer, int) {
+// NewMockAgentServer starts a locally running Agent server and returns a struct
+// that facilitates unit testing. It also returns a services.Dialer that will
+// redirect any outgoing connections to this mock server, as well as the port
+// that the server is listening on.
+func NewMockAgentServer() (*MockAgentServer, services.Dialer, int) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		panic(err)
@@ -42,7 +49,14 @@ func NewMockAgentServer() (*MockAgentServer, int) {
 		mockServer.grpcServer.Serve(lis)
 	}()
 
-	return mockServer, lis.Addr().(*net.TCPAddr).Port
+	// Target this running server during dial.
+	port := lis.Addr().(*net.TCPAddr).Port
+	dialer := func(ctx context.Context, _ string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+		authority := fmt.Sprintf("127.0.0.1:%d", port)
+		return grpc.DialContext(ctx, authority, opts...)
+	}
+
+	return mockServer, dialer, port
 }
 
 func (m *MockAgentServer) CheckUpgradeStatus(context.Context, *pb.CheckUpgradeStatusRequest) (*pb.CheckUpgradeStatusReply, error) {

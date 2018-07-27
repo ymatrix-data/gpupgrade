@@ -58,8 +58,8 @@ func CreateMultinodeSampleCluster(baseDir string) *cluster.Cluster {
 		ContentIDs: []int{-1, 0, 1},
 		Segments: map[int]cluster.SegConfig{
 			-1: cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: baseDir + "/seg-1"},
-			0:  cluster.SegConfig{ContentID: 0, DbID: 2, Port: 25432, Hostname: "localhost", DataDir: baseDir + "/seg1"},
-			1:  cluster.SegConfig{ContentID: 1, DbID: 3, Port: 25433, Hostname: "localhost", DataDir: baseDir + "/seg2"},
+			0:  cluster.SegConfig{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: baseDir + "/seg1"},
+			1:  cluster.SegConfig{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: baseDir + "/seg2"},
 		},
 	}
 }

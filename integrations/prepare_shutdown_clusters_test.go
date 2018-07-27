@@ -5,8 +5,7 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	pb "github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/testutils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
@@ -14,29 +13,18 @@ import (
 
 var _ = Describe("prepare shutdown-clusters", func() {
 	var (
-		mockAgent       *testutils.MockAgentServer
 		testExecutorOld *testhelper.TestExecutor
 		testExecutorNew *testhelper.TestExecutor
 	)
 
 	BeforeEach(func() {
-		mockAgent, hubToAgentPort = testutils.NewMockAgentServer()
-
 		testExecutorOld = &testhelper.TestExecutor{}
 		testExecutorNew = &testhelper.TestExecutor{}
 		source.Executor = testExecutorOld
 		target.Executor = testExecutorNew
 	})
 
-	AfterEach(func() {
-		mockAgent.Stop()
-	})
-
 	It("updates status PENDING, RUNNING then COMPLETE if successful", func() {
-		mockAgent.StatusConversionResponse = &pb.CheckConversionStatusReply{
-			Statuses: []string{},
-		}
-
 		Expect(cm.IsPending(upgradestatus.SHUTDOWN_CLUSTERS)).To(BeTrue())
 
 		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters")
@@ -54,10 +42,6 @@ var _ = Describe("prepare shutdown-clusters", func() {
 	})
 
 	It("updates status to FAILED if it fails to run", func() {
-		mockAgent.StatusConversionResponse = &pb.CheckConversionStatusReply{
-			Statuses: []string{},
-		}
-
 		Expect(cm.IsPending(upgradestatus.SHUTDOWN_CLUSTERS)).To(BeTrue())
 
 		testExecutorOld.ErrorOnExecNum = 2

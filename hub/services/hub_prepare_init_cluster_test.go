@@ -45,12 +45,9 @@ var _ = Describe("Hub prepare init-cluster", func() {
 		}
 
 		segDataDirMap = map[string][]string{
-			"localhost":     {fmt.Sprintf("%s_upgrade", dir)},
-			"not_localhost": {fmt.Sprintf("%s_upgrade", dir)},
+			"host1": {fmt.Sprintf("%s_upgrade", dir)},
+			"host2": {fmt.Sprintf("%s_upgrade", dir)},
 		}
-		seg0 := source.Segments[0]
-		seg0.Hostname = "not_localhost"
-		source.Segments[0] = seg0
 
 		cm := testutils.NewMockChecklistManager()
 		hub = services.NewHub(source, target, grpc.DialContext, hubConf, cm)
@@ -86,8 +83,8 @@ var _ = Describe("Hub prepare init-cluster", func() {
 		It("successfully declares all directories", func() {
 			expectedConfig := []string{fmt.Sprintf("QD_PRIMARY_ARRAY=localhost~15433~%[1]s_upgrade/seg-1~1~-1~0", dir),
 				fmt.Sprintf(`declare -a PRIMARY_ARRAY=(
-	not_localhost~27432~%[1]s_upgrade/seg1~2~0~0
-	localhost~27433~%[1]s_upgrade/seg2~3~1~0
+	host1~27432~%[1]s_upgrade/seg1~2~0~0
+	host2~27433~%[1]s_upgrade/seg2~3~1~0
 )`, dir)}
 			resultConfig, resultMap := hub.DeclareDataDirectories([]string{})
 			Expect(resultMap).To(Equal(segDataDirMap))

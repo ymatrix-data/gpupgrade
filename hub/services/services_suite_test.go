@@ -10,7 +10,6 @@ import (
 	mockpb "github.com/greenplum-db/gpupgrade/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
-	"google.golang.org/grpc"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
@@ -25,6 +24,7 @@ var (
 	dbConnector *dbconn.DBConn
 	mock        sqlmock.Sqlmock
 	mockAgent   *testutils.MockAgentServer
+	dialer      services.Dialer
 	client      *mockpb.MockAgentClient
 	cm          *testutils.MockChecklistManager
 	port        int
@@ -55,13 +55,13 @@ var _ = BeforeEach(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	source, target = testutils.CreateMultinodeSampleClusterPair(dir)
-	mockAgent, port = testutils.NewMockAgentServer()
+	mockAgent, dialer, port = testutils.NewMockAgentServer()
 	client = mockpb.NewMockAgentClient(ctrl)
 	hubConf = &services.HubConfig{
 		HubToAgentPort: port,
 		StateDir:       dir,
 	}
-	hub = services.NewHub(source, target, grpc.DialContext, hubConf, cm)
+	hub = services.NewHub(source, target, dialer, hubConf, cm)
 })
 
 var _ = AfterEach(func() {

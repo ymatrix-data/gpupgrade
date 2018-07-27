@@ -73,3 +73,20 @@ func (c *Cluster) GetHostnames() []string {
 	}
 	return hostnames
 }
+
+func (c *Cluster) PrimaryHostnames() []string {
+	hostnames := make(map[string]bool, 0)
+	for _, seg := range c.Segments {
+		// Ignore the master.
+		if seg.ContentID >= 0 {
+			hostnames[seg.Hostname] = true
+		}
+	}
+
+	var list []string
+	for host := range hostnames {
+		list = append(list, host)
+	}
+
+	return list
+}

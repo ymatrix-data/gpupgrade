@@ -52,4 +52,11 @@ var _ = Describe("Cluster", func() {
 			Expect(expectedCluster).To(Equal(givenCluster))
 		})
 	})
+
+	Describe("PrimaryHostnames", func() {
+		It("returns a list of hosts for only the primaries", func() {
+			hostnames := expectedCluster.PrimaryHostnames()
+			Expect(hostnames).To(ConsistOf([]string{"host1", "host2"}))
+		})
+	})
 })

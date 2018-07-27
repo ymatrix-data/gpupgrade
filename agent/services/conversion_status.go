@@ -14,10 +14,9 @@ func (s *AgentServer) CheckConversionStatus(ctx context.Context, in *pb.CheckCon
 	if len(in.GetSegments()) == 0 {
 		return nil, errors.New("no segment information was passed to the agent")
 	}
-	format := "%s - DBID %d - CONTENT ID %d - %s - %s"
+	format := "%s - DBID %d - CONTENT ID %d - PRIMARY - %s"
 
 	var replies []string
-	var master string
 	for _, segment := range in.GetSegments() {
 		status := upgradestatus.SegmentConversionStatus(
 			filepath.Join(s.conf.StateDir, "pg_upgrade", fmt.Sprintf("seg-%d", segment.GetContent())),
@@ -26,14 +25,8 @@ func (s *AgentServer) CheckConversionStatus(ctx context.Context, in *pb.CheckCon
 		)
 
 		// FIXME: we have status codes; why convert to strings?
-		if segment.GetDbid() == 1 && segment.GetContent() == -1 {
-			master = fmt.Sprintf(format, status.String(), segment.GetDbid(), segment.GetContent(), "MASTER", in.GetHostname())
-		} else {
-			replies = append(replies, fmt.Sprintf(format, status.String(), segment.GetDbid(), segment.GetContent(), "PRIMARY", in.GetHostname()))
-		}
+		replies = append(replies, fmt.Sprintf(format, status.String(), segment.GetDbid(), segment.GetContent(), in.GetHostname()))
 	}
-
-	replies = append([]string{master}, replies...)
 
 	return &pb.CheckConversionStatusReply{
 		Statuses: replies,

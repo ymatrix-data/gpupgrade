@@ -168,7 +168,7 @@ func (h *Hub) AgentConns() ([]*Connection, error) {
 		return h.agentConns, nil
 	}
 
-	hostnames := h.source.GetHostnames()
+	hostnames := h.source.PrimaryHostnames()
 	for _, host := range hostnames {
 		ctx, cancelFunc := context.WithTimeout(context.Background(), DialTimeout)
 		conn, err := h.grpcDialer(ctx,

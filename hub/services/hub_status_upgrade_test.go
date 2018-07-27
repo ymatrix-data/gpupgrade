@@ -1,7 +1,6 @@
 package services_test
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -11,9 +10,6 @@ import (
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
-	"golang.org/x/net/context"
-
-	"google.golang.org/grpc"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,11 +27,6 @@ var _ = Describe("status upgrade", func() {
 		testExecutor = &testhelper.TestExecutor{}
 		source.Executor = testExecutor
 
-		// Mock so statusConversion doesn't need to wait 3 seconds before erroring out.
-		mockDialer := func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-			return nil, errors.New("grpc dial err")
-		}
-
 		cm = testutils.NewMockChecklistManager()
 		cm.AddStep(upgradestatus.CONFIG, pb.UpgradeSteps_CONFIG)
 		cm.AddStep(upgradestatus.INIT_CLUSTER, pb.UpgradeSteps_INIT_CLUSTER)
@@ -48,7 +39,7 @@ var _ = Describe("status upgrade", func() {
 		cm.AddStep(upgradestatus.CONVERT_PRIMARIES, pb.UpgradeSteps_CONVERT_PRIMARIES)
 		cm.AddStep(upgradestatus.RECONFIGURE_PORTS, pb.UpgradeSteps_RECONFIGURE_PORTS)
 
-		hub = services.NewHub(source, target, mockDialer, hubConf, cm)
+		hub = services.NewHub(source, target, dialer, hubConf, cm)
 	})
 
 	It("responds with the statuses of the steps based on checklist state", func() {

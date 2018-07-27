@@ -57,8 +57,8 @@ var _ = Describe("CommandListener", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(status.GetStatuses()).To(Equal([]string{
-			"PENDING - DBID 1 - CONTENT ID -1 - MASTER - localhost",
 			"PENDING - DBID 3 - CONTENT ID 1 - PRIMARY - localhost",
+			"PENDING - DBID 1 - CONTENT ID -1 - PRIMARY - localhost",
 		}))
 	})
 
@@ -86,8 +86,8 @@ var _ = Describe("CommandListener", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(status.GetStatuses()).To(Equal([]string{
-			"PENDING - DBID 1 - CONTENT ID -1 - MASTER - localhost",
 			"RUNNING - DBID 3 - CONTENT ID 1 - PRIMARY - localhost",
+			"PENDING - DBID 1 - CONTENT ID -1 - PRIMARY - localhost",
 		}))
 	})
 
@@ -114,8 +114,8 @@ var _ = Describe("CommandListener", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(status.GetStatuses()).To(Equal([]string{
-			"COMPLETE - DBID 1 - CONTENT ID -1 - MASTER - localhost",
 			"PENDING - DBID 3 - CONTENT ID 1 - PRIMARY - localhost",
+			"COMPLETE - DBID 1 - CONTENT ID -1 - PRIMARY - localhost",
 		}))
 	})
 

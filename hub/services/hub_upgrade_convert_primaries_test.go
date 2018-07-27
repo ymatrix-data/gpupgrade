@@ -13,17 +13,26 @@ import (
 )
 
 var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
-	BeforeEach(func() {
+	It("returns nil error, and agent receives only expected segmentConfig values", func() {
 		seg1 := target.Segments[0]
 		seg1.DataDir = filepath.Join(dir, "seg1_upgrade")
 		seg1.Port = 27432
 		target.Segments[0] = seg1
+
 		seg2 := target.Segments[1]
 		seg2.DataDir = filepath.Join(dir, "seg2_upgrade")
 		seg2.Port = 27433
+
+		// Set up both segments to be on the same host (but still distinct from
+		// the master host).
+		seg2.Hostname = seg1.Hostname
 		target.Segments[1] = seg2
-	})
-	It("returns nil error, and agent receives only expected segmentConfig values", func() {
+
+		// Source hostnames must match the target.
+		sourceSeg2 := source.Segments[1]
+		sourceSeg2.Hostname = seg2.Hostname
+		source.Segments[1] = sourceSeg2
+
 		_, err := hub.UpgradeConvertPrimaries(nil, &pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).ToNot(HaveOccurred())
 
@@ -68,7 +77,7 @@ var _ = Describe("hub.UpgradeConvertPrimaries()", func() {
 			&pb.UpgradeConvertPrimariesRequest{})
 		Expect(err).To(HaveOccurred())
 
-		Expect(mockAgent.NumberOfCalls()).To(Equal(1))
+		Expect(mockAgent.NumberOfCalls()).To(Equal(2))
 	})
 })
 
