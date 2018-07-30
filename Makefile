@@ -119,7 +119,7 @@ clean:
 	dep ensure
 	touch $@
 
-.PHONY: deploy-pipeline expose-pipeline
+.PHONY: set-pipeline expose-pipeline
 
 # You can override these from the command line.
 GIT_URI := $(shell git ls-remote --get-url)
