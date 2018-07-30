@@ -18,7 +18,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -217,18 +216,4 @@ func (h *Hub) closeConns() {
 		}
 		conn.Conn.WaitForStateChange(context.Background(), currState)
 	}
-}
-
-func (h *Hub) segmentsByHost() map[string][]cluster.SegConfig {
-	segmentsByHost := make(map[string][]cluster.SegConfig)
-	for _, segment := range h.source.Segments {
-		host := segment.Hostname
-		if len(segmentsByHost[host]) == 0 {
-			segmentsByHost[host] = []cluster.SegConfig{segment}
-		} else {
-			segmentsByHost[host] = append(segmentsByHost[host], segment)
-		}
-	}
-
-	return segmentsByHost
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/golang/mock/gomock"
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 
 	pb "github.com/greenplum-db/gpupgrade/idl"
 
@@ -16,47 +15,41 @@ import (
 
 var _ = Describe("hub", func() {
 	var (
-		agentConnections  []*services.Connection
-		hostToSegmentsMap map[string][]cluster.SegConfig
+		agentConnections []*services.Connection
 	)
 
 	BeforeEach(func() {
 		agentConnections = []*services.Connection{
 			{nil, client, "host1", nil},
-		}
-
-		hostToSegmentsMap = make(map[string][]cluster.SegConfig, 0)
-		hostToSegmentsMap["host1"] = []cluster.SegConfig{
-			newSegment(0, "host1", "old/datadir1", 1),
+			{nil, client, "host2", nil},
 		}
 	})
 
 	Describe("GetConversionStatusFromPrimaries", func() {
 		It("receives conversion statuses from the agent and returns all as single message", func() {
-			statusMessages := []string{"status", "status"}
-			segment1 := hostToSegmentsMap["host1"][0]
-			var agentSegments []*pb.SegmentInfo
-			agentSegments = append(
-				agentSegments,
-				&pb.SegmentInfo{
-					Content: int32(segment1.ContentID),
-					Dbid:    int32(segment1.DbID),
-					DataDir: segment1.DataDir,
-				},
-			)
+			for id := 0; id <= 1; id++ {
+				segment := target.Segments[id]
+				agentSegments := []*pb.SegmentInfo{
+					{
+						Content: int32(segment.ContentID),
+						Dbid:    int32(segment.DbID),
+						DataDir: segment.DataDir,
+					},
+				}
 
-			client.EXPECT().CheckConversionStatus(
-				gomock.Any(),
-				&pb.CheckConversionStatusRequest{
-					Segments: agentSegments,
-					Hostname: segment1.Hostname,
-				},
-			).Return(
-				&pb.CheckConversionStatusReply{Statuses: statusMessages},
-				nil,
-			).Times(1)
+				client.EXPECT().CheckConversionStatus(
+					gomock.Any(),
+					&pb.CheckConversionStatusRequest{
+						Segments: agentSegments,
+						Hostname: segment.Hostname,
+					},
+				).Return(
+					&pb.CheckConversionStatusReply{Statuses: []string{"status"}},
+					nil,
+				).Times(1)
+			}
 
-			statuses, err := services.GetConversionStatusFromPrimaries(agentConnections, hostToSegmentsMap)
+			statuses, err := services.GetConversionStatusFromPrimaries(agentConnections, target)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(statuses).To(Equal([]string{"status", "status"}))
 		})
@@ -71,7 +64,7 @@ var _ = Describe("hub", func() {
 				errors.New("agent err"),
 			)
 
-			_, err := services.GetConversionStatusFromPrimaries(agentConnections, hostToSegmentsMap)
+			_, err := services.GetConversionStatusFromPrimaries(agentConnections, target)
 			Expect(err).To(HaveOccurred())
 		})
 	})

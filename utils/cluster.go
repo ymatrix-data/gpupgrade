@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 )
@@ -89,4 +90,21 @@ func (c *Cluster) PrimaryHostnames() []string {
 	}
 
 	return list
+}
+
+// SegmentsOn returns the configurations of segments that are running on a given
+// host. An error will be returned for unknown hostnames.
+func (c Cluster) SegmentsOn(hostname string) ([]cluster.SegConfig, error) {
+	var segments []cluster.SegConfig
+	for _, segment := range c.Segments {
+		if segment.Hostname == hostname {
+			segments = append(segments, segment)
+		}
+	}
+
+	if len(segments) == 0 {
+		return nil, fmt.Errorf("cluster has no segments on host '%s'", hostname)
+	}
+
+	return segments, nil
 }
