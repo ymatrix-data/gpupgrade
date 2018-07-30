@@ -1,4 +1,7 @@
 #! /usr/bin/env bats
+#
+# This file provides negative test cases for when the user does not execute
+# upgrade steps in the correct order after starting the hub.
 
 load helpers
 
@@ -20,4 +23,10 @@ teardown() {
     gpupgrade check seginstall
     run gpupgrade status upgrade
     [[ "$output" = *"FAILED - Install binaries on segments"* ]]
+}
+
+@test "start-agents requires segments to have been loaded into the configuration" {
+    gpupgrade prepare start-agents
+    run gpupgrade status upgrade
+    [[ "$output" = *"FAILED - Agents Started on Cluster"* ]]
 }
