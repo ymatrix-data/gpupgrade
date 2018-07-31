@@ -11,6 +11,7 @@ import (
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -30,6 +31,7 @@ func main() {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			gplog.InitializeLogging("gpupgrade_hub", logdir)
 			debug.SetTraceback("all")
+			defer log.WritePanics()
 
 			conf := &services.HubConfig{
 				CliToHubPort:   7527,

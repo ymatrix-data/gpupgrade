@@ -8,6 +8,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/agent/services"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/log"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +29,7 @@ func main() {
 		Long:  `Start the Command Listener (blocks)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			gplog.InitializeLogging("gpupgrade_agent", logdir)
+			defer log.WritePanics()
 
 			conf := services.AgentConfig{
 				Port:     6416,

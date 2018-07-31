@@ -14,6 +14,7 @@ import (
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/log"
 
 	"github.com/pkg/errors"
 
@@ -95,7 +96,13 @@ func (h *Hub) Start() error {
 		return errors.Wrap(err, "failed to listen")
 	}
 
-	server := grpc.NewServer()
+	// Set up an interceptor function to log any panics we get from request
+	// handlers.
+	interceptor := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		defer log.WritePanics()
+		return handler(ctx, req)
+	}
+	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor))
 
 	h.mu.Lock()
 	if h.stopped == nil {

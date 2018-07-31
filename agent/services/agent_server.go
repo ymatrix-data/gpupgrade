@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -9,6 +10,7 @@ import (
 
 	pb "github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/log"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
@@ -55,7 +57,14 @@ func (a *AgentServer) Start() {
 		gplog.Fatal(err, "failed to listen")
 	}
 
-	server := grpc.NewServer()
+	// Set up an interceptor function to log any panics we get from request
+	// handlers.
+	interceptor := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		defer log.WritePanics()
+		return handler(ctx, req)
+	}
+	server := grpc.NewServer(grpc.UnaryInterceptor(interceptor))
+
 	a.mu.Lock()
 	a.server = server
 	a.lis = lis
