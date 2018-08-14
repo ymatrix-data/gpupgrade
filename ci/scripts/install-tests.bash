@@ -26,5 +26,9 @@ source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
 cd $GOPATH/src/github.com/greenplum-db/gpupgrade
 make
 make check --keep-going
+
+# Note that installcheck is currently destructive.
+make install
+make installcheck
 EOF
 
