@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"context"
@@ -17,6 +17,25 @@ import (
 	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
 )
+
+func BuildRootCommand() *cobra.Command {
+	root := &cobra.Command{Use: "gpupgrade"}
+
+	root.AddCommand(prepare, config, status, check, version, upgrade)
+
+	subInit := createInitSubcommand()
+	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
+
+	subSet := createSetSubcommand()
+	subShow := createShowSubcommand()
+	config.AddCommand(subSet, subShow)
+
+	status.AddCommand(subUpgrade, subConversion)
+	check.AddCommand(subVersion, subObjectCount, subDiskSpace, subConfig, subSeginstall)
+	upgrade.AddCommand(subConvertMaster, subConvertPrimaries, subShareOids, subValidateStartCluster, subReconfigurePorts)
+
+	return root
+}
 
 // connTimeout retrieves the GPUPGRADE_CONNECTION_TIMEOUT environment variable,
 // interprets it as a (possibly fractional) number of seconds, and converts it
@@ -46,7 +65,12 @@ func connTimeout() time.Duration {
 // CliToHubClient which wraps the resulting gRPC channel. Any errors result in
 // an os.Exit(1).
 func connectToHub() pb.CliToHubClient {
-	hubAddr := "localhost:" + hubPort
+	upgradePort := os.Getenv("GPUPGRADE_HUB_PORT")
+	if upgradePort == "" {
+		upgradePort = "7527"
+	}
+
+	hubAddr := "localhost:" + upgradePort
 
 	// Set up our timeout.
 	ctx, cancel := context.WithTimeout(context.Background(), connTimeout())
@@ -66,8 +90,6 @@ func connectToHub() pb.CliToHubClient {
 
 	return pb.NewCliToHubClient(conn)
 }
-
-var root = &cobra.Command{Use: "gpupgrade"}
 
 var prepare = &cobra.Command{
 	Use:   "prepare",

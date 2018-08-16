@@ -114,6 +114,13 @@ parsing our commands and flags.
 
 To implement a new command, you will need to implement a commander (see the cobra documentation and files in the `cli/commanders` directory for examples) and add it to the tree of commands in `cli/gpupgrade_main.go` to tell the parser about your new command.
 
+### Bash Completion
+
+You can source the `cli/bash/bash-completion.sh` script from your
+`~/.bash_completion` config, or copy it into your system's completions directory
+(e.g.  `/etc/bash_completion.d` on Debian), to get tab completion for the
+gpupgrade utility.
+
 ## Testing
 
 ### Unit testing overall

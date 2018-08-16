@@ -71,6 +71,7 @@ POSTFIX = $($(OS)_POSTFIX)
 .PHONY: build build_linux build_mac $(PACKAGES)
 
 build: $(PACKAGES)
+	go generate ./cli/bash
 
 build_linux: OS := LINUX
 build_mac: OS := MAC

@@ -7,36 +7,16 @@ import (
 	"runtime/debug"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gpupgrade/cli/commands"
 	_ "github.com/lib/pq"
 )
 
-var (
-	hubPort = "7527"
-)
-
 func main() {
-	upgradePort := os.Getenv("GPUPGRADE_HUB_PORT")
-	if upgradePort != "" {
-		hubPort = upgradePort
-	}
-
 	setUpLogging()
 
 	confirmValidCommand()
 
-	root.AddCommand(prepare, config, status, check, version, upgrade)
-
-	subInit := createInitSubcommand()
-	prepare.AddCommand(subStartHub, subInitCluster, subShutdownClusters, subStartAgents, subInit)
-
-	subSet := createSetSubcommand()
-	subShow := createShowSubcommand()
-	config.AddCommand(subSet, subShow)
-
-	status.AddCommand(subUpgrade, subConversion)
-	check.AddCommand(subVersion, subObjectCount, subDiskSpace, subConfig, subSeginstall)
-	upgrade.AddCommand(subConvertMaster, subConvertPrimaries, subShareOids, subValidateStartCluster, subReconfigurePorts)
-
+	root := commands.BuildRootCommand()
 	err := root.Execute()
 	if err != nil {
 		// Use v to print the stack trace of an object errors.
