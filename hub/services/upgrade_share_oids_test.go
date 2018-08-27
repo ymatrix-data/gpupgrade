@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
@@ -32,7 +33,7 @@ var _ = Describe("UpgradeShareOids", func() {
 
 		Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(1))
 
-		masterDataDir := source.MasterDataDir()
+		masterDataDir := filepath.Clean(source.MasterDataDir()) + string(filepath.Separator)
 		resultMap := testExecutor.ClusterCommands[0]
 		Expect(resultMap[0]).To(Equal([]string{"rsync", "-rzpogt", masterDataDir, "host1:/tmp/masterDirCopy"}))
 		Expect(resultMap[1]).To(Equal([]string{"rsync", "-rzpogt", masterDataDir, "host2:/tmp/masterDirCopy"}))

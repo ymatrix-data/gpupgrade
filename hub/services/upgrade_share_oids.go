@@ -59,7 +59,9 @@ func (h *Hub) shareOidFiles() {
 			anyFailed = true
 		}
 	} else {
-		sourceDir := h.target.MasterDataDir()
+		// Make sure sourceDir ends with a trailing slash so that rsync will
+		// transfer the directory contents and not the directory itself.
+		sourceDir := filepath.Clean(h.target.MasterDataDir()) + string(filepath.Separator)
 		commandMap := make(map[int][]string, len(h.target.ContentIDs)-1)
 
 		destinationDirName := "/tmp/masterDirCopy"
