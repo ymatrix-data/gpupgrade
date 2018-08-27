@@ -61,7 +61,7 @@ func (s *AgentServer) UpgradeSegments(oldBinDir, newBinDir, newVersion string, d
 	if targetVersion.LT(semver.MustParse("6.0.0")) {
 		modeStr = "--progress"
 	} else {
-		modeStr = "--mode=segment"
+		modeStr = "--mode=segment --progress"
 	}
 
 	for _, segment := range dataDirPairs {

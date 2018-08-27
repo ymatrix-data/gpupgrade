@@ -73,8 +73,8 @@ var _ = Describe("UpgradeSegments", func() {
 		upgradeDir0 := utils.SegmentPGUpgradeDirectory(dir, 0)
 		upgradeDir1 := utils.SegmentPGUpgradeDirectory(dir, 1)
 
-		Expect(testExecutor.LocalCommands).To(ContainElement(fmt.Sprintf("cd %s; unset PGHOST; unset PGPORT; /new/bin/pg_upgrade --old-bindir=/old/bin --old-datadir=old/datadir1 --old-port=1 --new-bindir=/new/bin --new-datadir=new/datadir1 --new-port=11 --mode=segment", upgradeDir0)))
-		Expect(testExecutor.LocalCommands).To(ContainElement(fmt.Sprintf("cd %s; unset PGHOST; unset PGPORT; /new/bin/pg_upgrade --old-bindir=/old/bin --old-datadir=old/datadir2 --old-port=2 --new-bindir=/new/bin --new-datadir=new/datadir2 --new-port=22 --mode=segment", upgradeDir1)))
+		Expect(testExecutor.LocalCommands).To(ContainElement(fmt.Sprintf("cd %s; unset PGHOST; unset PGPORT; /new/bin/pg_upgrade --old-bindir=/old/bin --old-datadir=old/datadir1 --old-port=1 --new-bindir=/new/bin --new-datadir=new/datadir1 --new-port=11 --mode=segment --progress", upgradeDir0)))
+		Expect(testExecutor.LocalCommands).To(ContainElement(fmt.Sprintf("cd %s; unset PGHOST; unset PGPORT; /new/bin/pg_upgrade --old-bindir=/old/bin --old-datadir=old/datadir2 --old-port=2 --new-bindir=/new/bin --new-datadir=new/datadir2 --new-port=22 --mode=segment --progress", upgradeDir1)))
 	})
 
 	Context("for older Greenplum versions", func() {
