@@ -26,23 +26,32 @@ func (s *AgentServer) UpgradeConvertPrimarySegments(ctx context.Context, in *pb.
 }
 
 func (s *AgentServer) UpgradeSegments(oldBinDir, newBinDir, newVersion string, dataDirPairs []*pb.DataDirPair) error {
-	filename := "pg_upgrade_dump_*_oids.sql"
-	shareOIDfilePath := filepath.Join(utils.PGUpgradeDirectory(s.conf.StateDir), filename)
-	oidFiles, err := utils.System.FilePathGlob(shareOIDfilePath)
-	if err != nil {
-		gplog.Error("ls OID files failed. Err: %v", err)
-		return err
-	}
-	//len(nil) = 0
-	if len(oidFiles) == 0 {
-		gplog.Error("Share OID files do not exist. Pattern was: %s", shareOIDfilePath)
-		return errors.New("No OID files found")
-	}
+	// OID files to copy from the master. Empty/unused in GPDB 6 and higher.
+	var oidFiles []string
 
 	targetVersion, err := semver.Parse(newVersion)
 	if err != nil {
 		gplog.Error("failed to parse new cluster version: %s", err)
 		return errors.Wrap(err, "failed to parse new cluster version")
+	}
+
+	if targetVersion.LT(semver.MustParse("6.0.0")) {
+		var err error // to prevent shadowing of oidFiles
+
+		// For GPDB 5.x and below, the pg_upgrade OID files have already been
+		// transferred from the master to the agent state directory.
+		filename := "pg_upgrade_dump_*_oids.sql"
+		shareOIDfilePath := filepath.Join(utils.PGUpgradeDirectory(s.conf.StateDir), filename)
+		oidFiles, err = utils.System.FilePathGlob(shareOIDfilePath)
+		if err != nil {
+			gplog.Error("ls OID files failed. Err: %v", err)
+			return err
+		}
+
+		if len(oidFiles) == 0 {
+			gplog.Error("Share OID files do not exist. Pattern was: %s", shareOIDfilePath)
+			return errors.New("No OID files found")
+		}
 	}
 
 	// TODO: consolidate this logic with Hub.ConvertMaster().
