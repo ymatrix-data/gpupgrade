@@ -9,6 +9,7 @@ service Agent {
     rpc PingAgents (PingAgentsRequest) returns (PingAgentsReply) {}
     rpc UpgradeConvertPrimarySegments (UpgradeConvertPrimarySegmentsRequest) returns (UpgradeConvertPrimarySegmentsReply) {}
     rpc CreateSegmentDataDirectories (CreateSegmentDataDirRequest) returns (CreateSegmentDataDirReply) {}
+    rpc CopyMasterDirectoryToSegmentDirectories(CopyMasterDirRequest) returns (CopyMasterDirReply) {}
 }
 
 message UpgradeConvertPrimarySegmentsRequest {
@@ -68,3 +69,10 @@ message CreateSegmentDataDirRequest {
 }
 
 message CreateSegmentDataDirReply {}
+
+message CopyMasterDirRequest {
+	string masterDir = 1;
+	repeated string datadirs = 2;
+}
+
+message CopyMasterDirReply {}

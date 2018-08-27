@@ -23,6 +23,7 @@ type MockAgentServer struct {
 	StatusConversionResponse             *pb.CheckConversionStatusReply
 	UpgradeConvertPrimarySegmentsRequest *pb.UpgradeConvertPrimarySegmentsRequest
 	CreateSegmentDataDirRequest          *pb.CreateSegmentDataDirRequest
+	CopyMasterDirRequest                 *pb.CopyMasterDirRequest
 
 	Err chan error
 }
@@ -118,6 +119,21 @@ func (m *MockAgentServer) CreateSegmentDataDirectories(ctx context.Context, in *
 	}
 
 	return &pb.CreateSegmentDataDirReply{}, err
+}
+
+func (m *MockAgentServer) CopyMasterDirectoryToSegmentDirectories(ctx context.Context, in *pb.CopyMasterDirRequest) (*pb.CopyMasterDirReply, error) {
+	m.increaseCalls()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.CopyMasterDirRequest = in
+
+	var err error
+	if len(m.Err) != 0 {
+		err = <-m.Err
+	}
+
+	return &pb.CopyMasterDirReply{}, err
 }
 
 func (m *MockAgentServer) Stop() {
