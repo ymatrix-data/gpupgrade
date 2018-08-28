@@ -66,20 +66,19 @@ func (h *Hub) shareOidFiles() {
 
 		destinationDirName := "/tmp/masterDirCopy"
 
-		for _, content := range h.target.ContentIDs {
-			if content == -1 {
-				/*
-				 * We don't need to copy the master directory on the master host
-				 * If there are primaries on the same host, the hostname will be
-				 * added for the corresponding primaries.
-				 */
-				continue
-			}
+		/*
+		 * Copy the directory once per host.
+		 *
+		 * We don't need to copy the master directory on the master host
+		 * If there are primaries on the same host, the hostname will be
+		 * added for the corresponding primaries.
+		 */
+		for _, content := range contentsByHost(h.target, false) {
 			destinationDirectory := fmt.Sprintf("%s:%s", h.target.GetHostForContent(content), destinationDirName)
 			commandMap[content] = []string{"rsync", rsyncFlags, sourceDir, destinationDirectory}
 		}
 
-		remoteOutput := h.source.ExecuteClusterCommand(cluster.ON_SEGMENTS, commandMap)
+		remoteOutput := h.source.ExecuteClusterCommand(cluster.ON_HOSTS, commandMap)
 		if remoteOutput.NumErrors > 0 {
 			gplog.Error("Copying master directory failed with %d errors:", remoteOutput.NumErrors)
 			for content, segmentErr := range remoteOutput.Errors {
