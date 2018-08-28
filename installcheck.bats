@@ -60,7 +60,7 @@ EventuallyStepCompletes() {
     local observed_complete="false"
     for i in {1..60}; do
         run gpupgrade status upgrade
-        [ "$status" -eq 0 ]
+        [ "$status" -eq 0 ] || (echo "$output" && false)
 
         statusLine=$(echo "$output" | grep "$cliStepMessage")
         echo "# $statusLine ($i/60)" 1>&3
