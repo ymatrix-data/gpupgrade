@@ -109,7 +109,7 @@ install: cli-package hub-package install_agent
 installcheck:
 		@echo "--------------------------------------------------------------"
 		@echo "# FIXME: Make, if run in parallel, hangs after test completes."
-		./installcheck.bats -t
+		./installcheck.bats
 
 clean:
 		# Build artifacts

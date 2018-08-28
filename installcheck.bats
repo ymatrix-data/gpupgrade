@@ -5,7 +5,7 @@ load test/helpers
 setup() {
     [ ! -z $GPHOME ]
     [ ! -z $MASTER_DATA_DIRECTORY ]
-    echo "# SETUP" 1>&3
+    echo "# SETUP"
     clean_target_cluster
     clean_statedir
     kill_hub
@@ -13,6 +13,7 @@ setup() {
 }
 
 teardown() {
+    echo "# TEARDOWN"
     if ! psql -d postgres -c ''; then
         gpstart -a
     fi
@@ -56,14 +57,14 @@ teardown() {
 
 EventuallyStepCompletes() {
     cliStepMessage="$1"
-    echo "# Waiting for \"$cliStepMessage\" to transition to complete" 1>&3
+    echo "# Waiting for \"$cliStepMessage\" to transition to complete"
     local observed_complete="false"
     for i in {1..60}; do
         run gpupgrade status upgrade
         [ "$status" -eq 0 ] || (echo "$output" && false)
 
         statusLine=$(echo "$output" | grep "$cliStepMessage")
-        echo "# $statusLine ($i/60)" 1>&3
+        echo "# $statusLine ($i/60)"
 
         if [[ "$statusLine" = *"FAILED"* ]]; then
             break
