@@ -75,7 +75,7 @@ EventuallyStepCompletes() {
             break
         fi
 
-        sleep "$i"
+        sleep 1
     done
 
     [ "$observed_complete" != "false" ]
