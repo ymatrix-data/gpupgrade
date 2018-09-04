@@ -58,9 +58,10 @@ func (h *Hub) ConvertMaster() error {
 		modeStr = "--mode=dispatcher"
 	}
 
-	pgUpgradeCmd := fmt.Sprintf("cd %s; unset PGHOST; unset PGPORT; %s "+
-		"--old-bindir=%s --old-datadir=%s --old-port=%d "+
+	pgUpgradeCmd := fmt.Sprintf("source %s; cd %s; unset PGHOST; unset PGPORT; "+
+		"%s --old-bindir=%s --old-datadir=%s --old-port=%d "+
 		"--new-bindir=%s --new-datadir=%s --new-port=%d %s",
+		filepath.Join(h.target.BinDir, "..", "greenplum_path.sh"),
 		pathToUpgradeWD,
 		filepath.Join(h.target.BinDir, "pg_upgrade"),
 		h.source.BinDir,
