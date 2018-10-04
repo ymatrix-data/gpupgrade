@@ -6,18 +6,28 @@ abort() {
 }
 
 # kill_hub() simply kills any gpupgrade_hub process.
-# TODO: Killing every running hub is a bad idea. Implement a PID file and use
-# that to kill the hub instead.
+# TODO: Killing every running hub is a bad idea, and we don't have any guarantee
+# that the signal will have been received by the time we search the ps output.
+# Implement a PID file, and use that to kill the hub (and wait for it to exit)
+# instead.
 kill_hub() {
     pkill -9 gpupgrade_hub || true
     if ps -ef | grep -Gqw "[g]pupgrade_hub"; then
-        abort "didn't kill running hub"
+        # Single retry; see TODO above.
+        sleep 1
+        if ps -ef | grep -Gqw "[g]pupgrade_hub"; then
+            abort "didn't kill running hub"
+        fi
     fi
 }
 
 kill_agents() {
     pkill -9 gpupgrade_agent || true
     if ps -ef | grep -Gqw "[g]pupgrade_agent"; then
-        echo "didn't kill running hub"
+        # Single retry; see TODO above.
+        sleep 1
+        if ps -ef | grep -Gqw "[g]pupgrade_agent"; then
+            echo "didn't kill running agents"
+        fi
     fi
 }
