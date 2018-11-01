@@ -138,14 +138,14 @@ GIT_URI := $(shell git ls-remote --get-url)
 ifeq ($(GIT_URI),https://github.com/greenplum-db/gpupgrade)
 ifeq ($(BRANCH),master)
 PIPELINE_NAME := gpupgrade
-SECRETS_FILE := gpupgrade.prod.yml
+DEPLOY_TYPE := prod
 FLY_TARGET := gpdb-prod
 endif
 endif
 
 # Concourse does not allow "/" in pipeline names
 PIPELINE_NAME ?= gpupgrade:$(shell git rev-parse --abbrev-ref HEAD | tr '/' ':')
-SECRETS_FILE ?= gpupgrade.dev.yml
+DEPLOY_TYPE ?= dev
 FLY_TARGET ?= gpdb-dev
 
 .PHONY: set-pipeline expose-pipeline
@@ -153,9 +153,10 @@ FLY_TARGET ?= gpdb-dev
 set-pipeline:
 	fly -t $(FLY_TARGET) set-pipeline -p $(PIPELINE_NAME) \
 		-c ci/pipeline.yml \
-		-l ~/workspace/continuous-integration/secrets/$(SECRETS_FILE) \
+		-l ~/workspace/continuous-integration/secrets/gpupgrade.$(DEPLOY_TYPE).yml \
 		-l ~/workspace/continuous-integration/secrets/gpdb_common-ci-secrets.yml \
 		-l ~/workspace/continuous-integration/secrets/gpdb_master-ci-secrets.yml \
+		-l ~/workspace/continuous-integration/secrets/ccp_ci_secrets_gpdb-$(DEPLOY_TYPE).yml \
 		-v gpupgrade-git-remote=$(GIT_URI) \
 		-v gpupgrade-git-branch=$(BRANCH)
 
