@@ -78,12 +78,11 @@ var _ = Describe("CopyMasterDirectoryToSegmentDirectories", func() {
 			"/tmp/dataDir0/postgresql.conf",
 			"/tmp/dataDir0/pg_hba.conf",
 			"/tmp/dataDir0/postmaster.opts",
-			"/tmp/dataDir0/gp_replication.conf",
 			"/tmp/dataDir1.old",
 			"/tmp/dataDir1/postgresql.conf",
 			"/tmp/dataDir1/pg_hba.conf",
 			"/tmp/dataDir1/postmaster.opts",
-			"/tmp/dataDir1/gp_replication.conf"}))
+		}))
 
 		Expect(deletedDirs).To(Equal([]string{
 			"/tmp/dataDir0/gp_dbid",

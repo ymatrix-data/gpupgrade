@@ -88,7 +88,7 @@ func copyMasterDirOverSegment(executor cluster.Executor, masterDir string, segDa
 // Put segment config files back, overwriting the master versions
 func restoreSegmentFiles(segDataDir string) error {
 	// Files that differ between the master and the segments, where we want to keep the segment versions
-	filesToPreserve := []string{"postgresql.conf", "pg_hba.conf", "postmaster.opts", "gp_replication.conf"}
+	filesToPreserve := []string{"postgresql.conf", "pg_hba.conf", "postmaster.opts"}
 	backupSegDir := fmt.Sprintf("%s.old", segDataDir)
 	for _, file := range filesToPreserve {
 		err := utils.System.Rename(filepath.Join(backupSegDir, file), filepath.Join(segDataDir, file))
