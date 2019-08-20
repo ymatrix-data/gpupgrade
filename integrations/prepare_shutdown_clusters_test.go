@@ -50,7 +50,7 @@ var _ = Describe("prepare shutdown-clusters", func() {
 		testExecutorNew.LocalError = errors.New("stop failed")
 
 		prepareShutdownClustersSession := runCommand("prepare", "shutdown-clusters")
-		Eventually(prepareShutdownClustersSession).Should(Exit(0))
+		Eventually(prepareShutdownClustersSession).Should(Exit(1))
 
 		Expect(testExecutorOld.NumExecutions).To(Equal(2))
 		Expect(testExecutorOld.LocalCommands[0]).To(ContainSubstring("pgrep"))

@@ -39,7 +39,6 @@ teardown() {
     gpupgrade prepare init-cluster
 
     gpupgrade prepare shutdown-clusters
-    EventuallyStepCompletes "Shutdown clusters"
 
     ! ps -ef | grep -Gqw "[p]ostgres"
 

@@ -16,7 +16,6 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("preparer", func() {
@@ -82,20 +81,6 @@ var _ = Describe("preparer", func() {
 		})
 	})
 
-	Describe("PrepareShutdownCluster", func() {
-		It("returns successfully", func() {
-			testStdout, _, _ := testhelper.SetupTestLogger()
-
-			client.EXPECT().PrepareShutdownClusters(
-				gomock.Any(),
-				&idl.PrepareShutdownClustersRequest{},
-			).Return(&idl.PrepareShutdownClustersReply{}, nil)
-			preparer := commanders.NewPreparer(client)
-			err := preparer.ShutdownClusters()
-			Expect(err).To(BeNil())
-			Eventually(testStdout).Should(gbytes.Say("request to shutdown clusters sent to hub"))
-		})
-	})
 	Describe("DoInit", func() {
 		var (
 			sourceBinDir string = "/old/does/not/exist"

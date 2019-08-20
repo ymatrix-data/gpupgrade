@@ -9,7 +9,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/utils/log"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
@@ -23,18 +22,15 @@ func (h *Hub) PrepareShutdownClusters(ctx context.Context, in *idl.PrepareShutdo
 		return &idl.PrepareShutdownClustersReply{}, err
 	}
 
-	go func() {
-		defer log.WritePanics()
+	err = h.ShutdownClusters()
+	if err != nil {
+		gplog.Error(err.Error())
+		step.MarkFailed()
+	} else {
+		step.MarkComplete()
+	}
 
-		if err := h.ShutdownClusters(); err != nil {
-			gplog.Error(err.Error())
-			step.MarkFailed()
-		} else {
-			step.MarkComplete()
-		}
-	}()
-
-	return &idl.PrepareShutdownClustersReply{}, nil
+	return &idl.PrepareShutdownClustersReply{}, err
 }
 
 func (h *Hub) ShutdownClusters() error {

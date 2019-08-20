@@ -34,9 +34,10 @@ func (p Preparer) ShutdownClusters() error {
 	_, err := p.client.PrepareShutdownClusters(context.Background(),
 		&idl.PrepareShutdownClustersRequest{})
 	if err != nil {
-		gplog.Error(err.Error())
+		return err
 	}
-	gplog.Info("request to shutdown clusters sent to hub")
+
+	fmt.Println("clusters shut down successfully")
 	return nil
 }
 
