@@ -26,7 +26,9 @@ teardown() {
 }
 
 @test "start-agents requires segments to have been loaded into the configuration" {
-    gpupgrade prepare start-agents
+    run gpupgrade prepare start-agents
+    [[ "$output" = *"cluster has no loaded segments"* ]]
+
     run gpupgrade status upgrade
     [[ "$output" = *"FAILED - Agents Started on Cluster"* ]]
 }

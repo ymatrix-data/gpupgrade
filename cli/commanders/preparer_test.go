@@ -96,20 +96,6 @@ var _ = Describe("preparer", func() {
 			Eventually(testStdout).Should(gbytes.Say("request to shutdown clusters sent to hub"))
 		})
 	})
-	Describe("PrepareStartAgents", func() {
-		It("returns successfully", func() {
-			testStdout, _, _ := testhelper.SetupTestLogger()
-
-			client.EXPECT().PrepareStartAgents(
-				gomock.Any(),
-				&idl.PrepareStartAgentsRequest{},
-			).Return(&idl.PrepareStartAgentsReply{}, nil)
-			preparer := commanders.NewPreparer(client)
-			err := preparer.StartAgents()
-			Expect(err).To(BeNil())
-			Eventually(testStdout).Should(gbytes.Say("Started Agents in progress, check gpupgrade_agent logs for details"))
-		})
-	})
 	Describe("DoInit", func() {
 		var (
 			sourceBinDir string = "/old/does/not/exist"

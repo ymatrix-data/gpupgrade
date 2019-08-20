@@ -91,7 +91,7 @@ func (p Preparer) StartAgents() error {
 		return err
 	}
 
-	gplog.Info("Started Agents in progress, check gpupgrade_agent logs for details")
+	fmt.Println("agents started successfully")
 	return nil
 }
 

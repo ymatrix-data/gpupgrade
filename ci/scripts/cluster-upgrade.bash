@@ -112,7 +112,6 @@ time ssh mdw bash <<"EOF"
     gpupgrade check seginstall
 
     gpupgrade prepare start-agents
-    sleep 1 # XXX make the above synchronous
 
     gpupgrade prepare init-cluster
     wait_for_step "Initialize new cluster"

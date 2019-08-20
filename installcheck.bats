@@ -36,8 +36,6 @@ teardown() {
 
     gpupgrade prepare start-agents
 
-    sleep 1
-
     gpupgrade prepare init-cluster
 
     gpupgrade prepare shutdown-clusters

@@ -11,7 +11,6 @@ import (
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
-	"github.com/greenplum-db/gpupgrade/utils/log"
 )
 
 func (h *Hub) PrepareStartAgents(ctx context.Context, in *idl.PrepareStartAgentsRequest) (*idl.PrepareStartAgentsReply, error) {
@@ -23,18 +22,15 @@ func (h *Hub) PrepareStartAgents(ctx context.Context, in *idl.PrepareStartAgents
 		return &idl.PrepareStartAgentsReply{}, err
 	}
 
-	go func() {
-		defer log.WritePanics()
+	err = StartAgents(h.source, h.target)
+	if err != nil {
+		gplog.Error(err.Error())
+		step.MarkFailed()
+	} else {
+		step.MarkComplete()
+	}
 
-		if err := StartAgents(h.source, h.target); err != nil {
-			gplog.Error(err.Error())
-			step.MarkFailed()
-		} else {
-			step.MarkComplete()
-		}
-	}()
-
-	return &idl.PrepareStartAgentsReply{}, nil
+	return &idl.PrepareStartAgentsReply{}, err
 }
 
 func StartAgents(source *utils.Cluster, target *utils.Cluster) error {
@@ -53,6 +49,16 @@ func StartAgents(source *utils.Cluster, target *utils.Cluster) error {
 		return fmt.Sprintf("Could not start gpupgrade_agent on segment with contentID %d", contentID)
 	}
 	source.CheckClusterError(remoteOutput, errStr, errMessage, true)
+
+	// Log successful starts. Agents print their port and PID to stdout.
+	for content, output := range remoteOutput.Stdouts {
+		// XXX If there are failures, does it matter what agents have
+		// successfully started, or do we just want to stop all of them and kick
+		// back to the user?
+		if remoteOutput.Errors[content] == nil {
+			gplog.Info("[%s] %s", source.Segments[content].Hostname, output)
+		}
+	}
 
 	if remoteOutput.NumErrors > 0 {
 		// CheckClusterError() will have already logged each error.

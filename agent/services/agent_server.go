@@ -74,8 +74,13 @@ func (a *AgentServer) Start() {
 	reflection.Register(server)
 
 	if a.daemon {
-		fmt.Printf("Agent started on port %d (pid %d)\n", a.conf.Port, os.Getpid())
+		// Send an identifier string back to the hub, and log it locally for
+		// easier debugging.
+		info := fmt.Sprintf("Agent started on port %d (pid %d)", a.conf.Port, os.Getpid())
+
+		fmt.Println(info)
 		daemon.Daemonize()
+		gplog.Info(info)
 	}
 
 	err = server.Serve(lis)
