@@ -330,7 +330,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/blang/semver",
     "github.com/cloudfoundry/gosigar",
     "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
