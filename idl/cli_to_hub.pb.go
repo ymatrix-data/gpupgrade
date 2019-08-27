@@ -436,10 +436,10 @@ func (m *StatusConversionRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_StatusConversionRequest proto.InternalMessageInfo
 
 type PrimaryStatus struct {
-	Status               StepStatus `protobuf:"varint,1,opt,name=Status,proto3,enum=idl.StepStatus" json:"Status,omitempty"`
-	Dbid                 int32      `protobuf:"varint,2,opt,name=Dbid,proto3" json:"Dbid,omitempty"`
-	Content              int32      `protobuf:"varint,3,opt,name=Content,proto3" json:"Content,omitempty"`
-	Hostname             string     `protobuf:"bytes,4,opt,name=Hostname,proto3" json:"Hostname,omitempty"`
+	Status               StepStatus `protobuf:"varint,1,opt,name=Status,enum=idl.StepStatus" json:"Status,omitempty"`
+	Dbid                 int32      `protobuf:"varint,2,opt,name=Dbid" json:"Dbid,omitempty"`
+	Content              int32      `protobuf:"varint,3,opt,name=Content" json:"Content,omitempty"`
+	Hostname             string     `protobuf:"bytes,4,opt,name=Hostname" json:"Hostname,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`
@@ -498,7 +498,7 @@ func (m *PrimaryStatus) GetHostname() string {
 }
 
 type StatusConversionReply struct {
-	ConversionStatuses   []*PrimaryStatus `protobuf:"bytes,1,rep,name=conversionStatuses,proto3" json:"conversionStatuses,omitempty"`
+	ConversionStatuses   []*PrimaryStatus `protobuf:"bytes,1,rep,name=conversionStatuses" json:"conversionStatuses,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
 	XXX_sizecache        int32            `json:"-"`
@@ -566,7 +566,7 @@ func (m *StatusUpgradeRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_StatusUpgradeRequest proto.InternalMessageInfo
 
 type StatusUpgradeReply struct {
-	ListOfUpgradeStepStatuses []*UpgradeStepStatus `protobuf:"bytes,1,rep,name=listOfUpgradeStepStatuses,proto3" json:"listOfUpgradeStepStatuses,omitempty"`
+	ListOfUpgradeStepStatuses []*UpgradeStepStatus `protobuf:"bytes,1,rep,name=listOfUpgradeStepStatuses" json:"listOfUpgradeStepStatuses,omitempty"`
 	XXX_NoUnkeyedLiteral      struct{}             `json:"-"`
 	XXX_unrecognized          []byte               `json:"-"`
 	XXX_sizecache             int32                `json:"-"`
@@ -604,8 +604,8 @@ func (m *StatusUpgradeReply) GetListOfUpgradeStepStatuses() []*UpgradeStepStatus
 }
 
 type UpgradeStepStatus struct {
-	Step                 UpgradeSteps `protobuf:"varint,1,opt,name=step,proto3,enum=idl.UpgradeSteps" json:"step,omitempty"`
-	Status               StepStatus   `protobuf:"varint,2,opt,name=status,proto3,enum=idl.StepStatus" json:"status,omitempty"`
+	Step                 UpgradeSteps `protobuf:"varint,1,opt,name=step,enum=idl.UpgradeSteps" json:"step,omitempty"`
+	Status               StepStatus   `protobuf:"varint,2,opt,name=status,enum=idl.StepStatus" json:"status,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
 	XXX_unrecognized     []byte       `json:"-"`
 	XXX_sizecache        int32        `json:"-"`
@@ -681,7 +681,7 @@ var xxx_messageInfo_CheckConfigRequest proto.InternalMessageInfo
 
 // Consider removing the status as errors are/should be put on the error field.
 type CheckConfigReply struct {
-	ConfigStatus         string   `protobuf:"bytes,1,opt,name=ConfigStatus,proto3" json:"ConfigStatus,omitempty"`
+	ConfigStatus         string   `protobuf:"bytes,1,opt,name=ConfigStatus" json:"ConfigStatus,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -839,9 +839,9 @@ func (m *PrepareStartAgentsReply) XXX_DiscardUnknown() {
 var xxx_messageInfo_PrepareStartAgentsReply proto.InternalMessageInfo
 
 type CountPerDb struct {
-	DbName               string   `protobuf:"bytes,1,opt,name=DbName,proto3" json:"DbName,omitempty"`
-	AoCount              int32    `protobuf:"varint,2,opt,name=AoCount,proto3" json:"AoCount,omitempty"`
-	HeapCount            int32    `protobuf:"varint,3,opt,name=HeapCount,proto3" json:"HeapCount,omitempty"`
+	DbName               string   `protobuf:"bytes,1,opt,name=DbName" json:"DbName,omitempty"`
+	AoCount              int32    `protobuf:"varint,2,opt,name=AoCount" json:"AoCount,omitempty"`
+	HeapCount            int32    `protobuf:"varint,3,opt,name=HeapCount" json:"HeapCount,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -923,7 +923,7 @@ func (m *CheckObjectCountRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_CheckObjectCountRequest proto.InternalMessageInfo
 
 type CheckObjectCountReply struct {
-	ListOfCounts         []*CountPerDb `protobuf:"bytes,1,rep,name=ListOfCounts,proto3" json:"ListOfCounts,omitempty"`
+	ListOfCounts         []*CountPerDb `protobuf:"bytes,1,rep,name=ListOfCounts" json:"ListOfCounts,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -991,7 +991,7 @@ func (m *CheckVersionRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_CheckVersionRequest proto.InternalMessageInfo
 
 type CheckVersionReply struct {
-	IsVersionCompatible  bool     `protobuf:"varint,1,opt,name=IsVersionCompatible,proto3" json:"IsVersionCompatible,omitempty"`
+	IsVersionCompatible  bool     `protobuf:"varint,1,opt,name=IsVersionCompatible" json:"IsVersionCompatible,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1059,7 +1059,7 @@ func (m *CheckDiskSpaceRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_CheckDiskSpaceRequest proto.InternalMessageInfo
 
 type CheckDiskSpaceReply struct {
-	SegmentFileSysUsage  []string `protobuf:"bytes,1,rep,name=SegmentFileSysUsage,proto3" json:"SegmentFileSysUsage,omitempty"`
+	SegmentFileSysUsage  []string `protobuf:"bytes,1,rep,name=SegmentFileSysUsage" json:"SegmentFileSysUsage,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1277,8 +1277,8 @@ func (m *UpgradeConvertMasterReply) XXX_DiscardUnknown() {
 var xxx_messageInfo_UpgradeConvertMasterReply proto.InternalMessageInfo
 
 type SetConfigRequest struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Name                 string   `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1353,7 +1353,7 @@ func (m *SetConfigReply) XXX_DiscardUnknown() {
 var xxx_messageInfo_SetConfigReply proto.InternalMessageInfo
 
 type GetConfigRequest struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name                 string   `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1391,7 +1391,7 @@ func (m *GetConfigRequest) GetName() string {
 }
 
 type GetConfigReply struct {
-	Value                string   `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Value                string   `protobuf:"bytes,1,opt,name=value" json:"value,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1480,9 +1480,8 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// CliToHubClient is the client API for CliToHub service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// Client API for CliToHub service
+
 type CliToHubClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error)
 	StatusUpgrade(ctx context.Context, in *StatusUpgradeRequest, opts ...grpc.CallOption) (*StatusUpgradeReply, error)
@@ -1514,7 +1513,7 @@ func NewCliToHubClient(cc *grpc.ClientConn) CliToHubClient {
 
 func (c *cliToHubClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingReply, error) {
 	out := new(PingReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/Ping", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/Ping", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1523,7 +1522,7 @@ func (c *cliToHubClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc
 
 func (c *cliToHubClient) StatusUpgrade(ctx context.Context, in *StatusUpgradeRequest, opts ...grpc.CallOption) (*StatusUpgradeReply, error) {
 	out := new(StatusUpgradeReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/StatusUpgrade", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/StatusUpgrade", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1532,7 +1531,7 @@ func (c *cliToHubClient) StatusUpgrade(ctx context.Context, in *StatusUpgradeReq
 
 func (c *cliToHubClient) StatusConversion(ctx context.Context, in *StatusConversionRequest, opts ...grpc.CallOption) (*StatusConversionReply, error) {
 	out := new(StatusConversionReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/StatusConversion", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/StatusConversion", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1541,7 +1540,7 @@ func (c *cliToHubClient) StatusConversion(ctx context.Context, in *StatusConvers
 
 func (c *cliToHubClient) CheckConfig(ctx context.Context, in *CheckConfigRequest, opts ...grpc.CallOption) (*CheckConfigReply, error) {
 	out := new(CheckConfigReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/CheckConfig", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckConfig", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1550,7 +1549,7 @@ func (c *cliToHubClient) CheckConfig(ctx context.Context, in *CheckConfigRequest
 
 func (c *cliToHubClient) CheckSeginstall(ctx context.Context, in *CheckSeginstallRequest, opts ...grpc.CallOption) (*CheckSeginstallReply, error) {
 	out := new(CheckSeginstallReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/CheckSeginstall", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckSeginstall", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1559,7 +1558,7 @@ func (c *cliToHubClient) CheckSeginstall(ctx context.Context, in *CheckSeginstal
 
 func (c *cliToHubClient) CheckObjectCount(ctx context.Context, in *CheckObjectCountRequest, opts ...grpc.CallOption) (*CheckObjectCountReply, error) {
 	out := new(CheckObjectCountReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/CheckObjectCount", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckObjectCount", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1568,7 +1567,7 @@ func (c *cliToHubClient) CheckObjectCount(ctx context.Context, in *CheckObjectCo
 
 func (c *cliToHubClient) CheckVersion(ctx context.Context, in *CheckVersionRequest, opts ...grpc.CallOption) (*CheckVersionReply, error) {
 	out := new(CheckVersionReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/CheckVersion", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckVersion", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1577,7 +1576,7 @@ func (c *cliToHubClient) CheckVersion(ctx context.Context, in *CheckVersionReque
 
 func (c *cliToHubClient) CheckDiskSpace(ctx context.Context, in *CheckDiskSpaceRequest, opts ...grpc.CallOption) (*CheckDiskSpaceReply, error) {
 	out := new(CheckDiskSpaceReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/CheckDiskSpace", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/CheckDiskSpace", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1586,7 +1585,7 @@ func (c *cliToHubClient) CheckDiskSpace(ctx context.Context, in *CheckDiskSpaceR
 
 func (c *cliToHubClient) PrepareInitCluster(ctx context.Context, in *PrepareInitClusterRequest, opts ...grpc.CallOption) (*PrepareInitClusterReply, error) {
 	out := new(PrepareInitClusterReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/PrepareInitCluster", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareInitCluster", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1595,7 +1594,7 @@ func (c *cliToHubClient) PrepareInitCluster(ctx context.Context, in *PrepareInit
 
 func (c *cliToHubClient) PrepareShutdownClusters(ctx context.Context, in *PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*PrepareShutdownClustersReply, error) {
 	out := new(PrepareShutdownClustersReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/PrepareShutdownClusters", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareShutdownClusters", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1604,7 +1603,7 @@ func (c *cliToHubClient) PrepareShutdownClusters(ctx context.Context, in *Prepar
 
 func (c *cliToHubClient) UpgradeConvertMaster(ctx context.Context, in *UpgradeConvertMasterRequest, opts ...grpc.CallOption) (*UpgradeConvertMasterReply, error) {
 	out := new(UpgradeConvertMasterReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertMaster", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertMaster", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1613,7 +1612,7 @@ func (c *cliToHubClient) UpgradeConvertMaster(ctx context.Context, in *UpgradeCo
 
 func (c *cliToHubClient) PrepareStartAgents(ctx context.Context, in *PrepareStartAgentsRequest, opts ...grpc.CallOption) (*PrepareStartAgentsReply, error) {
 	out := new(PrepareStartAgentsReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/PrepareStartAgents", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareStartAgents", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1622,7 +1621,7 @@ func (c *cliToHubClient) PrepareStartAgents(ctx context.Context, in *PrepareStar
 
 func (c *cliToHubClient) UpgradeShareOids(ctx context.Context, in *UpgradeShareOidsRequest, opts ...grpc.CallOption) (*UpgradeShareOidsReply, error) {
 	out := new(UpgradeShareOidsReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/UpgradeShareOids", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeShareOids", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1631,7 +1630,7 @@ func (c *cliToHubClient) UpgradeShareOids(ctx context.Context, in *UpgradeShareO
 
 func (c *cliToHubClient) UpgradeValidateStartCluster(ctx context.Context, in *UpgradeValidateStartClusterRequest, opts ...grpc.CallOption) (*UpgradeValidateStartClusterReply, error) {
 	out := new(UpgradeValidateStartClusterReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/UpgradeValidateStartCluster", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeValidateStartCluster", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1640,7 +1639,7 @@ func (c *cliToHubClient) UpgradeValidateStartCluster(ctx context.Context, in *Up
 
 func (c *cliToHubClient) UpgradeConvertPrimaries(ctx context.Context, in *UpgradeConvertPrimariesRequest, opts ...grpc.CallOption) (*UpgradeConvertPrimariesReply, error) {
 	out := new(UpgradeConvertPrimariesReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertPrimaries", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertPrimaries", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1649,7 +1648,7 @@ func (c *cliToHubClient) UpgradeConvertPrimaries(ctx context.Context, in *Upgrad
 
 func (c *cliToHubClient) UpgradeReconfigurePorts(ctx context.Context, in *UpgradeReconfigurePortsRequest, opts ...grpc.CallOption) (*UpgradeReconfigurePortsReply, error) {
 	out := new(UpgradeReconfigurePortsReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/UpgradeReconfigurePorts", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeReconfigurePorts", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1658,7 +1657,7 @@ func (c *cliToHubClient) UpgradeReconfigurePorts(ctx context.Context, in *Upgrad
 
 func (c *cliToHubClient) SetConfig(ctx context.Context, in *SetConfigRequest, opts ...grpc.CallOption) (*SetConfigReply, error) {
 	out := new(SetConfigReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/SetConfig", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/SetConfig", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1667,14 +1666,15 @@ func (c *cliToHubClient) SetConfig(ctx context.Context, in *SetConfigRequest, op
 
 func (c *cliToHubClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigReply, error) {
 	out := new(GetConfigReply)
-	err := c.cc.Invoke(ctx, "/idl.CliToHub/GetConfig", in, out, opts...)
+	err := grpc.Invoke(ctx, "/idl.CliToHub/GetConfig", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CliToHubServer is the server API for CliToHub service.
+// Server API for CliToHub service
+
 type CliToHubServer interface {
 	Ping(context.Context, *PingRequest) (*PingReply, error)
 	StatusUpgrade(context.Context, *StatusUpgradeRequest) (*StatusUpgradeReply, error)

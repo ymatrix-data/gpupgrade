@@ -29,11 +29,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:14834e04828af9e53954f1be45ea7f190c4c26d746009c2ab07c5828595539e9"
+  digest = "1:583595482c6dfc7540c8761d1f00981843eb6dd7da332cae3f28b8651bae8436"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
+    "protoc-gen-go",
     "protoc-gen-go/descriptor",
+    "protoc-gen-go/generator",
+    "protoc-gen-go/generator/internal/remap",
+    "protoc-gen-go/grpc",
+    "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
@@ -333,6 +338,7 @@
     "github.com/cloudfoundry/gosigar",
     "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/protoc-gen-go",
     "github.com/greenplum-db/gp-common-go-libs/cluster",
     "github.com/greenplum-db/gp-common-go-libs/dbconn",
     "github.com/greenplum-db/gp-common-go-libs/gplog",

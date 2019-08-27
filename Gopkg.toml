@@ -24,6 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
+# Tool dependencies. In general we want to control our dependencies via
+# Gopkg.lock instead of having `go get` pull in the latest master versions.
+required = [
+  "github.com/golang/protobuf/protoc-gen-go"
+]
 
 [[constraint]]
   name = "github.com/cloudfoundry/gosigar"
