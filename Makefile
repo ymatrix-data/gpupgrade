@@ -31,6 +31,7 @@ depend:
 
 depend-dev: depend
 		go install ./vendor/github.com/golang/protobuf/protoc-gen-go
+		go install ./vendor/github.com/golang/mock/mockgen
 		go get golang.org/x/tools/cmd/goimports
 		go get github.com/golang/lint/golint
 		go get github.com/alecthomas/gometalinter
@@ -69,7 +70,6 @@ sshd_build:
 
 protobuf:
 		protoc -I idl/ idl/*.proto --go_out=plugins=grpc:idl
-		go get github.com/golang/mock/mockgen
 		mockgen -source idl/cli_to_hub.pb.go  > mock_idl/cli_to_hub_mock.pb.go
 		mockgen -source idl/hub_to_agent.pb.go  > mock_idl/hub_to_agent_mock.pb.go
 

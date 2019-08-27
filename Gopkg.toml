@@ -27,7 +27,8 @@
 # Tool dependencies. In general we want to control our dependencies via
 # Gopkg.lock instead of having `go get` pull in the latest master versions.
 required = [
-  "github.com/golang/protobuf/protoc-gen-go"
+  "github.com/golang/protobuf/protoc-gen-go",
+  "github.com/golang/mock/mockgen"
 ]
 
 [[constraint]]
@@ -36,7 +37,7 @@ required = [
 
 [[constraint]]
   name = "github.com/golang/mock"
-  version = "1.0.0"
+  version = "1.0.1"
 
 [[constraint]]
   name = "github.com/golang/protobuf"

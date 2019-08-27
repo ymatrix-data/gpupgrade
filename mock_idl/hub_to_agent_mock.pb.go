@@ -37,6 +37,7 @@ func (m *MockAgentClient) EXPECT() *MockAgentClientMockRecorder {
 
 // CheckUpgradeStatus mocks base method
 func (m *MockAgentClient) CheckUpgradeStatus(ctx context.Context, in *idl.CheckUpgradeStatusRequest, opts ...grpc.CallOption) (*idl.CheckUpgradeStatusReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -49,12 +50,14 @@ func (m *MockAgentClient) CheckUpgradeStatus(ctx context.Context, in *idl.CheckU
 
 // CheckUpgradeStatus indicates an expected call of CheckUpgradeStatus
 func (mr *MockAgentClientMockRecorder) CheckUpgradeStatus(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUpgradeStatus", reflect.TypeOf((*MockAgentClient)(nil).CheckUpgradeStatus), varargs...)
 }
 
 // CheckConversionStatus mocks base method
 func (m *MockAgentClient) CheckConversionStatus(ctx context.Context, in *idl.CheckConversionStatusRequest, opts ...grpc.CallOption) (*idl.CheckConversionStatusReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -67,12 +70,14 @@ func (m *MockAgentClient) CheckConversionStatus(ctx context.Context, in *idl.Che
 
 // CheckConversionStatus indicates an expected call of CheckConversionStatus
 func (mr *MockAgentClientMockRecorder) CheckConversionStatus(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConversionStatus", reflect.TypeOf((*MockAgentClient)(nil).CheckConversionStatus), varargs...)
 }
 
 // CheckDiskSpaceOnAgents mocks base method
 func (m *MockAgentClient) CheckDiskSpaceOnAgents(ctx context.Context, in *idl.CheckDiskSpaceRequestToAgent, opts ...grpc.CallOption) (*idl.CheckDiskSpaceReplyFromAgent, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -85,12 +90,14 @@ func (m *MockAgentClient) CheckDiskSpaceOnAgents(ctx context.Context, in *idl.Ch
 
 // CheckDiskSpaceOnAgents indicates an expected call of CheckDiskSpaceOnAgents
 func (mr *MockAgentClientMockRecorder) CheckDiskSpaceOnAgents(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDiskSpaceOnAgents", reflect.TypeOf((*MockAgentClient)(nil).CheckDiskSpaceOnAgents), varargs...)
 }
 
 // PingAgents mocks base method
 func (m *MockAgentClient) PingAgents(ctx context.Context, in *idl.PingAgentsRequest, opts ...grpc.CallOption) (*idl.PingAgentsReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -103,12 +110,14 @@ func (m *MockAgentClient) PingAgents(ctx context.Context, in *idl.PingAgentsRequ
 
 // PingAgents indicates an expected call of PingAgents
 func (mr *MockAgentClientMockRecorder) PingAgents(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingAgents", reflect.TypeOf((*MockAgentClient)(nil).PingAgents), varargs...)
 }
 
 // UpgradeConvertPrimarySegments mocks base method
 func (m *MockAgentClient) UpgradeConvertPrimarySegments(ctx context.Context, in *idl.UpgradeConvertPrimarySegmentsRequest, opts ...grpc.CallOption) (*idl.UpgradeConvertPrimarySegmentsReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -121,12 +130,14 @@ func (m *MockAgentClient) UpgradeConvertPrimarySegments(ctx context.Context, in 
 
 // UpgradeConvertPrimarySegments indicates an expected call of UpgradeConvertPrimarySegments
 func (mr *MockAgentClientMockRecorder) UpgradeConvertPrimarySegments(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeConvertPrimarySegments", reflect.TypeOf((*MockAgentClient)(nil).UpgradeConvertPrimarySegments), varargs...)
 }
 
 // CreateSegmentDataDirectories mocks base method
 func (m *MockAgentClient) CreateSegmentDataDirectories(ctx context.Context, in *idl.CreateSegmentDataDirRequest, opts ...grpc.CallOption) (*idl.CreateSegmentDataDirReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -139,12 +150,14 @@ func (m *MockAgentClient) CreateSegmentDataDirectories(ctx context.Context, in *
 
 // CreateSegmentDataDirectories indicates an expected call of CreateSegmentDataDirectories
 func (mr *MockAgentClientMockRecorder) CreateSegmentDataDirectories(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSegmentDataDirectories", reflect.TypeOf((*MockAgentClient)(nil).CreateSegmentDataDirectories), varargs...)
 }
 
 // CopyMasterDirectoryToSegmentDirectories mocks base method
 func (m *MockAgentClient) CopyMasterDirectoryToSegmentDirectories(ctx context.Context, in *idl.CopyMasterDirRequest, opts ...grpc.CallOption) (*idl.CopyMasterDirReply, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
@@ -157,6 +170,7 @@ func (m *MockAgentClient) CopyMasterDirectoryToSegmentDirectories(ctx context.Co
 
 // CopyMasterDirectoryToSegmentDirectories indicates an expected call of CopyMasterDirectoryToSegmentDirectories
 func (mr *MockAgentClientMockRecorder) CopyMasterDirectoryToSegmentDirectories(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyMasterDirectoryToSegmentDirectories", reflect.TypeOf((*MockAgentClient)(nil).CopyMasterDirectoryToSegmentDirectories), varargs...)
 }
@@ -186,6 +200,7 @@ func (m *MockAgentServer) EXPECT() *MockAgentServerMockRecorder {
 
 // CheckUpgradeStatus mocks base method
 func (m *MockAgentServer) CheckUpgradeStatus(arg0 context.Context, arg1 *idl.CheckUpgradeStatusRequest) (*idl.CheckUpgradeStatusReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckUpgradeStatus", arg0, arg1)
 	ret0, _ := ret[0].(*idl.CheckUpgradeStatusReply)
 	ret1, _ := ret[1].(error)
@@ -194,11 +209,13 @@ func (m *MockAgentServer) CheckUpgradeStatus(arg0 context.Context, arg1 *idl.Che
 
 // CheckUpgradeStatus indicates an expected call of CheckUpgradeStatus
 func (mr *MockAgentServerMockRecorder) CheckUpgradeStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUpgradeStatus", reflect.TypeOf((*MockAgentServer)(nil).CheckUpgradeStatus), arg0, arg1)
 }
 
 // CheckConversionStatus mocks base method
 func (m *MockAgentServer) CheckConversionStatus(arg0 context.Context, arg1 *idl.CheckConversionStatusRequest) (*idl.CheckConversionStatusReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckConversionStatus", arg0, arg1)
 	ret0, _ := ret[0].(*idl.CheckConversionStatusReply)
 	ret1, _ := ret[1].(error)
@@ -207,11 +224,13 @@ func (m *MockAgentServer) CheckConversionStatus(arg0 context.Context, arg1 *idl.
 
 // CheckConversionStatus indicates an expected call of CheckConversionStatus
 func (mr *MockAgentServerMockRecorder) CheckConversionStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConversionStatus", reflect.TypeOf((*MockAgentServer)(nil).CheckConversionStatus), arg0, arg1)
 }
 
 // CheckDiskSpaceOnAgents mocks base method
 func (m *MockAgentServer) CheckDiskSpaceOnAgents(arg0 context.Context, arg1 *idl.CheckDiskSpaceRequestToAgent) (*idl.CheckDiskSpaceReplyFromAgent, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckDiskSpaceOnAgents", arg0, arg1)
 	ret0, _ := ret[0].(*idl.CheckDiskSpaceReplyFromAgent)
 	ret1, _ := ret[1].(error)
@@ -220,11 +239,13 @@ func (m *MockAgentServer) CheckDiskSpaceOnAgents(arg0 context.Context, arg1 *idl
 
 // CheckDiskSpaceOnAgents indicates an expected call of CheckDiskSpaceOnAgents
 func (mr *MockAgentServerMockRecorder) CheckDiskSpaceOnAgents(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDiskSpaceOnAgents", reflect.TypeOf((*MockAgentServer)(nil).CheckDiskSpaceOnAgents), arg0, arg1)
 }
 
 // PingAgents mocks base method
 func (m *MockAgentServer) PingAgents(arg0 context.Context, arg1 *idl.PingAgentsRequest) (*idl.PingAgentsReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PingAgents", arg0, arg1)
 	ret0, _ := ret[0].(*idl.PingAgentsReply)
 	ret1, _ := ret[1].(error)
@@ -233,11 +254,13 @@ func (m *MockAgentServer) PingAgents(arg0 context.Context, arg1 *idl.PingAgentsR
 
 // PingAgents indicates an expected call of PingAgents
 func (mr *MockAgentServerMockRecorder) PingAgents(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingAgents", reflect.TypeOf((*MockAgentServer)(nil).PingAgents), arg0, arg1)
 }
 
 // UpgradeConvertPrimarySegments mocks base method
 func (m *MockAgentServer) UpgradeConvertPrimarySegments(arg0 context.Context, arg1 *idl.UpgradeConvertPrimarySegmentsRequest) (*idl.UpgradeConvertPrimarySegmentsReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpgradeConvertPrimarySegments", arg0, arg1)
 	ret0, _ := ret[0].(*idl.UpgradeConvertPrimarySegmentsReply)
 	ret1, _ := ret[1].(error)
@@ -246,11 +269,13 @@ func (m *MockAgentServer) UpgradeConvertPrimarySegments(arg0 context.Context, ar
 
 // UpgradeConvertPrimarySegments indicates an expected call of UpgradeConvertPrimarySegments
 func (mr *MockAgentServerMockRecorder) UpgradeConvertPrimarySegments(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeConvertPrimarySegments", reflect.TypeOf((*MockAgentServer)(nil).UpgradeConvertPrimarySegments), arg0, arg1)
 }
 
 // CreateSegmentDataDirectories mocks base method
 func (m *MockAgentServer) CreateSegmentDataDirectories(arg0 context.Context, arg1 *idl.CreateSegmentDataDirRequest) (*idl.CreateSegmentDataDirReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSegmentDataDirectories", arg0, arg1)
 	ret0, _ := ret[0].(*idl.CreateSegmentDataDirReply)
 	ret1, _ := ret[1].(error)
@@ -259,11 +284,13 @@ func (m *MockAgentServer) CreateSegmentDataDirectories(arg0 context.Context, arg
 
 // CreateSegmentDataDirectories indicates an expected call of CreateSegmentDataDirectories
 func (mr *MockAgentServerMockRecorder) CreateSegmentDataDirectories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSegmentDataDirectories", reflect.TypeOf((*MockAgentServer)(nil).CreateSegmentDataDirectories), arg0, arg1)
 }
 
 // CopyMasterDirectoryToSegmentDirectories mocks base method
 func (m *MockAgentServer) CopyMasterDirectoryToSegmentDirectories(arg0 context.Context, arg1 *idl.CopyMasterDirRequest) (*idl.CopyMasterDirReply, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CopyMasterDirectoryToSegmentDirectories", arg0, arg1)
 	ret0, _ := ret[0].(*idl.CopyMasterDirReply)
 	ret1, _ := ret[1].(error)
@@ -272,5 +299,6 @@ func (m *MockAgentServer) CopyMasterDirectoryToSegmentDirectories(arg0 context.C
 
 // CopyMasterDirectoryToSegmentDirectories indicates an expected call of CopyMasterDirectoryToSegmentDirectories
 func (mr *MockAgentServerMockRecorder) CopyMasterDirectoryToSegmentDirectories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyMasterDirectoryToSegmentDirectories", reflect.TypeOf((*MockAgentServer)(nil).CopyMasterDirectoryToSegmentDirectories), arg0, arg1)
 }
