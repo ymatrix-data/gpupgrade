@@ -81,6 +81,13 @@
   name = "github.com/hashicorp/go-multierror"
   version = "1.0.0"
 
+# Work around
+#     panic: version queue is empty, should not happen: gopkg.in/fsnotify.v1
+# (see https://github.com/golang/dep/issues/1799)
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+
 [prune]
   go-tests = true
   unused-packages = true
