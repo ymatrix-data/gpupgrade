@@ -3,7 +3,7 @@ package commanders_test
 import (
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/mock_idl"
+	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"

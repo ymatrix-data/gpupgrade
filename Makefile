@@ -68,11 +68,6 @@ coverage:
 sshd_build:
 		make -C integrations/sshd
 
-protobuf:
-		protoc -I idl/ idl/*.proto --go_out=plugins=grpc:idl
-		mockgen -source idl/cli_to_hub.pb.go  > mock_idl/cli_to_hub_mock.pb.go
-		mockgen -source idl/hub_to_agent.pb.go  > mock_idl/hub_to_agent_mock.pb.go
-
 PACKAGES := $(addsuffix -package,agent cli hub)
 PREFIX = $($(OS)_PREFIX)
 POSTFIX = $($(OS)_POSTFIX)

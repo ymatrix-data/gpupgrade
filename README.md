@@ -115,10 +115,10 @@ make integration
 make check
 ```
 
-### Generate mocked gRPC client/server code
+### Generate gRPC client/server code
 ```
-# To generate mocked files
-make protobuf
+# To generate protobuf code and its mocks
+go generate ./idl
 ```
 
 ## Command line parsing
