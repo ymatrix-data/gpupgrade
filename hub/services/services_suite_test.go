@@ -9,6 +9,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
+	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 
@@ -70,3 +71,8 @@ var _ = AfterEach(func() {
 	ctrl.Finish()
 	os.RemoveAll(dir)
 })
+
+// Enable exectest.NewCommand mocking.
+func TestMain(m *testing.M) {
+	os.Exit(exectest.Run(m))
+}

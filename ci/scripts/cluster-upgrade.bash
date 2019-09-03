@@ -120,7 +120,6 @@ time ssh mdw bash <<"EOF"
     wait_for_step "Shutdown clusters"
 
     gpupgrade upgrade convert-master
-    wait_for_step "Run pg_upgrade on master" 1200 # twenty minute timeout
 
     gpupgrade upgrade copy-master
     wait_for_step "Copy master data directory to segments"

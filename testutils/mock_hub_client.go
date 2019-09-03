@@ -61,7 +61,7 @@ func (m *MockHubClient) PrepareShutdownClusters(ctx context.Context, in *idl.Pre
 	return nil, nil
 }
 
-func (m *MockHubClient) UpgradeConvertMaster(ctx context.Context, in *idl.UpgradeConvertMasterRequest, opts ...grpc.CallOption) (*idl.UpgradeConvertMasterReply, error) {
+func (m *MockHubClient) UpgradeConvertMaster(ctx context.Context, in *idl.UpgradeConvertMasterRequest, opts ...grpc.CallOption) (idl.CliToHub_UpgradeConvertMasterClient, error) {
 	return nil, nil
 }
 

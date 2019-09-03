@@ -43,7 +43,6 @@ teardown() {
     ! ps -ef | grep -Gqw "[p]ostgres"
 
     gpupgrade upgrade convert-master
-    EventuallyStepCompletes "Run pg_upgrade on master"
 
     gpupgrade upgrade copy-master
     EventuallyStepCompletes "Copy master data directory to segments"

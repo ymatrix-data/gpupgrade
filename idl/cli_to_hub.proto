@@ -13,7 +13,7 @@ service CliToHub {
     rpc CheckDiskSpace (CheckDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
     rpc PrepareInitCluster (PrepareInitClusterRequest) returns (PrepareInitClusterReply) {}
     rpc PrepareShutdownClusters (PrepareShutdownClustersRequest) returns (PrepareShutdownClustersReply) {}
-    rpc UpgradeConvertMaster (UpgradeConvertMasterRequest) returns (UpgradeConvertMasterReply) {}
+    rpc UpgradeConvertMaster (UpgradeConvertMasterRequest) returns (stream Chunk) {}
     rpc PrepareStartAgents (PrepareStartAgentsRequest) returns (PrepareStartAgentsReply) {}
     rpc UpgradeCopyMasterDataDir (UpgradeCopyMasterDataDirRequest) returns (UpgradeCopyMasterDataDirReply) {}
     rpc UpgradeValidateStartCluster (UpgradeValidateStartClusterRequest) returns (UpgradeValidateStartClusterReply) {}
@@ -127,7 +127,15 @@ message PrepareInitClusterRequest {}
 message PrepareInitClusterReply {}
 
 message UpgradeConvertMasterRequest {}
-message UpgradeConvertMasterReply {}
+message Chunk {
+  bytes buffer = 1;
+  enum Type {
+    UNKNOWN = 0;
+    STDOUT = 1;
+    STDERR = 2;
+  }
+  Type type = 2;
+}
 
 message SetConfigRequest {
     string name = 1;
