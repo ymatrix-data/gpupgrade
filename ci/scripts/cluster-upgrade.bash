@@ -122,8 +122,8 @@ time ssh mdw bash <<"EOF"
     gpupgrade upgrade convert-master
     wait_for_step "Run pg_upgrade on master" 1200 # twenty minute timeout
 
-    gpupgrade upgrade share-oids
-    wait_for_step "Copy OID files from master to segments"
+    gpupgrade upgrade copy-master
+    wait_for_step "Copy master data directory to segments"
 
     gpupgrade upgrade convert-primaries
     wait_for_step "Run pg_upgrade on primaries" 1200 # twenty minute timeout
