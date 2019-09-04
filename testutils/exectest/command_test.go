@@ -27,20 +27,28 @@ var expectedCheckedArgs = []string{"arg1", "arg2", "arg3"}
 // ArgumentCheckingMain expects to be executed with the expectedCheckedArgs
 // above. If not it will print the difference and exit with an error.
 func ArgumentCheckingMain() {
-	args := os.Args[1:]
-	if !reflect.DeepEqual(args, expectedCheckedArgs) {
-		fmt.Fprintf(os.Stderr, "got args %#v want %#v", args, expectedCheckedArgs)
+	if !reflect.DeepEqual(os.Args, expectedCheckedArgs) {
+		fmt.Fprintf(os.Stderr, "got args %#v want %#v", os.Args, expectedCheckedArgs)
 		os.Exit(1)
 	}
 }
 
 func UnregisteredMain() {}
 
+// EnvironmentMain prints out its entire environment, one per line, in
+// NAME=VALUE format.
+func EnvironmentMain() {
+	for _, e := range os.Environ() {
+		fmt.Println(e)
+	}
+}
+
 func init() {
 	RegisterMains(
 		SuccessfulMain,
 		FailedMain,
 		ArgumentCheckingMain,
+		EnvironmentMain,
 		// UnregisteredMain is intentionally missing
 	)
 }
@@ -157,6 +165,26 @@ func TestNewCommand(t *testing.T) {
 
 		if verifierCalls != 2 {
 			t.Errorf("verifier called %d time(s) want 2", verifierCalls)
+		}
+	})
+
+	t.Run("still allows Cmd.Env to function as expected", func(t *testing.T) {
+		cmd := NewCommand(EnvironmentMain)("/unused/path")
+
+		cmd.Env = []string{"A=1", "B=2"}
+
+		out, err := cmd.Output()
+		if err != nil {
+			t.Errorf("Output() returned error: %v", err)
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				t.Errorf("subprocess stderr follows:\n%s", string(exitErr.Stderr))
+			}
+		}
+
+		actual := string(out)
+		expected := "A=1\nB=2\n"
+		if actual != expected {
+			t.Errorf("Output() = %#v want %#v", actual, expected)
 		}
 	})
 }

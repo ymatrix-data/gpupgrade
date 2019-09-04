@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -22,10 +23,10 @@ type Command func(string, ...string) *exec.Cmd
 // NewCommand.
 var mains []Main
 
-// magicEnvVar is the environment variable that signals to Run() that it should
-// invoke a command and exit. It is expected to contain the integer index of the
+// magicString is the signal, passed inside os.Args[0], that Run() should invoke
+// a command and exit. It is expected to be followed by the integer index of the
 // Main function in mains that should be invoked.
-const magicEnvVar = "EXECTEST_MAIN_INDEX"
+const magicString = "EXECTEST_MAIN_INDEX"
 
 // runCalled tracks whether or not Run() has been called by the test package.
 // It's a quick-and-dirty failsafe against developers forgetting to use the
@@ -35,7 +36,7 @@ var runCalled = false
 // NewCommand returns a drop-in replacement for os/exec.Command. The exec.Cmd
 // that the Command returns will invoke the passed Main function in a new test
 // subprocess. The original arguments passed to the returned Command will be
-// passed to the subprocess, beginning with os.Args[1].
+// passed to the subprocess.
 //
 // The intended use case is for test packages to replace exec.Command in the
 // packages they are testing with the resulting Command created by this
@@ -102,13 +103,14 @@ func NewCommand(m Main, verifiers ...func(string, ...string)) Command {
 			v(executable, args...)
 		}
 
-		// Pass the original arguments to the process. They'll show up as
-		// os.Args[1:].
-		a := []string{executable}
-		a = append(a, args...)
+		// Pass the original arguments to the process.
+		cmd := exec.Command(os.Args[0], args...)
 
-		cmd := exec.Command(os.Args[0], a...)
-		cmd.Env = []string{fmt.Sprintf("%s=%d", magicEnvVar, index)}
+		// Hijack argv[0] to communicate to Run() that the invoked test process
+		// should execute a Main function and then exit. The original executable
+		// name is also passed here so that the added magic can be stripped back
+		// off on the other side.
+		cmd.Args[0] = fmt.Sprintf("%s=%d=%s", magicString, index, executable)
 		return cmd
 	}
 }
@@ -128,22 +130,28 @@ func RegisterMains(m ...Main) {
 //
 // During the first run of the test executable, it simply calls m.Run() and
 // returns its exit code. When the test executable is reinvoked by a Command
-// implementation, it uses the magicEnvVar to execute a Main function instead.
-// In that case, Run will not return.
+// implementation, it uses the information contained in os.Args[0] to execute a
+// Main function instead. In that case, Run will not return.
 func Run(m *testing.M) int {
 	// It's safe for code to call NewCommand now.
 	runCalled = true
 
-	val, ok := os.LookupEnv(magicEnvVar)
-	if !ok {
+	name := os.Args[0]
+	if !strings.HasPrefix(name, magicString) {
 		// Allow the test suite to continue.
 		return m.Run()
 	}
 
+	// The format is <magic>=<index>=<original executable>, e.g.
+	//     EXECTEST_MAIN_INDEX=3=/usr/local/bin/myexec
+	components := strings.SplitN(name, "=", 3)
+	index := components[1]
+	os.Args[0] = components[2]
+
 	// Look up the desired Main function.
-	i, err := strconv.Atoi(val)
+	i, err := strconv.Atoi(index)
 	if err != nil || i < 0 {
-		panic(fmt.Sprintf("received invalid index %#v from %s", val, magicEnvVar))
+		panic(fmt.Sprintf("received invalid index %#v from %s", index, name))
 	} else if i >= len(mains) {
 		panic("Main functions must be registered using RegisterMains() in init()")
 	}
