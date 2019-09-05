@@ -116,13 +116,15 @@ func NewCommand(m Main, verifiers ...func(string, ...string)) Command {
 }
 
 // RegisterMains makes multiple Main functions available to Run in the test
-// subprocess. Call it only once from your test package's init function. Any
-// Main functions passed to NewCommand must be registered using this function.
+// subprocess. Call it only from your test package's init functions. Any Main
+// functions passed to NewCommand must be registered using this function.
 func RegisterMains(m ...Main) {
-	if mains != nil {
-		panic("RegisterMains() must be called only once, from your test package's init function")
+	if runCalled {
+		// Try to catch the most obvious failure mode, where a developer
+		// accidentally calls this from a test.
+		panic("RegisterMains() must be called only from a test package's init function")
 	}
-	mains = m
+	mains = append(mains, m...)
 }
 
 // Run is a wrapper for testing.M.Run() to use in conjunction with

@@ -47,6 +47,14 @@ func init() {
 	RegisterMains(
 		SuccessfulMain,
 		FailedMain,
+		// UnregisteredMain is intentionally missing
+	)
+}
+
+// Ensure that multiple calls to RegisterMains() from multiple init() functions
+// work as expected.
+func init() {
+	RegisterMains(
 		ArgumentCheckingMain,
 		EnvironmentMain,
 		// UnregisteredMain is intentionally missing
@@ -190,7 +198,7 @@ func TestNewCommand(t *testing.T) {
 }
 
 func TestRegisterMains(t *testing.T) {
-	t.Run("panics if called twice", func(t *testing.T) {
+	t.Run("panics if called from Run", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
 				t.Errorf("did not panic")
