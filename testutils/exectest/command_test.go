@@ -147,35 +147,6 @@ func TestNewCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("runs verifiers when Command is called", func(t *testing.T) {
-		executable := "/bin/echo"
-		args := []string{"hello", "there"}
-		verifierCalls := 0
-
-		v := func(e string, a ...string) {
-			verifierCalls++
-
-			if e != executable {
-				t.Errorf("executable = %#v want %#v", e, executable)
-			}
-			if !reflect.DeepEqual(a, args) {
-				t.Errorf("args = %#v want %#v", a, args)
-			}
-		}
-
-		cmdFunc := NewCommand(SuccessfulMain, v, v)
-
-		if verifierCalls != 0 {
-			t.Errorf("verifiers called prematurely")
-		}
-
-		cmdFunc(executable, args...)
-
-		if verifierCalls != 2 {
-			t.Errorf("verifier called %d time(s) want 2", verifierCalls)
-		}
-	})
-
 	t.Run("still allows Cmd.Env to function as expected", func(t *testing.T) {
 		cmd := NewCommand(EnvironmentMain)("/unused/path")
 
@@ -193,6 +164,47 @@ func TestNewCommand(t *testing.T) {
 		expected := "A=1\nB=2\n"
 		if actual != expected {
 			t.Errorf("Output() = %#v want %#v", actual, expected)
+		}
+	})
+}
+
+func TestNewCommandWithVerifier(t *testing.T) {
+	t.Run("panics immediately on failure", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("did not panic")
+			}
+		}()
+
+		NewCommandWithVerifier(UnregisteredMain, func(string, ...string) {})
+	})
+
+	t.Run("runs verifier when Command is called", func(t *testing.T) {
+		executable := "/bin/echo"
+		args := []string{"hello", "there"}
+		called := false
+
+		v := func(e string, a ...string) {
+			called = true
+
+			if e != executable {
+				t.Errorf("executable = %#v want %#v", e, executable)
+			}
+			if !reflect.DeepEqual(a, args) {
+				t.Errorf("args = %#v want %#v", a, args)
+			}
+		}
+
+		cmdFunc := NewCommandWithVerifier(SuccessfulMain, v)
+
+		if called {
+			t.Errorf("verifier called prematurely")
+		}
+
+		cmdFunc(executable, args...)
+
+		if !called {
+			t.Errorf("verifier was not called")
 		}
 	})
 }

@@ -70,23 +70,8 @@ var runCalled = false
 //     cmd := execCommand("/bin/bash", "-c", "sleep 15")
 //     cmd.Run() // this invokes MyExecutable, not Bash
 //
-// If you'd like to explicitly test that an exec.Cmd is being created with the
-// arguments you expect, you may use an optional verifier function in your call
-// to NewCommand (technically any number may be passed, but you'll probably only
-// need one):
 //
-//     execCommand := exectest.NewCommand(MyExecutable,
-//         func(name string, arg ...string)) {
-//             if name != "/bin/bash" {
-//                 t.Errorf("didn't use Bash")
-//             }
-//         }
-//     )
-//
-//     execCommand("/bin/bash", "-c", "sleep 1") // succeeds
-//     execCommand("/bin/sh", "-c", "sleep 1")   // logs a test failure
-//
-func NewCommand(m Main, verifiers ...func(string, ...string)) Command {
+func NewCommand(m Main) Command {
 	// Sanity check. Ensure that our two boilerplate conditions have been met.
 	index := indexOf(m, mains)
 	if index < 0 {
@@ -98,11 +83,6 @@ func NewCommand(m Main, verifiers ...func(string, ...string)) Command {
 	}
 
 	return func(executable string, args ...string) *exec.Cmd {
-		// Verify arguments if requested.
-		for _, v := range verifiers {
-			v(executable, args...)
-		}
-
 		// Pass the original arguments to the process.
 		cmd := exec.Command(os.Args[0], args...)
 
@@ -112,6 +92,31 @@ func NewCommand(m Main, verifiers ...func(string, ...string)) Command {
 		// off on the other side.
 		cmd.Args[0] = fmt.Sprintf("%s=%d=%s", magicString, index, executable)
 		return cmd
+	}
+}
+
+// NewCommandWithVerifier works like NewCommand, with an additional verifier
+// callback that is run against the supplied arguments. This allows unit tests
+// to explicitly check the arguments that are passed to exec.Command():
+//
+//     execCommand := exectest.NewCommandWithVerifier(MyExecutable,
+//         func(name string, arg ...string)) {
+//             if name != "/bin/bash" {
+//                 t.Errorf("didn't use Bash")
+//             }
+//         }
+//     )
+//
+//     execCommand("/bin/bash", "-c", "sleep 1") // succeeds
+//     execCommand("/bin/sh", "-c", "sleep 1")   // logs a test failure
+//
+func NewCommandWithVerifier(m Main, verifier func(string, ...string)) Command {
+	cmdf := NewCommand(m)
+
+	return func(executable string, args ...string) *exec.Cmd {
+		// Run the verifier, then invoke the underlying Command.
+		verifier(executable, args...)
+		return cmdf(executable, args...)
 	}
 }
 
