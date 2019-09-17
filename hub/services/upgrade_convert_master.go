@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -149,8 +150,14 @@ func (c clusterPair) ConvertMaster(stream idl.CliToHub_UpgradeConvertMasterServe
 
 	// Explicitly clear the child environment. pg_upgrade shouldn't need things
 	// like PATH, and PGPORT et al are explicitly forbidden to be set.
-	// TODO: do we need LD_LIBRARY_PATH?
 	cmd.Env = []string{}
+
+	// XXX ...but we make a single exception for now, for LD_LIBRARY_PATH, to
+	// work around pervasive problems with RPATH settings in our Postgres
+	// extension modules.
+	if path, ok := os.LookupEnv("LD_LIBRARY_PATH"); ok {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("LD_LIBRARY_PATH=%s", path))
+	}
 
 	return cmd.Run()
 }
