@@ -3,31 +3,71 @@
 load helpers
 
 setup() {
-    require_gpdb
+    skip_if_no_gpdb
+
     STATE_DIR=`mktemp -d`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
 
     kill_agents
     kill_hub
-    gpupgrade initialize --old-bindir="${GPHOME}/bin" --new-bindir="${GPHOME}/bin" --old-port="${PGPORT}"
-    kill_hub
+    gpupgrade initialize \
+        --old-bindir="${GPHOME}/bin" \
+        --new-bindir="${GPHOME}/bin" \
+        --old-port="${PGPORT}" 3>&-
 }
 
 teardown() {
-    kill_agents
-    kill_hub
+    # XXX Beware, BATS_TEST_SKIPPED is not a documented export.
+    if [ -z "${BATS_TEST_SKIPPED}" ]; then
+        kill_agents
+        kill_hub
+        rm -r "$STATE_DIR"
+    fi
 }
 
-@test "start-hub fails if the source configuration hasn't been initialized" {
-	rm $GPUPGRADE_HOME/source_cluster_config.json
+@test "hub saves cluster configs to disk when initialized" {
+    # XXX how useful is a test for this behavior?
+    [ -f "$GPUPGRADE_HOME"/source_cluster_config.json ]
+    [ -f "$GPUPGRADE_HOME"/target_cluster_config.json ]
+}
+
+@test "substeps are marked complete after initialization" {
+    run gpupgrade status upgrade
+    [ "$status" -eq 0 ] || fail "$output"
+
+    # XXX is this a useful test? Seems like it's pinning the wrong behavior.
+    [ "${lines[0]}" = 'COMPLETE - Configuration Check' ] || fail "actual: ${lines[0]}"
+    [ "${lines[1]}" = 'COMPLETE - Agents Started on Cluster' ] || fail "actual: ${lines[1]}"
+}
+
+@test "hub daemonizes and prints the PID when passed the --daemonize option" {
+    kill_hub
+
+    run gpupgrade_hub --daemonize 3>&-
+    [ "$status" -eq 0 ] || fail "$output"
+
+    regex='pid ([[:digit:]]+)'
+    [[ $output =~ $regex ]] || fail "actual output: $output"
+
+    pid="${BASH_REMATCH[1]}"
+    procname=$(ps -o ucomm= $pid)
+    [ $procname = gpupgrade_hub ] || fail "actual process name: $procname"
+}
+
+@test "hub fails if the source configuration hasn't been initialized" {
+    kill_hub
+
+    rm $GPUPGRADE_HOME/source_cluster_config.json
     run gpupgrade_hub --daemonize
     [ "$status" -eq 1 ]
 
     [[ "$output" = *"Unable to load source cluster configuration"* ]]
 }
 
-@test "start-hub fails if the target configuration hasn't been initialized" {
-	rm $GPUPGRADE_HOME/target_cluster_config.json
+@test "hub fails if the target configuration hasn't been initialized" {
+    kill_hub
+
+    rm $GPUPGRADE_HOME/target_cluster_config.json
     run gpupgrade_hub --daemonize
     [ "$status" -eq 1 ]
 
@@ -40,7 +80,9 @@ teardown() {
     # TODO: check for a useful error message
 }
 
-@test "initialize does not return an error if an unrelated process has gpupgrade_hub in its name" {
+@test "hub does not return an error if an unrelated process has gpupgrade_hub in its name" {
+    kill_hub
+
     # Create a long-running process with gpupgrade_hub in the name.
     exec -a gpupgrade_hub_test_log sleep 5 3>&- &
     bgproc=$! # save the PID to kill later
@@ -66,6 +108,8 @@ outputContains() {
 }
 
 @test "subcommands return an error if the hub is not started" {
+    kill_hub
+
     commands=(
         'prepare shutdown-clusters'
         'prepare init-cluster'

@@ -3,18 +3,26 @@
 load helpers
 
 setup() {
+    skip_if_no_gpdb
+
     STATE_DIR=`mktemp -d`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
 
     kill_agents
     kill_hub
-    gpupgrade initialize --old-bindir "${GPHOME}/bin" --new-bindir "${GPHOME}/bin" --old-port ${PGPORT}
+    gpupgrade initialize \
+        --old-bindir "${GPHOME}/bin" \
+        --new-bindir "${GPHOME}/bin" \
+        --old-port ${PGPORT} 3>&-
 }
 
 teardown() {
-    kill_agents
-    kill_hub
-    rm -r "${STATE_DIR}"
+    # XXX Beware, BATS_TEST_SKIPPED is not a documented export.
+    if [ -z "${BATS_TEST_SKIPPED}" ]; then
+        kill_hub
+        kill_agents
+        rm -r "${STATE_DIR}"
+    fi
 }
 
 @test "configuration can be read after it is written" {
@@ -31,18 +39,15 @@ teardown() {
     [ "$output" = "/my/old/bin/dir" ]
 }
 
-# TODO: we need to rewrite this test after we work through the design
-#   of how `gpupgrade recover` will work
-#
 @test "configuration persists after hub is killed and restarted" {
-   gpupgrade config set --new-bindir /my/bin/dir
-   kill_hub
+    gpupgrade config set --new-bindir /my/bin/dir
+    kill_hub
 
-   gpupgrade_hub --daemonize
+    gpupgrade_hub --daemonize
 
-   run gpupgrade config show --new-bindir
-   [ "$status" -eq 0 ]
-   [ "$output" = "/my/bin/dir" ]
+    run gpupgrade config show --new-bindir
+    [ "$status" -eq 0 ]
+    [ "$output" = "/my/bin/dir" ]
 }
 
 @test "configuration can be dumped as a whole" {
