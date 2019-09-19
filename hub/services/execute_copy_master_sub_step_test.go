@@ -6,13 +6,11 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
-	"github.com/greenplum-db/gpupgrade/idl"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("UpgradeCopyMasterDataDir", func() {
+var _ = Describe("ExecuteCopyMasterSubStep", func() {
 	var (
 		mockOutput   *cluster.RemoteOutput
 		testExecutor *testhelper.TestExecutor
@@ -27,7 +25,7 @@ var _ = Describe("UpgradeCopyMasterDataDir", func() {
 
 	It("copies the master data directory to each primary host in 6.0 or later", func() {
 		source.Version = dbconn.NewVersion("6.0.0")
-		_, err := hub.UpgradeCopyMasterDataDir(nil, &idl.UpgradeCopyMasterDataDirRequest{})
+		err := hub.ExecuteCopyMasterSubStep()
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(1))
@@ -47,7 +45,7 @@ var _ = Describe("UpgradeCopyMasterDataDir", func() {
 			target.Segments[content] = segment
 		}
 
-		_, err := hub.UpgradeCopyMasterDataDir(nil, &idl.UpgradeCopyMasterDataDirRequest{})
+		err := hub.ExecuteCopyMasterSubStep()
 		Expect(err).ToNot(HaveOccurred())
 
 		Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(1))

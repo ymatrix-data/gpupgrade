@@ -3,36 +3,29 @@ package services
 import (
 	"fmt"
 
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"github.com/greenplum-db/gpupgrade/idl"
-
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/utils/log"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
-func (h *Hub) UpgradeValidateStartCluster(ctx context.Context, in *idl.UpgradeValidateStartClusterRequest) (*idl.UpgradeValidateStartClusterReply, error) {
+func (h *Hub) ExecuteStartTargetClusterSubStep() error {
 	gplog.Info("starting %s", upgradestatus.VALIDATE_START_CLUSTER)
 
 	step, err := h.InitializeStep(upgradestatus.VALIDATE_START_CLUSTER)
 	if err != nil {
 		gplog.Error(err.Error())
-		return &idl.UpgradeValidateStartClusterReply{}, err
+		return err
 	}
 
-	go func() {
-		defer log.WritePanics()
+	err = h.startNewCluster()
+	if err != nil {
+		gplog.Error(err.Error())
+		step.MarkFailed()
+	} else {
+		step.MarkComplete()
+	}
 
-		if err := h.startNewCluster(); err != nil {
-			gplog.Error(err.Error())
-			step.MarkFailed()
-		} else {
-			step.MarkComplete()
-		}
-	}()
-
-	return &idl.UpgradeValidateStartClusterReply{}, nil
+	return nil
 }
 
 func (h *Hub) startNewCluster() error {

@@ -52,8 +52,8 @@ func BuildRootCommand() *cobra.Command {
 
 	root.AddCommand(prepare, config, status, check, version, upgrade)
 	root.AddCommand(initialize())
-
-	prepare.AddCommand(subPrepareInitCluster, subPrepareShutdownClusters)
+	root.AddCommand(execute)
+	root.AddCommand(subUpgradeReconfigurePorts)
 
 	subConfigSet := createConfigSetSubcommand()
 	subConfigShow := createConfigShowSubcommand()
@@ -62,9 +62,6 @@ func BuildRootCommand() *cobra.Command {
 	status.AddCommand(subStatusUpgrade, subStatusConversion)
 
 	check.AddCommand(subCheckObjectCount, subCheckDiskSpace)
-
-	upgrade.AddCommand(subUpgradeConvertMaster, subUpgradeConvertPrimaries, subUpgradeCopyMasterDataDir,
-		subUpgradeValidateStartCluster, subUpgradeReconfigurePorts)
 
 	return root
 }
@@ -253,35 +250,6 @@ var prepare = &cobra.Command{
 	Long:  "subcommands to help you get ready for a gpupgrade",
 }
 
-var subPrepareInitCluster = &cobra.Command{
-	Use:   "init-cluster",
-	Short: "inits the cluster",
-	Long:  "Current assumptions is that the cluster already exists. And will only generate json config file for now.",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		preparer := commanders.NewPreparer(client)
-		err := preparer.InitCluster()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-var subPrepareShutdownClusters = &cobra.Command{
-	Use:   "shutdown-clusters",
-	Short: "shuts down both old and new cluster",
-	Long:  "Current assumptions is both clusters exist.",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		preparer := commanders.NewPreparer(client)
-		err := preparer.ShutdownClusters()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-
 //////////////////////////////////////// STATUS and its subcommands
 var status = &cobra.Command{
 	Use:   "status",
@@ -325,32 +293,6 @@ var upgrade = &cobra.Command{
 	Long:  `starts upgrade process`,
 }
 
-var subUpgradeConvertMaster = &cobra.Command{
-	Use:   "convert-master",
-	Short: "start upgrade process on master",
-	Long:  `start upgrade process on master`,
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		err := commanders.NewUpgrader(client).ConvertMaster()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-var subUpgradeConvertPrimaries = &cobra.Command{
-	Use:   "convert-primaries",
-	Short: "start upgrade process on primary segments",
-	Long:  `start upgrade process on primary segments`,
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		err := commanders.NewUpgrader(client).ConvertPrimaries()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
 var subUpgradeReconfigurePorts = &cobra.Command{
 	Use:   "reconfigure-ports",
 	Short: "Set master port on upgraded cluster to the value from the older cluster",
@@ -358,32 +300,6 @@ var subUpgradeReconfigurePorts = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := connectToHub()
 		err := commanders.NewUpgrader(client).ReconfigurePorts()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-var subUpgradeCopyMasterDataDir = &cobra.Command{
-	Use:   "copy-master",
-	Short: "copy master data directory across cluster",
-	Long:  `copy master data directory across cluster`,
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		err := commanders.NewUpgrader(client).CopyMasterDataDir()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-var subUpgradeValidateStartCluster = &cobra.Command{
-	Use:   "validate-start-cluster",
-	Short: "Attempt to start upgraded cluster",
-	Long:  `Use gpstart in order to validate that the new cluster can successfully transition from a stopped to running state`,
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		err := commanders.NewUpgrader(client).ValidateStartCluster()
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)
@@ -445,4 +361,19 @@ func initialize() *cobra.Command {
 	subInit.MarkPersistentFlagRequired("old-port")
 
 	return subInit
+}
+
+//////////////////////////////////////// Execute
+var execute = &cobra.Command{
+	Use:   "execute",
+	Short: "executes the upgrade",
+	Long:  "Executes the upgrade",
+	Run: func(cmd *cobra.Command, args []string) {
+		client := connectToHub()
+		err := commanders.Execute(client)
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}
+	},
 }

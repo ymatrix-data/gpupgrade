@@ -116,19 +116,14 @@ outputContains() {
     kill_hub
 
     commands=(
-        'prepare shutdown-clusters'
-        'prepare init-cluster'
         'config set --old-bindir /dummy'
         'config show'
         'check object-count'
         'check disk-space'
         'status upgrade'
         'status conversion'
-        'upgrade convert-master'
-        'upgrade convert-primaries'
-        'upgrade copy-master'
-        'upgrade validate-start-cluster'
-        'upgrade reconfigure-ports'
+        'execute'
+        'reconfigure-ports'
     )
 
     # We don't want to have to wait for the default one-second timeout for all

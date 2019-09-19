@@ -19,13 +19,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (h *Hub) PrepareInitCluster(ctx context.Context, in *idl.PrepareInitClusterRequest) (*idl.PrepareInitClusterReply, error) {
+func (h *Hub) ExecuteInitTargetClusterSubStep() error {
 	gplog.Info("starting %s", upgradestatus.INIT_CLUSTER)
 
 	step, err := h.InitializeStep(upgradestatus.INIT_CLUSTER)
 	if err != nil {
 		gplog.Error(err.Error())
-		return &idl.PrepareInitClusterReply{}, err
+		return err
 	}
 
 	err = h.CreateTargetCluster()
@@ -36,21 +36,21 @@ func (h *Hub) PrepareInitCluster(ctx context.Context, in *idl.PrepareInitCluster
 		step.MarkComplete()
 	}
 
-	return &idl.PrepareInitClusterReply{}, err
+	return err
 }
 
 func (h *Hub) CreateTargetCluster() error {
 	sourceDBConn := db.NewDBConn("localhost", int(h.source.MasterPort()), "template1")
 
-	targetDBConn, err := h.InitCluster(sourceDBConn)
+	targetDBConn, err := h.InitTargetCluster(sourceDBConn)
 	if err != nil {
-		return errors.Wrap(err, "could not initialize the new cluster")
+		return errors.Wrap(err, "failed to connect to old database")
 	}
 
 	return ReloadAndCommitCluster(h.target, targetDBConn)
 }
 
-func (h *Hub) InitCluster(sourceDBConn *dbconn.DBConn) (*dbconn.DBConn, error) {
+func (h *Hub) InitTargetCluster(sourceDBConn *dbconn.DBConn) (*dbconn.DBConn, error) {
 	err := sourceDBConn.Connect(1)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not connect to database")
@@ -85,7 +85,7 @@ func (h *Hub) InitCluster(sourceDBConn *dbconn.DBConn) (*dbconn.DBConn, error) {
 		return nil, err
 	}
 
-	err = h.RunInitsystemForNewCluster(gpinitsystemFilepath)
+	err = h.RunInitsystemForTargetCluster(gpinitsystemFilepath)
 	if err != nil {
 		return nil, err
 	}
@@ -123,13 +123,6 @@ func (h *Hub) CreateInitialInitsystemConfig() ([]string, error) {
 	gplog.Info("Data Dir: %s", sourceDataDir)
 	gplog.Info("segPrefix: %v", segPrefix)
 	gpinitsystemConfig = append(gpinitsystemConfig, "SEG_PREFIX="+segPrefix, "TRUSTED_SHELL=ssh")
-
-	if h.source.Version.Before("5.0.0") {
-		// FIXME: we need to decide how to deal with HEAP_CHECKSUM. At the
-		// moment, we assume that 4.x has checksums disabled, and 5.x and later
-		// have checksums enabled.
-		gpinitsystemConfig = append(gpinitsystemConfig, "HEAP_CHECKSUM=off")
-	}
 
 	return gpinitsystemConfig, nil
 }
@@ -194,7 +187,7 @@ func (h *Hub) CreateAllDataDirectories(agentConns []*Connection, segmentDataDirM
 	return nil
 }
 
-func (h *Hub) RunInitsystemForNewCluster(gpinitsystemFilepath string) error {
+func (h *Hub) RunInitsystemForTargetCluster(gpinitsystemFilepath string) error {
 	// gpinitsystem the new cluster
 	gphome := filepath.Dir(path.Clean(h.target.BinDir)) //works around https://github.com/golang/go/issues/4837 in go10.4
 	cmdStr := fmt.Sprintf("source %s/greenplum_path.sh; %s/gpinitsystem -a -I %s",

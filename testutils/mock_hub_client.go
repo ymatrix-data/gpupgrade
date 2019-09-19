@@ -9,16 +9,17 @@ import (
 )
 
 type MockHubClient struct {
-	UpgradeCopyMasterDataDirRequest *idl.UpgradeCopyMasterDataDirRequest
+	ExecuteRequest *idl.ExecuteRequest
 	UpgradeReconfigurePortsRequest  *idl.UpgradeReconfigurePortsRequest
-
-	UpgradeConvertPrimariesRequest  *idl.UpgradeConvertPrimariesRequest
-	UpgradeConvertPrimariesResponse *idl.UpgradeConvertPrimariesReply
 	Err                             error
 }
 
 func NewMockHubClient() *MockHubClient {
 	return &MockHubClient{}
+}
+
+func (h *MockHubClient) Execute (ctx context.Context, in *idl.ExecuteRequest, opts ...grpc.CallOption)  (idl.CliToHub_ExecuteClient, error) {
+	return nil, nil
 }
 
 func (m *MockHubClient) StatusUpgrade(ctx context.Context, in *idl.StatusUpgradeRequest, opts ...grpc.CallOption) (*idl.StatusUpgradeReply, error) {
@@ -41,32 +42,8 @@ func (m *MockHubClient) CheckDiskSpace(ctx context.Context, in *idl.CheckDiskSpa
 	return nil, nil
 }
 
-func (m *MockHubClient) PrepareInitCluster(ctx context.Context, in *idl.PrepareInitClusterRequest, opts ...grpc.CallOption) (*idl.PrepareInitClusterReply, error) {
-	return nil, nil
-}
-
-func (m *MockHubClient) PrepareShutdownClusters(ctx context.Context, in *idl.PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*idl.PrepareShutdownClustersReply, error) {
-	return nil, nil
-}
-
-func (m *MockHubClient) UpgradeConvertMaster(ctx context.Context, in *idl.UpgradeConvertMasterRequest, opts ...grpc.CallOption) (idl.CliToHub_UpgradeConvertMasterClient, error) {
-	return nil, nil
-}
-
-func (m *MockHubClient) UpgradeCopyMasterDataDir(ctx context.Context, in *idl.UpgradeCopyMasterDataDirRequest, opts ...grpc.CallOption) (*idl.UpgradeCopyMasterDataDirReply, error) {
-	m.UpgradeCopyMasterDataDirRequest = in
-
-	return &idl.UpgradeCopyMasterDataDirReply{}, m.Err
-}
-
-func (m *MockHubClient) UpgradeValidateStartCluster(ctx context.Context, in *idl.UpgradeValidateStartClusterRequest, opts ...grpc.CallOption) (*idl.UpgradeValidateStartClusterReply, error) {
-	return nil, nil
-}
-
-func (m *MockHubClient) UpgradeConvertPrimaries(ctx context.Context, in *idl.UpgradeConvertPrimariesRequest, opts ...grpc.CallOption) (*idl.UpgradeConvertPrimariesReply, error) {
-	m.UpgradeConvertPrimariesRequest = in
-
-	return m.UpgradeConvertPrimariesResponse, m.Err
+func (m *MockHubClient) ExecuteInitClusterSubStep() error {
+	return nil
 }
 
 func (m *MockHubClient) UpgradeReconfigurePorts(ctx context.Context, in *idl.UpgradeReconfigurePortsRequest, opts ...grpc.CallOption) (*idl.UpgradeReconfigurePortsReply, error) {

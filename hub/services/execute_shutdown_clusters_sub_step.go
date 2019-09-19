@@ -3,23 +3,20 @@ package services
 import (
 	"fmt"
 
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/utils"
-	"golang.org/x/net/context"
-
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
+	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
 
-func (h *Hub) PrepareShutdownClusters(ctx context.Context, in *idl.PrepareShutdownClustersRequest) (*idl.PrepareShutdownClustersReply, error) {
+func (h *Hub) ExecuteShutdownClustersSubStep() error {
 	gplog.Info("starting %s", upgradestatus.SHUTDOWN_CLUSTERS)
 
 	step, err := h.InitializeStep(upgradestatus.SHUTDOWN_CLUSTERS)
 	if err != nil {
 		gplog.Error(err.Error())
-		return &idl.PrepareShutdownClustersReply{}, err
+		return err
 	}
 
 	err = h.ShutdownClusters()
@@ -30,7 +27,7 @@ func (h *Hub) PrepareShutdownClusters(ctx context.Context, in *idl.PrepareShutdo
 		step.MarkComplete()
 	}
 
-	return &idl.PrepareShutdownClustersReply{}, err
+	return err
 }
 
 func (h *Hub) ShutdownClusters() error {

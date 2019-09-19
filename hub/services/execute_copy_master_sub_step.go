@@ -13,32 +13,28 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/utils/log"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/net/context"
 )
 
-func (h *Hub) UpgradeCopyMasterDataDir(ctx context.Context, in *idl.UpgradeCopyMasterDataDirRequest) (*idl.UpgradeCopyMasterDataDirReply, error) {
+func (h *Hub) ExecuteCopyMasterSubStep() error {
 	gplog.Info("starting %s", upgradestatus.COPY_MASTER)
 
 	step, err := h.InitializeStep(upgradestatus.COPY_MASTER)
 	if err != nil {
 		gplog.Error(err.Error())
-		return &idl.UpgradeCopyMasterDataDirReply{}, err
+		return err
 	}
 
-	go func() {
-		defer log.WritePanics()
+	err = h.copyMasterDataDir()
+	if err != nil {
+		gplog.Error(err.Error())
+		step.MarkFailed()
+	} else {
+		step.MarkComplete()
+	}
 
-		if err := h.copyMasterDataDir(); err != nil {
-			gplog.Error(err.Error())
-			step.MarkFailed()
-		} else {
-			step.MarkComplete()
-		}
-	}()
-
-	return &idl.UpgradeCopyMasterDataDirReply{}, nil
+	return err
 }
 
 func (h *Hub) copyMasterDataDir() error {

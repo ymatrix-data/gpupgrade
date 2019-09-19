@@ -119,40 +119,6 @@ make_trampoline_directories "${hosts[@]}"
 time ssh mdw GPHOME_OLD="${GPHOME_OLD}" GPHOME_NEW="${GPHOME_NEW}" bash <<"EOF"
     set -eux -o pipefail
 
-    wait_for_step() {
-        local step="$1"
-        local timeout=${2:-60} # default to 60 seconds
-        local done=0
-
-        for i in $(seq $timeout); do
-            local output=$(gpupgrade status upgrade)
-            if [ "$?" -ne "0" ]; then
-                echo "$output"
-                exit 1
-            fi
-
-            local status=$(grep "$step" <<< "$output")
-
-            if [[ $status = *FAILED* ]]; then
-                echo "$output"
-                exit 1
-            fi
-
-            if [[ $status = *"COMPLETE - $step"* ]]; then
-                done=1
-                echo "$status"
-                break
-            fi
-
-            sleep 1
-        done
-
-        if (( ! $done )); then
-            echo "ERROR: timed out waiting for '${step}' to complete"
-            exit 1
-        fi
-    }
-
     dump_sql() {
         local port=$1
         local dumpfile=$2
@@ -186,22 +152,9 @@ time ssh mdw GPHOME_OLD="${GPHOME_OLD}" GPHOME_NEW="${GPHOME_NEW}" bash <<"EOF"
               --old-bindir ${GPHOME_OLD}/fake-bin \
               --old-port 5432
 
-    gpupgrade prepare init-cluster
-    wait_for_step "Initialize new cluster"
+    gpupgrade execute
 
-    gpupgrade prepare shutdown-clusters
-    wait_for_step "Shutdown clusters"
-
-    gpupgrade upgrade convert-master
-
-    gpupgrade upgrade copy-master
-    wait_for_step "Copy master data directory to segments"
-
-    gpupgrade upgrade convert-primaries
-    wait_for_step "Run pg_upgrade on primaries" 1200 # twenty minute timeout
-
-    gpupgrade upgrade validate-start-cluster
-    wait_for_step "Validate the upgraded cluster can start up"
+    gpupgrade reconfigure-ports
 
     dump_sql 5433 /tmp/new.sql
     if ! compare_dumps /tmp/old.sql /tmp/new.sql; then

@@ -340,6 +340,23 @@ _gpupgrade_config()
     noun_aliases=()
 }
 
+_gpupgrade_execute()
+{
+    last_command="gpupgrade_execute"
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _gpupgrade_initialize()
 {
     last_command="gpupgrade_initialize"
@@ -363,46 +380,10 @@ _gpupgrade_initialize()
     noun_aliases=()
 }
 
-_gpupgrade_prepare_init-cluster()
+_gpupgrade_reconfigure-ports()
 {
-    last_command="gpupgrade_prepare_init-cluster"
+    last_command="gpupgrade_reconfigure-ports"
     commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_prepare_shutdown-clusters()
-{
-    last_command="gpupgrade_prepare_shutdown-clusters"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_prepare()
-{
-    last_command="gpupgrade_prepare"
-    commands=()
-    commands+=("init-cluster")
-    commands+=("shutdown-clusters")
 
     flags=()
     two_word_flags=()
@@ -469,113 +450,6 @@ _gpupgrade_status()
     noun_aliases=()
 }
 
-_gpupgrade_upgrade_convert-master()
-{
-    last_command="gpupgrade_upgrade_convert-master"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_upgrade_convert-primaries()
-{
-    last_command="gpupgrade_upgrade_convert-primaries"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_upgrade_copy-master()
-{
-    last_command="gpupgrade_upgrade_copy-master"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_upgrade_reconfigure-ports()
-{
-    last_command="gpupgrade_upgrade_reconfigure-ports"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_upgrade_validate-start-cluster()
-{
-    last_command="gpupgrade_upgrade_validate-start-cluster"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_upgrade()
-{
-    last_command="gpupgrade_upgrade"
-    commands=()
-    commands+=("convert-master")
-    commands+=("convert-primaries")
-    commands+=("copy-master")
-    commands+=("reconfigure-ports")
-    commands+=("validate-start-cluster")
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
 _gpupgrade_version()
 {
     last_command="gpupgrade_version"
@@ -599,10 +473,10 @@ _gpupgrade()
     commands=()
     commands+=("check")
     commands+=("config")
+    commands+=("execute")
     commands+=("initialize")
-    commands+=("prepare")
+    commands+=("reconfigure-ports")
     commands+=("status")
-    commands+=("upgrade")
     commands+=("version")
 
     flags=()

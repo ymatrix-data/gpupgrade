@@ -162,7 +162,7 @@ var _ = Describe("ConvertMaster", func() {
 		// We can't rely on each write from the subprocess to result in exactly
 		// one call to stream.Send(). Instead, concatenate the byte buffers as
 		// they are sent and compare them at the end.
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		var stdout bytes.Buffer
 		var stderr bytes.Buffer
 
@@ -200,7 +200,7 @@ var _ = Describe("ConvertMaster", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		defer ctrl.Finish()
 
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			AnyTimes()
@@ -236,7 +236,7 @@ var _ = Describe("ConvertMaster", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		defer ctrl.Finish()
 
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			AnyTimes()
@@ -255,7 +255,7 @@ var _ = Describe("ConvertMaster", func() {
 		defer ctrl.Finish()
 
 		// Return an error during Send.
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			Return(errors.New("error during send")).
@@ -277,7 +277,7 @@ var _ = Describe("ConvertMaster", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		defer ctrl.Finish()
 
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			AnyTimes()
@@ -323,7 +323,7 @@ var _ = Describe("ConvertMaster", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		defer ctrl.Finish()
 
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			AnyTimes()
@@ -346,7 +346,7 @@ var _ = Describe("ConvertMaster", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		defer ctrl.Finish()
 
-		mockStream := mock_idl.NewMockCliToHub_UpgradeConvertMasterServer(ctrl)
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
 		mockStream.EXPECT().
 			Send(gomock.Any()).
 			AnyTimes()

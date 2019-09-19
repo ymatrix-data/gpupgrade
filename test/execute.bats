@@ -3,7 +3,7 @@
 load helpers
 
 setup() {
-    STATE_DIR=`mktemp -d`
+    STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
     kill_hub
     kill_agents
@@ -54,7 +54,7 @@ delete_cluster() {
     yes | PGPORT="$port" "$gpdeletesystem" -fd "$masterdir"
 }
 
-@test "init-cluster executes gpinitsystem based on the source cluster" {
+@test "gpupgrade execute runs gpinitsystem based on the source cluster" {
     skip "this test can't work until we fix hub and agent PATH lookup"
     skip_if_no_gpdb
 
@@ -84,7 +84,8 @@ delete_cluster() {
         --old-bindir "$GPHOME/bin" \
         --new-bindir "$GPHOME/bin" \
         --old-port "$PGPORT" 3>&-
-    gpupgrade prepare init-cluster
+
+    gpupgrade execute
 
     # Make sure we clean up during teardown().
     NEW_CLUSTER="$newport $newmasterdir"

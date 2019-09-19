@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("PrepareShutdownClusters", func() {
+var _ = Describe("ExecuteShutdownClustersSubStep", func() {
 	BeforeEach(func() {
 		utils.System.RemoveAll = func(s string) error { return nil }
 		utils.System.MkdirAll = func(s string, perm os.FileMode) error { return nil }

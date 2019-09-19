@@ -18,7 +18,7 @@ import (
 // Allow exec.Command to be mocked out by exectest.NewCommand.
 var execCommand = exec.Command
 
-func (h *Hub) UpgradeConvertMaster(in *idl.UpgradeConvertMasterRequest, stream idl.CliToHub_UpgradeConvertMasterServer) error {
+func (h *Hub) ExecuteUpgradeMasterSubStep(stream idl.CliToHub_ExecuteServer) error {
 	gplog.Info("starting %s", upgradestatus.CONVERT_MASTER)
 
 	step, err := h.InitializeStep(upgradestatus.CONVERT_MASTER)
@@ -28,7 +28,6 @@ func (h *Hub) UpgradeConvertMaster(in *idl.UpgradeConvertMasterRequest, stream i
 	}
 
 	err = h.UpgradeMaster(stream)
-
 	if err != nil {
 		gplog.Error(err.Error())
 		step.MarkFailed()
@@ -39,7 +38,7 @@ func (h *Hub) UpgradeConvertMaster(in *idl.UpgradeConvertMasterRequest, stream i
 	return err
 }
 
-func (h *Hub) UpgradeMaster(stream idl.CliToHub_UpgradeConvertMasterServer) error {
+func (h *Hub) UpgradeMaster(stream idl.CliToHub_ExecuteServer) error {
 	// Make sure our working directory exists.
 	wd := utils.MasterPGUpgradeDirectory(h.conf.StateDir)
 	err := utils.System.MkdirAll(wd, 0700)
@@ -65,12 +64,12 @@ func (h *Hub) UpgradeMaster(stream idl.CliToHub_UpgradeConvertMasterServer) erro
 // io.Writer (in case the gRPC stream closes) and safely serialize any
 // simultaneous writes.
 type multiplexedStream struct {
-	stream idl.CliToHub_UpgradeConvertMasterServer
+	stream idl.CliToHub_ExecuteServer
 	writer io.Writer
 	mutex  sync.Mutex
 }
 
-func newMultiplexedStream(stream idl.CliToHub_UpgradeConvertMasterServer, writer io.Writer) *multiplexedStream {
+func newMultiplexedStream(stream idl.CliToHub_ExecuteServer, writer io.Writer) *multiplexedStream {
 	return &multiplexedStream{
 		stream: stream,
 		writer: writer,
@@ -130,7 +129,7 @@ type clusterPair struct {
 // Errors when writing to the io.Writer are fatal, but errors encountered during
 // gRPC streaming are logged and otherwise ignored. The pg_upgrade execution
 // will continue even if the client disconnects.
-func (c clusterPair) ConvertMaster(stream idl.CliToHub_UpgradeConvertMasterServer, out io.Writer, wd string) error {
+func (c clusterPair) ConvertMaster(stream idl.CliToHub_ExecuteServer, out io.Writer, wd string) error {
 	mux := newMultiplexedStream(stream, out)
 
 	path := filepath.Join(c.Target.BinDir, "pg_upgrade")

@@ -148,7 +148,7 @@ var _ = Describe("Hub prepare init-cluster", func() {
 		})
 	})
 
-	Describe("RunInitsystemForNewCluster", func() {
+	Describe("RunInitsystemForTargetCluster", func() {
 		var (
 			stdout *gbytes.Buffer
 		)
@@ -159,7 +159,7 @@ var _ = Describe("Hub prepare init-cluster", func() {
 
 		It("should use executables in the source's bindir even if bindir has a trailing slash", func() {
 			target.BinDir = target.BinDir + string(os.PathSeparator)
-			err := hub.RunInitsystemForNewCluster("filepath")
+			err := hub.RunInitsystemForTargetCluster("filepath")
 			Expect(err).To(BeNil())
 
 			gphome := filepath.Dir(path.Clean(target.BinDir)) //works around https://github.com/golang/go/issues/4837(in go10.4)
@@ -169,14 +169,14 @@ var _ = Describe("Hub prepare init-cluster", func() {
 
 		It("successfully runs gpinitsystem", func() {
 			testExecutor.LocalError = errors.New("exit status 1")
-			err := hub.RunInitsystemForNewCluster("filepath")
+			err := hub.RunInitsystemForTargetCluster("filepath")
 
 			Expect(err).To(BeNil())
 			testhelper.ExpectRegexp(stdout, "[WARNING]:-gpinitsystem completed with warnings")
 		})
 
 		It("should use executables in the source's bindir", func() {
-			err := hub.RunInitsystemForNewCluster("filepath")
+			err := hub.RunInitsystemForTargetCluster("filepath")
 			Expect(err).To(BeNil())
 
 			gphome := filepath.Dir(path.Clean(target.BinDir)) //works around https://github.com/golang/go/issues/4837(in go10.4)
@@ -188,7 +188,7 @@ var _ = Describe("Hub prepare init-cluster", func() {
 			testExecutor.LocalError = errors.New("exit status 2")
 			testExecutor.LocalOutput = "some output"
 
-			err := hub.RunInitsystemForNewCluster("filepath")
+			err := hub.RunInitsystemForTargetCluster("filepath")
 			Expect(err.Error()).To(Equal("gpinitsystem failed: some output: exit status 2"))
 		})
 
@@ -196,7 +196,7 @@ var _ = Describe("Hub prepare init-cluster", func() {
 			testExecutor.LocalError = errors.New("exit status 127")
 			testExecutor.LocalOutput = "some output"
 
-			err := hub.RunInitsystemForNewCluster("filepath")
+			err := hub.RunInitsystemForTargetCluster("filepath")
 			Expect(err.Error()).To(Equal("gpinitsystem failed: some output: exit status 127"))
 		})
 	})

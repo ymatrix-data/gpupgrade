@@ -8,13 +8,8 @@ service CliToHub {
     rpc CheckObjectCount(CheckObjectCountRequest) returns (CheckObjectCountReply) {}
     rpc CheckVersion (CheckVersionRequest) returns (CheckVersionReply) {}
     rpc CheckDiskSpace (CheckDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
-    rpc PrepareInitCluster (PrepareInitClusterRequest) returns (PrepareInitClusterReply) {}
     rpc Initialize(InitializeRequest) returns (InitializeReply) {}
-    rpc PrepareShutdownClusters (PrepareShutdownClustersRequest) returns (PrepareShutdownClustersReply) {}
-    rpc UpgradeConvertMaster (UpgradeConvertMasterRequest) returns (stream Chunk) {}
-    rpc UpgradeCopyMasterDataDir (UpgradeCopyMasterDataDirRequest) returns (UpgradeCopyMasterDataDirReply) {}
-    rpc UpgradeValidateStartCluster (UpgradeValidateStartClusterRequest) returns (UpgradeValidateStartClusterReply) {}
-    rpc UpgradeConvertPrimaries (UpgradeConvertPrimariesRequest) returns (UpgradeConvertPrimariesReply) {}
+    rpc Execute(ExecuteRequest) returns (stream Chunk) {}
     rpc UpgradeReconfigurePorts (UpgradeReconfigurePortsRequest) returns (UpgradeReconfigurePortsReply) {}
     rpc SetConfig (SetConfigRequest) returns (SetConfigReply) {}
     rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
@@ -23,21 +18,14 @@ service CliToHub {
 message UpgradeReconfigurePortsRequest {}
 message UpgradeReconfigurePortsReply {}
 
-message UpgradeConvertPrimariesRequest {}
-message UpgradeConvertPrimariesReply {}
-
-message UpgradeCopyMasterDataDirRequest {}
-message UpgradeCopyMasterDataDirReply {}
-
-message UpgradeValidateStartClusterRequest {}
-message UpgradeValidateStartClusterReply {}
-
 message InitializeRequest {
     string oldBinDir = 1;
     string newBinDir = 2;
     int32 oldPort = 3;
 }
 message InitializeReply {}
+
+message ExecuteRequest {}
 
 message StatusConversionRequest {}
 
@@ -107,13 +95,9 @@ message CheckDiskSpaceReply {
     repeated string SegmentFileSysUsage = 1;
 }
 
-message PrepareShutdownClustersRequest {}
-message PrepareShutdownClustersReply {}
-
 message PrepareInitClusterRequest {}
 message PrepareInitClusterReply {}
 
-message UpgradeConvertMasterRequest {}
 message Chunk {
   bytes buffer = 1;
   enum Type {

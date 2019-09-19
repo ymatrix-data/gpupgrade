@@ -67,7 +67,7 @@ func (x UpgradeSteps) String() string {
 	return proto.EnumName(UpgradeSteps_name, int32(x))
 }
 func (UpgradeSteps) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{0}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{0}
 }
 
 type StepStatus int32
@@ -99,7 +99,7 @@ func (x StepStatus) String() string {
 	return proto.EnumName(StepStatus_name, int32(x))
 }
 func (StepStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{1}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{1}
 }
 
 type Chunk_Type int32
@@ -125,7 +125,7 @@ func (x Chunk_Type) String() string {
 	return proto.EnumName(Chunk_Type_name, int32(x))
 }
 func (Chunk_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{28, 0}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{20, 0}
 }
 
 type UpgradeReconfigurePortsRequest struct {
@@ -138,7 +138,7 @@ func (m *UpgradeReconfigurePortsRequest) Reset()         { *m = UpgradeReconfigu
 func (m *UpgradeReconfigurePortsRequest) String() string { return proto.CompactTextString(m) }
 func (*UpgradeReconfigurePortsRequest) ProtoMessage()    {}
 func (*UpgradeReconfigurePortsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{0}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{0}
 }
 func (m *UpgradeReconfigurePortsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpgradeReconfigurePortsRequest.Unmarshal(m, b)
@@ -168,7 +168,7 @@ func (m *UpgradeReconfigurePortsReply) Reset()         { *m = UpgradeReconfigure
 func (m *UpgradeReconfigurePortsReply) String() string { return proto.CompactTextString(m) }
 func (*UpgradeReconfigurePortsReply) ProtoMessage()    {}
 func (*UpgradeReconfigurePortsReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{1}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{1}
 }
 func (m *UpgradeReconfigurePortsReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpgradeReconfigurePortsReply.Unmarshal(m, b)
@@ -188,186 +188,6 @@ func (m *UpgradeReconfigurePortsReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpgradeReconfigurePortsReply proto.InternalMessageInfo
 
-type UpgradeConvertPrimariesRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeConvertPrimariesRequest) Reset()         { *m = UpgradeConvertPrimariesRequest{} }
-func (m *UpgradeConvertPrimariesRequest) String() string { return proto.CompactTextString(m) }
-func (*UpgradeConvertPrimariesRequest) ProtoMessage()    {}
-func (*UpgradeConvertPrimariesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{2}
-}
-func (m *UpgradeConvertPrimariesRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeConvertPrimariesRequest.Unmarshal(m, b)
-}
-func (m *UpgradeConvertPrimariesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeConvertPrimariesRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeConvertPrimariesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeConvertPrimariesRequest.Merge(dst, src)
-}
-func (m *UpgradeConvertPrimariesRequest) XXX_Size() int {
-	return xxx_messageInfo_UpgradeConvertPrimariesRequest.Size(m)
-}
-func (m *UpgradeConvertPrimariesRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeConvertPrimariesRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeConvertPrimariesRequest proto.InternalMessageInfo
-
-type UpgradeConvertPrimariesReply struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeConvertPrimariesReply) Reset()         { *m = UpgradeConvertPrimariesReply{} }
-func (m *UpgradeConvertPrimariesReply) String() string { return proto.CompactTextString(m) }
-func (*UpgradeConvertPrimariesReply) ProtoMessage()    {}
-func (*UpgradeConvertPrimariesReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{3}
-}
-func (m *UpgradeConvertPrimariesReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeConvertPrimariesReply.Unmarshal(m, b)
-}
-func (m *UpgradeConvertPrimariesReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeConvertPrimariesReply.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeConvertPrimariesReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeConvertPrimariesReply.Merge(dst, src)
-}
-func (m *UpgradeConvertPrimariesReply) XXX_Size() int {
-	return xxx_messageInfo_UpgradeConvertPrimariesReply.Size(m)
-}
-func (m *UpgradeConvertPrimariesReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeConvertPrimariesReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeConvertPrimariesReply proto.InternalMessageInfo
-
-type UpgradeCopyMasterDataDirRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeCopyMasterDataDirRequest) Reset()         { *m = UpgradeCopyMasterDataDirRequest{} }
-func (m *UpgradeCopyMasterDataDirRequest) String() string { return proto.CompactTextString(m) }
-func (*UpgradeCopyMasterDataDirRequest) ProtoMessage()    {}
-func (*UpgradeCopyMasterDataDirRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{4}
-}
-func (m *UpgradeCopyMasterDataDirRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirRequest.Unmarshal(m, b)
-}
-func (m *UpgradeCopyMasterDataDirRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeCopyMasterDataDirRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeCopyMasterDataDirRequest.Merge(dst, src)
-}
-func (m *UpgradeCopyMasterDataDirRequest) XXX_Size() int {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirRequest.Size(m)
-}
-func (m *UpgradeCopyMasterDataDirRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeCopyMasterDataDirRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeCopyMasterDataDirRequest proto.InternalMessageInfo
-
-type UpgradeCopyMasterDataDirReply struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeCopyMasterDataDirReply) Reset()         { *m = UpgradeCopyMasterDataDirReply{} }
-func (m *UpgradeCopyMasterDataDirReply) String() string { return proto.CompactTextString(m) }
-func (*UpgradeCopyMasterDataDirReply) ProtoMessage()    {}
-func (*UpgradeCopyMasterDataDirReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{5}
-}
-func (m *UpgradeCopyMasterDataDirReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirReply.Unmarshal(m, b)
-}
-func (m *UpgradeCopyMasterDataDirReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirReply.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeCopyMasterDataDirReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeCopyMasterDataDirReply.Merge(dst, src)
-}
-func (m *UpgradeCopyMasterDataDirReply) XXX_Size() int {
-	return xxx_messageInfo_UpgradeCopyMasterDataDirReply.Size(m)
-}
-func (m *UpgradeCopyMasterDataDirReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeCopyMasterDataDirReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeCopyMasterDataDirReply proto.InternalMessageInfo
-
-type UpgradeValidateStartClusterRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeValidateStartClusterRequest) Reset()         { *m = UpgradeValidateStartClusterRequest{} }
-func (m *UpgradeValidateStartClusterRequest) String() string { return proto.CompactTextString(m) }
-func (*UpgradeValidateStartClusterRequest) ProtoMessage()    {}
-func (*UpgradeValidateStartClusterRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{6}
-}
-func (m *UpgradeValidateStartClusterRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeValidateStartClusterRequest.Unmarshal(m, b)
-}
-func (m *UpgradeValidateStartClusterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeValidateStartClusterRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeValidateStartClusterRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeValidateStartClusterRequest.Merge(dst, src)
-}
-func (m *UpgradeValidateStartClusterRequest) XXX_Size() int {
-	return xxx_messageInfo_UpgradeValidateStartClusterRequest.Size(m)
-}
-func (m *UpgradeValidateStartClusterRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeValidateStartClusterRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeValidateStartClusterRequest proto.InternalMessageInfo
-
-type UpgradeValidateStartClusterReply struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeValidateStartClusterReply) Reset()         { *m = UpgradeValidateStartClusterReply{} }
-func (m *UpgradeValidateStartClusterReply) String() string { return proto.CompactTextString(m) }
-func (*UpgradeValidateStartClusterReply) ProtoMessage()    {}
-func (*UpgradeValidateStartClusterReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{7}
-}
-func (m *UpgradeValidateStartClusterReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeValidateStartClusterReply.Unmarshal(m, b)
-}
-func (m *UpgradeValidateStartClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeValidateStartClusterReply.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeValidateStartClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeValidateStartClusterReply.Merge(dst, src)
-}
-func (m *UpgradeValidateStartClusterReply) XXX_Size() int {
-	return xxx_messageInfo_UpgradeValidateStartClusterReply.Size(m)
-}
-func (m *UpgradeValidateStartClusterReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeValidateStartClusterReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeValidateStartClusterReply proto.InternalMessageInfo
-
 type InitializeRequest struct {
 	OldBinDir            string   `protobuf:"bytes,1,opt,name=oldBinDir" json:"oldBinDir,omitempty"`
 	NewBinDir            string   `protobuf:"bytes,2,opt,name=newBinDir" json:"newBinDir,omitempty"`
@@ -381,7 +201,7 @@ func (m *InitializeRequest) Reset()         { *m = InitializeRequest{} }
 func (m *InitializeRequest) String() string { return proto.CompactTextString(m) }
 func (*InitializeRequest) ProtoMessage()    {}
 func (*InitializeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{8}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{2}
 }
 func (m *InitializeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_InitializeRequest.Unmarshal(m, b)
@@ -432,7 +252,7 @@ func (m *InitializeReply) Reset()         { *m = InitializeReply{} }
 func (m *InitializeReply) String() string { return proto.CompactTextString(m) }
 func (*InitializeReply) ProtoMessage()    {}
 func (*InitializeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{9}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{3}
 }
 func (m *InitializeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_InitializeReply.Unmarshal(m, b)
@@ -452,6 +272,36 @@ func (m *InitializeReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_InitializeReply proto.InternalMessageInfo
 
+type ExecuteRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ExecuteRequest) Reset()         { *m = ExecuteRequest{} }
+func (m *ExecuteRequest) String() string { return proto.CompactTextString(m) }
+func (*ExecuteRequest) ProtoMessage()    {}
+func (*ExecuteRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{4}
+}
+func (m *ExecuteRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExecuteRequest.Unmarshal(m, b)
+}
+func (m *ExecuteRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExecuteRequest.Marshal(b, m, deterministic)
+}
+func (dst *ExecuteRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExecuteRequest.Merge(dst, src)
+}
+func (m *ExecuteRequest) XXX_Size() int {
+	return xxx_messageInfo_ExecuteRequest.Size(m)
+}
+func (m *ExecuteRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExecuteRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExecuteRequest proto.InternalMessageInfo
+
 type StatusConversionRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -462,7 +312,7 @@ func (m *StatusConversionRequest) Reset()         { *m = StatusConversionRequest
 func (m *StatusConversionRequest) String() string { return proto.CompactTextString(m) }
 func (*StatusConversionRequest) ProtoMessage()    {}
 func (*StatusConversionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{10}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{5}
 }
 func (m *StatusConversionRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusConversionRequest.Unmarshal(m, b)
@@ -496,7 +346,7 @@ func (m *PrimaryStatus) Reset()         { *m = PrimaryStatus{} }
 func (m *PrimaryStatus) String() string { return proto.CompactTextString(m) }
 func (*PrimaryStatus) ProtoMessage()    {}
 func (*PrimaryStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{11}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{6}
 }
 func (m *PrimaryStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PrimaryStatus.Unmarshal(m, b)
@@ -555,7 +405,7 @@ func (m *StatusConversionReply) Reset()         { *m = StatusConversionReply{} }
 func (m *StatusConversionReply) String() string { return proto.CompactTextString(m) }
 func (*StatusConversionReply) ProtoMessage()    {}
 func (*StatusConversionReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{12}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{7}
 }
 func (m *StatusConversionReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusConversionReply.Unmarshal(m, b)
@@ -592,7 +442,7 @@ func (m *StatusUpgradeRequest) Reset()         { *m = StatusUpgradeRequest{} }
 func (m *StatusUpgradeRequest) String() string { return proto.CompactTextString(m) }
 func (*StatusUpgradeRequest) ProtoMessage()    {}
 func (*StatusUpgradeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{13}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{8}
 }
 func (m *StatusUpgradeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusUpgradeRequest.Unmarshal(m, b)
@@ -623,7 +473,7 @@ func (m *StatusUpgradeReply) Reset()         { *m = StatusUpgradeReply{} }
 func (m *StatusUpgradeReply) String() string { return proto.CompactTextString(m) }
 func (*StatusUpgradeReply) ProtoMessage()    {}
 func (*StatusUpgradeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{14}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{9}
 }
 func (m *StatusUpgradeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusUpgradeReply.Unmarshal(m, b)
@@ -662,7 +512,7 @@ func (m *UpgradeStepStatus) Reset()         { *m = UpgradeStepStatus{} }
 func (m *UpgradeStepStatus) String() string { return proto.CompactTextString(m) }
 func (*UpgradeStepStatus) ProtoMessage()    {}
 func (*UpgradeStepStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{15}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{10}
 }
 func (m *UpgradeStepStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpgradeStepStatus.Unmarshal(m, b)
@@ -709,7 +559,7 @@ func (m *CountPerDb) Reset()         { *m = CountPerDb{} }
 func (m *CountPerDb) String() string { return proto.CompactTextString(m) }
 func (*CountPerDb) ProtoMessage()    {}
 func (*CountPerDb) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{16}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{11}
 }
 func (m *CountPerDb) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CountPerDb.Unmarshal(m, b)
@@ -760,7 +610,7 @@ func (m *CheckObjectCountRequest) Reset()         { *m = CheckObjectCountRequest
 func (m *CheckObjectCountRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckObjectCountRequest) ProtoMessage()    {}
 func (*CheckObjectCountRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{17}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{12}
 }
 func (m *CheckObjectCountRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckObjectCountRequest.Unmarshal(m, b)
@@ -791,7 +641,7 @@ func (m *CheckObjectCountReply) Reset()         { *m = CheckObjectCountReply{} }
 func (m *CheckObjectCountReply) String() string { return proto.CompactTextString(m) }
 func (*CheckObjectCountReply) ProtoMessage()    {}
 func (*CheckObjectCountReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{18}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{13}
 }
 func (m *CheckObjectCountReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckObjectCountReply.Unmarshal(m, b)
@@ -828,7 +678,7 @@ func (m *CheckVersionRequest) Reset()         { *m = CheckVersionRequest{} }
 func (m *CheckVersionRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckVersionRequest) ProtoMessage()    {}
 func (*CheckVersionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{19}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{14}
 }
 func (m *CheckVersionRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckVersionRequest.Unmarshal(m, b)
@@ -859,7 +709,7 @@ func (m *CheckVersionReply) Reset()         { *m = CheckVersionReply{} }
 func (m *CheckVersionReply) String() string { return proto.CompactTextString(m) }
 func (*CheckVersionReply) ProtoMessage()    {}
 func (*CheckVersionReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{20}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{15}
 }
 func (m *CheckVersionReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckVersionReply.Unmarshal(m, b)
@@ -896,7 +746,7 @@ func (m *CheckDiskSpaceRequest) Reset()         { *m = CheckDiskSpaceRequest{} }
 func (m *CheckDiskSpaceRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckDiskSpaceRequest) ProtoMessage()    {}
 func (*CheckDiskSpaceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{21}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{16}
 }
 func (m *CheckDiskSpaceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckDiskSpaceRequest.Unmarshal(m, b)
@@ -927,7 +777,7 @@ func (m *CheckDiskSpaceReply) Reset()         { *m = CheckDiskSpaceReply{} }
 func (m *CheckDiskSpaceReply) String() string { return proto.CompactTextString(m) }
 func (*CheckDiskSpaceReply) ProtoMessage()    {}
 func (*CheckDiskSpaceReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{22}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{17}
 }
 func (m *CheckDiskSpaceReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckDiskSpaceReply.Unmarshal(m, b)
@@ -954,66 +804,6 @@ func (m *CheckDiskSpaceReply) GetSegmentFileSysUsage() []string {
 	return nil
 }
 
-type PrepareShutdownClustersRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PrepareShutdownClustersRequest) Reset()         { *m = PrepareShutdownClustersRequest{} }
-func (m *PrepareShutdownClustersRequest) String() string { return proto.CompactTextString(m) }
-func (*PrepareShutdownClustersRequest) ProtoMessage()    {}
-func (*PrepareShutdownClustersRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{23}
-}
-func (m *PrepareShutdownClustersRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PrepareShutdownClustersRequest.Unmarshal(m, b)
-}
-func (m *PrepareShutdownClustersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PrepareShutdownClustersRequest.Marshal(b, m, deterministic)
-}
-func (dst *PrepareShutdownClustersRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PrepareShutdownClustersRequest.Merge(dst, src)
-}
-func (m *PrepareShutdownClustersRequest) XXX_Size() int {
-	return xxx_messageInfo_PrepareShutdownClustersRequest.Size(m)
-}
-func (m *PrepareShutdownClustersRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_PrepareShutdownClustersRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PrepareShutdownClustersRequest proto.InternalMessageInfo
-
-type PrepareShutdownClustersReply struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PrepareShutdownClustersReply) Reset()         { *m = PrepareShutdownClustersReply{} }
-func (m *PrepareShutdownClustersReply) String() string { return proto.CompactTextString(m) }
-func (*PrepareShutdownClustersReply) ProtoMessage()    {}
-func (*PrepareShutdownClustersReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{24}
-}
-func (m *PrepareShutdownClustersReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PrepareShutdownClustersReply.Unmarshal(m, b)
-}
-func (m *PrepareShutdownClustersReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PrepareShutdownClustersReply.Marshal(b, m, deterministic)
-}
-func (dst *PrepareShutdownClustersReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PrepareShutdownClustersReply.Merge(dst, src)
-}
-func (m *PrepareShutdownClustersReply) XXX_Size() int {
-	return xxx_messageInfo_PrepareShutdownClustersReply.Size(m)
-}
-func (m *PrepareShutdownClustersReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_PrepareShutdownClustersReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PrepareShutdownClustersReply proto.InternalMessageInfo
-
 type PrepareInitClusterRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1024,7 +814,7 @@ func (m *PrepareInitClusterRequest) Reset()         { *m = PrepareInitClusterReq
 func (m *PrepareInitClusterRequest) String() string { return proto.CompactTextString(m) }
 func (*PrepareInitClusterRequest) ProtoMessage()    {}
 func (*PrepareInitClusterRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{25}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{18}
 }
 func (m *PrepareInitClusterRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PrepareInitClusterRequest.Unmarshal(m, b)
@@ -1054,7 +844,7 @@ func (m *PrepareInitClusterReply) Reset()         { *m = PrepareInitClusterReply
 func (m *PrepareInitClusterReply) String() string { return proto.CompactTextString(m) }
 func (*PrepareInitClusterReply) ProtoMessage()    {}
 func (*PrepareInitClusterReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{26}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{19}
 }
 func (m *PrepareInitClusterReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PrepareInitClusterReply.Unmarshal(m, b)
@@ -1074,36 +864,6 @@ func (m *PrepareInitClusterReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PrepareInitClusterReply proto.InternalMessageInfo
 
-type UpgradeConvertMasterRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpgradeConvertMasterRequest) Reset()         { *m = UpgradeConvertMasterRequest{} }
-func (m *UpgradeConvertMasterRequest) String() string { return proto.CompactTextString(m) }
-func (*UpgradeConvertMasterRequest) ProtoMessage()    {}
-func (*UpgradeConvertMasterRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{27}
-}
-func (m *UpgradeConvertMasterRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeConvertMasterRequest.Unmarshal(m, b)
-}
-func (m *UpgradeConvertMasterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeConvertMasterRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpgradeConvertMasterRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeConvertMasterRequest.Merge(dst, src)
-}
-func (m *UpgradeConvertMasterRequest) XXX_Size() int {
-	return xxx_messageInfo_UpgradeConvertMasterRequest.Size(m)
-}
-func (m *UpgradeConvertMasterRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeConvertMasterRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeConvertMasterRequest proto.InternalMessageInfo
-
 type Chunk struct {
 	Buffer               []byte     `protobuf:"bytes,1,opt,name=buffer,proto3" json:"buffer,omitempty"`
 	Type                 Chunk_Type `protobuf:"varint,2,opt,name=type,enum=idl.Chunk_Type" json:"type,omitempty"`
@@ -1116,7 +876,7 @@ func (m *Chunk) Reset()         { *m = Chunk{} }
 func (m *Chunk) String() string { return proto.CompactTextString(m) }
 func (*Chunk) ProtoMessage()    {}
 func (*Chunk) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{28}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{20}
 }
 func (m *Chunk) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Chunk.Unmarshal(m, b)
@@ -1162,7 +922,7 @@ func (m *SetConfigRequest) Reset()         { *m = SetConfigRequest{} }
 func (m *SetConfigRequest) String() string { return proto.CompactTextString(m) }
 func (*SetConfigRequest) ProtoMessage()    {}
 func (*SetConfigRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{29}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{21}
 }
 func (m *SetConfigRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetConfigRequest.Unmarshal(m, b)
@@ -1206,7 +966,7 @@ func (m *SetConfigReply) Reset()         { *m = SetConfigReply{} }
 func (m *SetConfigReply) String() string { return proto.CompactTextString(m) }
 func (*SetConfigReply) ProtoMessage()    {}
 func (*SetConfigReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{30}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{22}
 }
 func (m *SetConfigReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SetConfigReply.Unmarshal(m, b)
@@ -1237,7 +997,7 @@ func (m *GetConfigRequest) Reset()         { *m = GetConfigRequest{} }
 func (m *GetConfigRequest) String() string { return proto.CompactTextString(m) }
 func (*GetConfigRequest) ProtoMessage()    {}
 func (*GetConfigRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{31}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{23}
 }
 func (m *GetConfigRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetConfigRequest.Unmarshal(m, b)
@@ -1275,7 +1035,7 @@ func (m *GetConfigReply) Reset()         { *m = GetConfigReply{} }
 func (m *GetConfigReply) String() string { return proto.CompactTextString(m) }
 func (*GetConfigReply) ProtoMessage()    {}
 func (*GetConfigReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cli_to_hub_c26f9710c07b7866, []int{32}
+	return fileDescriptor_cli_to_hub_213841ac6cd1090f, []int{24}
 }
 func (m *GetConfigReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetConfigReply.Unmarshal(m, b)
@@ -1305,14 +1065,9 @@ func (m *GetConfigReply) GetValue() string {
 func init() {
 	proto.RegisterType((*UpgradeReconfigurePortsRequest)(nil), "idl.UpgradeReconfigurePortsRequest")
 	proto.RegisterType((*UpgradeReconfigurePortsReply)(nil), "idl.UpgradeReconfigurePortsReply")
-	proto.RegisterType((*UpgradeConvertPrimariesRequest)(nil), "idl.UpgradeConvertPrimariesRequest")
-	proto.RegisterType((*UpgradeConvertPrimariesReply)(nil), "idl.UpgradeConvertPrimariesReply")
-	proto.RegisterType((*UpgradeCopyMasterDataDirRequest)(nil), "idl.UpgradeCopyMasterDataDirRequest")
-	proto.RegisterType((*UpgradeCopyMasterDataDirReply)(nil), "idl.UpgradeCopyMasterDataDirReply")
-	proto.RegisterType((*UpgradeValidateStartClusterRequest)(nil), "idl.UpgradeValidateStartClusterRequest")
-	proto.RegisterType((*UpgradeValidateStartClusterReply)(nil), "idl.UpgradeValidateStartClusterReply")
 	proto.RegisterType((*InitializeRequest)(nil), "idl.InitializeRequest")
 	proto.RegisterType((*InitializeReply)(nil), "idl.InitializeReply")
+	proto.RegisterType((*ExecuteRequest)(nil), "idl.ExecuteRequest")
 	proto.RegisterType((*StatusConversionRequest)(nil), "idl.StatusConversionRequest")
 	proto.RegisterType((*PrimaryStatus)(nil), "idl.PrimaryStatus")
 	proto.RegisterType((*StatusConversionReply)(nil), "idl.StatusConversionReply")
@@ -1326,11 +1081,8 @@ func init() {
 	proto.RegisterType((*CheckVersionReply)(nil), "idl.CheckVersionReply")
 	proto.RegisterType((*CheckDiskSpaceRequest)(nil), "idl.CheckDiskSpaceRequest")
 	proto.RegisterType((*CheckDiskSpaceReply)(nil), "idl.CheckDiskSpaceReply")
-	proto.RegisterType((*PrepareShutdownClustersRequest)(nil), "idl.PrepareShutdownClustersRequest")
-	proto.RegisterType((*PrepareShutdownClustersReply)(nil), "idl.PrepareShutdownClustersReply")
 	proto.RegisterType((*PrepareInitClusterRequest)(nil), "idl.PrepareInitClusterRequest")
 	proto.RegisterType((*PrepareInitClusterReply)(nil), "idl.PrepareInitClusterReply")
-	proto.RegisterType((*UpgradeConvertMasterRequest)(nil), "idl.UpgradeConvertMasterRequest")
 	proto.RegisterType((*Chunk)(nil), "idl.Chunk")
 	proto.RegisterType((*SetConfigRequest)(nil), "idl.SetConfigRequest")
 	proto.RegisterType((*SetConfigReply)(nil), "idl.SetConfigReply")
@@ -1357,13 +1109,8 @@ type CliToHubClient interface {
 	CheckObjectCount(ctx context.Context, in *CheckObjectCountRequest, opts ...grpc.CallOption) (*CheckObjectCountReply, error)
 	CheckVersion(ctx context.Context, in *CheckVersionRequest, opts ...grpc.CallOption) (*CheckVersionReply, error)
 	CheckDiskSpace(ctx context.Context, in *CheckDiskSpaceRequest, opts ...grpc.CallOption) (*CheckDiskSpaceReply, error)
-	PrepareInitCluster(ctx context.Context, in *PrepareInitClusterRequest, opts ...grpc.CallOption) (*PrepareInitClusterReply, error)
 	Initialize(ctx context.Context, in *InitializeRequest, opts ...grpc.CallOption) (*InitializeReply, error)
-	PrepareShutdownClusters(ctx context.Context, in *PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*PrepareShutdownClustersReply, error)
-	UpgradeConvertMaster(ctx context.Context, in *UpgradeConvertMasterRequest, opts ...grpc.CallOption) (CliToHub_UpgradeConvertMasterClient, error)
-	UpgradeCopyMasterDataDir(ctx context.Context, in *UpgradeCopyMasterDataDirRequest, opts ...grpc.CallOption) (*UpgradeCopyMasterDataDirReply, error)
-	UpgradeValidateStartCluster(ctx context.Context, in *UpgradeValidateStartClusterRequest, opts ...grpc.CallOption) (*UpgradeValidateStartClusterReply, error)
-	UpgradeConvertPrimaries(ctx context.Context, in *UpgradeConvertPrimariesRequest, opts ...grpc.CallOption) (*UpgradeConvertPrimariesReply, error)
+	Execute(ctx context.Context, in *ExecuteRequest, opts ...grpc.CallOption) (CliToHub_ExecuteClient, error)
 	UpgradeReconfigurePorts(ctx context.Context, in *UpgradeReconfigurePortsRequest, opts ...grpc.CallOption) (*UpgradeReconfigurePortsReply, error)
 	SetConfig(ctx context.Context, in *SetConfigRequest, opts ...grpc.CallOption) (*SetConfigReply, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigReply, error)
@@ -1422,15 +1169,6 @@ func (c *cliToHubClient) CheckDiskSpace(ctx context.Context, in *CheckDiskSpaceR
 	return out, nil
 }
 
-func (c *cliToHubClient) PrepareInitCluster(ctx context.Context, in *PrepareInitClusterRequest, opts ...grpc.CallOption) (*PrepareInitClusterReply, error) {
-	out := new(PrepareInitClusterReply)
-	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareInitCluster", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *cliToHubClient) Initialize(ctx context.Context, in *InitializeRequest, opts ...grpc.CallOption) (*InitializeReply, error) {
 	out := new(InitializeReply)
 	err := grpc.Invoke(ctx, "/idl.CliToHub/Initialize", in, out, c.cc, opts...)
@@ -1440,21 +1178,12 @@ func (c *cliToHubClient) Initialize(ctx context.Context, in *InitializeRequest, 
 	return out, nil
 }
 
-func (c *cliToHubClient) PrepareShutdownClusters(ctx context.Context, in *PrepareShutdownClustersRequest, opts ...grpc.CallOption) (*PrepareShutdownClustersReply, error) {
-	out := new(PrepareShutdownClustersReply)
-	err := grpc.Invoke(ctx, "/idl.CliToHub/PrepareShutdownClusters", in, out, c.cc, opts...)
+func (c *cliToHubClient) Execute(ctx context.Context, in *ExecuteRequest, opts ...grpc.CallOption) (CliToHub_ExecuteClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_CliToHub_serviceDesc.Streams[0], c.cc, "/idl.CliToHub/Execute", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *cliToHubClient) UpgradeConvertMaster(ctx context.Context, in *UpgradeConvertMasterRequest, opts ...grpc.CallOption) (CliToHub_UpgradeConvertMasterClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_CliToHub_serviceDesc.Streams[0], c.cc, "/idl.CliToHub/UpgradeConvertMaster", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &cliToHubUpgradeConvertMasterClient{stream}
+	x := &cliToHubExecuteClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -1464,48 +1193,21 @@ func (c *cliToHubClient) UpgradeConvertMaster(ctx context.Context, in *UpgradeCo
 	return x, nil
 }
 
-type CliToHub_UpgradeConvertMasterClient interface {
+type CliToHub_ExecuteClient interface {
 	Recv() (*Chunk, error)
 	grpc.ClientStream
 }
 
-type cliToHubUpgradeConvertMasterClient struct {
+type cliToHubExecuteClient struct {
 	grpc.ClientStream
 }
 
-func (x *cliToHubUpgradeConvertMasterClient) Recv() (*Chunk, error) {
+func (x *cliToHubExecuteClient) Recv() (*Chunk, error) {
 	m := new(Chunk)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
-}
-
-func (c *cliToHubClient) UpgradeCopyMasterDataDir(ctx context.Context, in *UpgradeCopyMasterDataDirRequest, opts ...grpc.CallOption) (*UpgradeCopyMasterDataDirReply, error) {
-	out := new(UpgradeCopyMasterDataDirReply)
-	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeCopyMasterDataDir", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *cliToHubClient) UpgradeValidateStartCluster(ctx context.Context, in *UpgradeValidateStartClusterRequest, opts ...grpc.CallOption) (*UpgradeValidateStartClusterReply, error) {
-	out := new(UpgradeValidateStartClusterReply)
-	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeValidateStartCluster", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *cliToHubClient) UpgradeConvertPrimaries(ctx context.Context, in *UpgradeConvertPrimariesRequest, opts ...grpc.CallOption) (*UpgradeConvertPrimariesReply, error) {
-	out := new(UpgradeConvertPrimariesReply)
-	err := grpc.Invoke(ctx, "/idl.CliToHub/UpgradeConvertPrimaries", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *cliToHubClient) UpgradeReconfigurePorts(ctx context.Context, in *UpgradeReconfigurePortsRequest, opts ...grpc.CallOption) (*UpgradeReconfigurePortsReply, error) {
@@ -1543,13 +1245,8 @@ type CliToHubServer interface {
 	CheckObjectCount(context.Context, *CheckObjectCountRequest) (*CheckObjectCountReply, error)
 	CheckVersion(context.Context, *CheckVersionRequest) (*CheckVersionReply, error)
 	CheckDiskSpace(context.Context, *CheckDiskSpaceRequest) (*CheckDiskSpaceReply, error)
-	PrepareInitCluster(context.Context, *PrepareInitClusterRequest) (*PrepareInitClusterReply, error)
 	Initialize(context.Context, *InitializeRequest) (*InitializeReply, error)
-	PrepareShutdownClusters(context.Context, *PrepareShutdownClustersRequest) (*PrepareShutdownClustersReply, error)
-	UpgradeConvertMaster(*UpgradeConvertMasterRequest, CliToHub_UpgradeConvertMasterServer) error
-	UpgradeCopyMasterDataDir(context.Context, *UpgradeCopyMasterDataDirRequest) (*UpgradeCopyMasterDataDirReply, error)
-	UpgradeValidateStartCluster(context.Context, *UpgradeValidateStartClusterRequest) (*UpgradeValidateStartClusterReply, error)
-	UpgradeConvertPrimaries(context.Context, *UpgradeConvertPrimariesRequest) (*UpgradeConvertPrimariesReply, error)
+	Execute(*ExecuteRequest, CliToHub_ExecuteServer) error
 	UpgradeReconfigurePorts(context.Context, *UpgradeReconfigurePortsRequest) (*UpgradeReconfigurePortsReply, error)
 	SetConfig(context.Context, *SetConfigRequest) (*SetConfigReply, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigReply, error)
@@ -1649,24 +1346,6 @@ func _CliToHub_CheckDiskSpace_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CliToHub_PrepareInitCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrepareInitClusterRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CliToHubServer).PrepareInitCluster(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/idl.CliToHub/PrepareInitCluster",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CliToHubServer).PrepareInitCluster(ctx, req.(*PrepareInitClusterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CliToHub_Initialize_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InitializeRequest)
 	if err := dec(in); err != nil {
@@ -1685,97 +1364,25 @@ func _CliToHub_Initialize_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CliToHub_PrepareShutdownClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrepareShutdownClustersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CliToHubServer).PrepareShutdownClusters(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/idl.CliToHub/PrepareShutdownClusters",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CliToHubServer).PrepareShutdownClusters(ctx, req.(*PrepareShutdownClustersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CliToHub_UpgradeConvertMaster_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(UpgradeConvertMasterRequest)
+func _CliToHub_Execute_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExecuteRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(CliToHubServer).UpgradeConvertMaster(m, &cliToHubUpgradeConvertMasterServer{stream})
+	return srv.(CliToHubServer).Execute(m, &cliToHubExecuteServer{stream})
 }
 
-type CliToHub_UpgradeConvertMasterServer interface {
+type CliToHub_ExecuteServer interface {
 	Send(*Chunk) error
 	grpc.ServerStream
 }
 
-type cliToHubUpgradeConvertMasterServer struct {
+type cliToHubExecuteServer struct {
 	grpc.ServerStream
 }
 
-func (x *cliToHubUpgradeConvertMasterServer) Send(m *Chunk) error {
+func (x *cliToHubExecuteServer) Send(m *Chunk) error {
 	return x.ServerStream.SendMsg(m)
-}
-
-func _CliToHub_UpgradeCopyMasterDataDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpgradeCopyMasterDataDirRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CliToHubServer).UpgradeCopyMasterDataDir(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/idl.CliToHub/UpgradeCopyMasterDataDir",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CliToHubServer).UpgradeCopyMasterDataDir(ctx, req.(*UpgradeCopyMasterDataDirRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CliToHub_UpgradeValidateStartCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpgradeValidateStartClusterRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CliToHubServer).UpgradeValidateStartCluster(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/idl.CliToHub/UpgradeValidateStartCluster",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CliToHubServer).UpgradeValidateStartCluster(ctx, req.(*UpgradeValidateStartClusterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CliToHub_UpgradeConvertPrimaries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpgradeConvertPrimariesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CliToHubServer).UpgradeConvertPrimaries(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/idl.CliToHub/UpgradeConvertPrimaries",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CliToHubServer).UpgradeConvertPrimaries(ctx, req.(*UpgradeConvertPrimariesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _CliToHub_UpgradeReconfigurePorts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1857,28 +1464,8 @@ var _CliToHub_serviceDesc = grpc.ServiceDesc{
 			Handler:    _CliToHub_CheckDiskSpace_Handler,
 		},
 		{
-			MethodName: "PrepareInitCluster",
-			Handler:    _CliToHub_PrepareInitCluster_Handler,
-		},
-		{
 			MethodName: "Initialize",
 			Handler:    _CliToHub_Initialize_Handler,
-		},
-		{
-			MethodName: "PrepareShutdownClusters",
-			Handler:    _CliToHub_PrepareShutdownClusters_Handler,
-		},
-		{
-			MethodName: "UpgradeCopyMasterDataDir",
-			Handler:    _CliToHub_UpgradeCopyMasterDataDir_Handler,
-		},
-		{
-			MethodName: "UpgradeValidateStartCluster",
-			Handler:    _CliToHub_UpgradeValidateStartCluster_Handler,
-		},
-		{
-			MethodName: "UpgradeConvertPrimaries",
-			Handler:    _CliToHub_UpgradeConvertPrimaries_Handler,
 		},
 		{
 			MethodName: "UpgradeReconfigurePorts",
@@ -1895,91 +1482,81 @@ var _CliToHub_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "UpgradeConvertMaster",
-			Handler:       _CliToHub_UpgradeConvertMaster_Handler,
+			StreamName:    "Execute",
+			Handler:       _CliToHub_Execute_Handler,
 			ServerStreams: true,
 		},
 	},
 	Metadata: "cli_to_hub.proto",
 }
 
-func init() { proto.RegisterFile("cli_to_hub.proto", fileDescriptor_cli_to_hub_c26f9710c07b7866) }
+func init() { proto.RegisterFile("cli_to_hub.proto", fileDescriptor_cli_to_hub_213841ac6cd1090f) }
 
-var fileDescriptor_cli_to_hub_c26f9710c07b7866 = []byte{
-	// 1196 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x57, 0x5b, 0x6f, 0x9b, 0xc8,
-	0x17, 0x8f, 0x13, 0xe7, 0x76, 0xe2, 0xba, 0x78, 0x9a, 0x8b, 0x43, 0xd3, 0x36, 0xa5, 0x57, 0xf5,
-	0x2f, 0x45, 0x55, 0xfb, 0xf4, 0x97, 0xfa, 0xe2, 0x02, 0x75, 0xac, 0x75, 0xb0, 0x35, 0xe0, 0xac,
-	0x56, 0xbb, 0x92, 0x85, 0xed, 0x49, 0x42, 0x43, 0x80, 0xc2, 0xb8, 0x95, 0xf7, 0x71, 0x3f, 0xe4,
-	0xbe, 0xec, 0x97, 0x59, 0x0d, 0x33, 0x60, 0xc0, 0x90, 0xee, 0x1b, 0x73, 0x7e, 0xe7, 0x7e, 0x66,
-	0x7e, 0x3e, 0x06, 0x69, 0xea, 0x3a, 0x63, 0xea, 0x8f, 0x6f, 0xe6, 0x93, 0xb3, 0x20, 0xf4, 0xa9,
-	0x8f, 0x36, 0x9c, 0x99, 0xab, 0x9c, 0xc2, 0xd3, 0x51, 0x70, 0x1d, 0xda, 0x33, 0x82, 0xc9, 0xd4,
-	0xf7, 0xae, 0x9c, 0xeb, 0x79, 0x48, 0x86, 0x7e, 0x48, 0x23, 0x4c, 0xbe, 0xcd, 0x49, 0x44, 0x95,
-	0xa7, 0x70, 0x52, 0xa9, 0x11, 0xb8, 0x8b, 0x8c, 0x07, 0xd5, 0xf7, 0xbe, 0x93, 0x90, 0x0e, 0x43,
-	0xe7, 0xce, 0x0e, 0x1d, 0x52, 0xe2, 0x61, 0x55, 0x83, 0x79, 0x78, 0x0e, 0xcf, 0x52, 0x3c, 0x58,
-	0x5c, 0xd8, 0x11, 0x25, 0xa1, 0x66, 0x53, 0x5b, 0x73, 0xc2, 0xc4, 0xc5, 0x33, 0x78, 0x52, 0xad,
-	0xc2, 0x7c, 0xbc, 0x04, 0x45, 0x28, 0x5c, 0xda, 0xae, 0x33, 0xb3, 0x29, 0x31, 0xa9, 0x1d, 0x52,
-	0xd5, 0x9d, 0x33, 0xd5, 0xc4, 0x8d, 0x02, 0xa7, 0xf7, 0x6a, 0x31, 0x4f, 0x0e, 0xb4, 0x7a, 0x9e,
-	0x43, 0x1d, 0xdb, 0x75, 0xfe, 0x24, 0xc2, 0x10, 0x9d, 0xc0, 0xae, 0xef, 0xce, 0x3e, 0x3b, 0x9e,
-	0xe6, 0x84, 0xed, 0xda, 0x69, 0xed, 0xed, 0x2e, 0x5e, 0x0a, 0x18, 0xea, 0x91, 0x1f, 0x02, 0x5d,
-	0xe7, 0x68, 0x2a, 0x40, 0x6d, 0xd8, 0xf6, 0xdd, 0x19, 0xeb, 0x58, 0x7b, 0xe3, 0xb4, 0xf6, 0x76,
-	0x13, 0x27, 0x47, 0xa5, 0x05, 0x0f, 0xb3, 0xa1, 0x58, 0xf4, 0x63, 0x38, 0x32, 0xa9, 0x4d, 0xe7,
-	0x11, 0x6f, 0x55, 0xe4, 0xf8, 0x5e, 0x92, 0xfc, 0x5f, 0x35, 0x78, 0xc0, 0x3b, 0xb7, 0xe0, 0x2a,
-	0xe8, 0x0d, 0x6c, 0xf1, 0xaf, 0x38, 0xa5, 0xe6, 0x87, 0x87, 0x67, 0xce, 0xcc, 0x3d, 0x33, 0x29,
-	0x09, 0xb8, 0x18, 0x0b, 0x18, 0x21, 0xa8, 0x6b, 0x13, 0x67, 0x16, 0xe7, 0xb6, 0x89, 0xe3, 0x6f,
-	0x96, 0x96, 0xea, 0x7b, 0x94, 0x78, 0x69, 0x5a, 0xe2, 0x88, 0x64, 0xd8, 0x39, 0xf7, 0x23, 0xea,
-	0xd9, 0x77, 0xa4, 0x5d, 0x8f, 0xab, 0x49, 0xcf, 0xca, 0xef, 0x70, 0xb0, 0x9a, 0x5f, 0xe0, 0x2e,
-	0xd0, 0x67, 0x40, 0xd3, 0x54, 0xc4, 0x55, 0x08, 0xcb, 0x6b, 0xe3, 0xed, 0xde, 0x07, 0x14, 0xe7,
-	0x95, 0xcb, 0x1d, 0x97, 0x68, 0x2b, 0x87, 0xb0, 0xcf, 0xbf, 0xd3, 0x0b, 0xc7, 0x2b, 0xff, 0x0a,
-	0xa8, 0x20, 0x67, 0x11, 0x2d, 0x38, 0x76, 0x9d, 0x88, 0x0e, 0xae, 0x84, 0x74, 0x59, 0x77, 0x1a,
-	0xf8, 0x30, 0x0e, 0xbc, 0x82, 0xe3, 0x6a, 0x43, 0x65, 0x0a, 0xad, 0x15, 0x31, 0x7a, 0x05, 0xf5,
-	0x88, 0x92, 0x40, 0xb4, 0xb9, 0x55, 0xf4, 0x1a, 0xe1, 0x18, 0x66, 0xf3, 0x88, 0xf8, 0x3c, 0xd6,
-	0x2b, 0xe6, 0xc1, 0x61, 0xe5, 0x0f, 0x00, 0xd5, 0x9f, 0x7b, 0x74, 0x48, 0x42, 0x6d, 0x82, 0x0e,
-	0x61, 0x4b, 0x9b, 0x18, 0xac, 0xdb, 0xfc, 0x66, 0x89, 0x13, 0x9b, 0x50, 0xc7, 0x8f, 0xf5, 0xc4,
-	0xe0, 0x92, 0x23, 0xbb, 0x70, 0xe7, 0xc4, 0x0e, 0x38, 0xc6, 0xa7, 0xb7, 0x14, 0xb0, 0x3b, 0xa4,
-	0xde, 0x90, 0xe9, 0xed, 0x60, 0xf2, 0x95, 0x4c, 0x69, 0x2c, 0x4b, 0x3a, 0xd9, 0x87, 0x83, 0x55,
-	0x88, 0x35, 0xf3, 0x23, 0x34, 0xfa, 0x71, 0x4f, 0x62, 0x59, 0xd2, 0x3f, 0x5e, 0xc0, 0x32, 0x55,
-	0x9c, 0x53, 0x52, 0x0e, 0xe0, 0x51, 0xec, 0xed, 0x32, 0x7f, 0x51, 0x75, 0x68, 0xe5, 0xc5, 0x2c,
-	0xc0, 0x7b, 0x78, 0xd4, 0x8b, 0x84, 0x44, 0xf5, 0xef, 0x02, 0x9b, 0x3a, 0x13, 0x97, 0x57, 0xbc,
-	0x83, 0xcb, 0x20, 0xe5, 0x48, 0xe4, 0xaa, 0x39, 0xd1, 0xad, 0x19, 0xd8, 0xd3, 0xf4, 0x3a, 0x74,
-	0x45, 0xd8, 0x0c, 0x20, 0x22, 0x98, 0xe4, 0xfa, 0x8e, 0x78, 0xf4, 0x8b, 0xe3, 0x12, 0x73, 0x11,
-	0x8d, 0x22, 0xfb, 0x9a, 0xc4, 0x95, 0xec, 0xe2, 0x32, 0x88, 0x51, 0xd7, 0x30, 0x24, 0x81, 0x1d,
-	0x12, 0xf3, 0x66, 0x4e, 0x67, 0xfe, 0x0f, 0x4f, 0x30, 0x41, 0x96, 0xba, 0x2a, 0x35, 0xd8, 0x73,
-	0x7d, 0x0c, 0xc7, 0x02, 0x67, 0x0f, 0xb9, 0xc0, 0x36, 0xc7, 0x70, 0x54, 0x06, 0x32, 0xbb, 0x27,
-	0xf0, 0x38, 0x4f, 0x89, 0x9c, 0xd2, 0x12, 0xcb, 0x6f, 0xb0, 0xa9, 0xde, 0xcc, 0xbd, 0x5b, 0x76,
-	0x35, 0x26, 0xf3, 0xab, 0x2b, 0xc2, 0x49, 0xa7, 0x81, 0xc5, 0x09, 0xbd, 0x80, 0x3a, 0x5d, 0x04,
-	0x24, 0x77, 0xcf, 0x62, 0x8b, 0x33, 0x6b, 0x11, 0x10, 0x1c, 0x83, 0xca, 0xff, 0xa0, 0xce, 0x4e,
-	0x68, 0x0f, 0xb6, 0x47, 0xc6, 0x2f, 0xc6, 0xe0, 0x57, 0x43, 0x5a, 0x43, 0x00, 0x5b, 0xa6, 0xa5,
-	0x0d, 0x46, 0x96, 0x54, 0x13, 0xdf, 0x3a, 0xc6, 0xd2, 0xba, 0xf2, 0x09, 0x24, 0x93, 0x50, 0x35,
-	0x26, 0xf8, 0x84, 0xf5, 0x10, 0xd4, 0xbd, 0xe5, 0xb5, 0x8c, 0xbf, 0xd1, 0x3e, 0x6c, 0x7e, 0xb7,
-	0xdd, 0x39, 0x11, 0x3c, 0xc7, 0x0f, 0x8a, 0x04, 0xcd, 0x8c, 0x35, 0xab, 0xf0, 0x35, 0x48, 0xdd,
-	0xff, 0xe0, 0x4f, 0x79, 0x0d, 0xcd, 0x6e, 0xce, 0x72, 0x19, 0xa1, 0x96, 0x89, 0xf0, 0xee, 0xef,
-	0x1a, 0x34, 0xb2, 0x4f, 0x0e, 0x49, 0xd0, 0x10, 0x55, 0x8d, 0x4d, 0x4b, 0x1f, 0xf2, 0xd2, 0xd4,
-	0x81, 0xf1, 0xa5, 0xd7, 0x95, 0x6a, 0x0c, 0x35, 0xad, 0x0e, 0xb6, 0xc6, 0x9d, 0xae, 0x6e, 0x58,
-	0xa6, 0xb4, 0xce, 0x24, 0x3d, 0xa3, 0x67, 0x8d, 0xd5, 0xfe, 0xc8, 0xb4, 0x74, 0x2c, 0x6d, 0xa0,
-	0x03, 0x68, 0x99, 0xe7, 0x23, 0x4b, 0x63, 0x2e, 0x84, 0xd4, 0x94, 0xea, 0x08, 0x41, 0x53, 0x1d,
-	0x18, 0x97, 0x3a, 0xb6, 0xc6, 0x17, 0x9d, 0x58, 0x75, 0x13, 0x3d, 0x84, 0x3d, 0x75, 0x30, 0xfc,
-	0x2d, 0x11, 0x6c, 0x31, 0xdb, 0x44, 0x69, 0x88, 0x7b, 0x17, 0x1d, 0xdc, 0xd3, 0x4d, 0x69, 0x1b,
-	0xc9, 0x70, 0x78, 0xd9, 0xe9, 0xf7, 0xb4, 0x8e, 0xa5, 0x8f, 0x79, 0xfc, 0x24, 0xdc, 0x0e, 0x33,
-	0xc1, 0x3a, 0x4f, 0x70, 0x84, 0xf5, 0xf1, 0x70, 0x80, 0x2d, 0x53, 0xda, 0x7d, 0x67, 0x01, 0x64,
-	0x98, 0x06, 0x41, 0x73, 0x59, 0x55, 0xc7, 0x1a, 0x99, 0xd2, 0x1a, 0x9b, 0xdf, 0x50, 0x37, 0xb4,
-	0x9e, 0xc1, 0x0a, 0xdb, 0x83, 0x6d, 0x3c, 0x32, 0x0c, 0x76, 0x58, 0x47, 0x0d, 0xd8, 0x51, 0x07,
-	0x17, 0xc3, 0xbe, 0x6e, 0xe9, 0xd2, 0x06, 0xab, 0xff, 0x4b, 0xa7, 0xd7, 0xd7, 0x35, 0xa9, 0xfe,
-	0xe1, 0x9f, 0x5d, 0xd8, 0x51, 0x5d, 0xc7, 0xf2, 0xcf, 0xe7, 0x13, 0xa4, 0xc3, 0x83, 0x1c, 0x7f,
-	0xa2, 0x63, 0x41, 0x4c, 0xab, 0x5c, 0x2b, 0x1f, 0x95, 0x41, 0x6c, 0xa0, 0x6b, 0xc8, 0x00, 0xa9,
-	0xc8, 0xfd, 0xe8, 0x24, 0xa3, 0xbe, 0xf2, 0x93, 0x25, 0xcb, 0x15, 0x68, 0xea, 0xaf, 0x48, 0x46,
-	0xc2, 0x5f, 0x05, 0x7d, 0x09, 0x7f, 0xa5, 0x0c, 0xa6, 0xac, 0xa1, 0xcf, 0xd0, 0xc8, 0xf2, 0x0e,
-	0x6a, 0x2f, 0xb5, 0xf3, 0x0c, 0x25, 0x1f, 0x96, 0x20, 0xdc, 0xc7, 0x39, 0x34, 0xf3, 0xdc, 0x82,
-	0x32, 0x31, 0x8b, 0x4c, 0x24, 0xb7, 0x4b, 0x31, 0xee, 0xc9, 0x02, 0xb4, 0xfa, 0xfa, 0xd1, 0x53,
-	0xf1, 0x53, 0x58, 0xc1, 0x19, 0xf2, 0x49, 0x25, 0xce, 0xbd, 0x7e, 0x02, 0x58, 0xae, 0x0c, 0x88,
-	0xd7, 0xb1, 0xb2, 0xae, 0xc8, 0xfb, 0x2b, 0x72, 0x6e, 0x3d, 0x4d, 0x19, 0xa9, 0x48, 0x67, 0xe8,
-	0x45, 0x36, 0x70, 0x05, 0x1d, 0xca, 0xcf, 0xef, 0x57, 0x4a, 0x5a, 0xb8, 0x5f, 0xc6, 0x6d, 0xe8,
-	0x34, 0xfb, 0xb3, 0x59, 0x46, 0x7b, 0x32, 0x2c, 0x79, 0x4c, 0x59, 0x7b, 0x5f, 0x43, 0x57, 0xd0,
-	0xae, 0xda, 0xfa, 0xd0, 0xcb, 0xbc, 0xb7, 0xf2, 0xbd, 0x51, 0x56, 0x7e, 0xa2, 0xc5, 0x33, 0xf6,
-	0x53, 0x36, 0x2e, 0x5b, 0x0b, 0xd1, 0x9b, 0xac, 0x93, 0x7b, 0xd6, 0x4b, 0xf9, 0xd5, 0xcf, 0x15,
-	0xd3, 0x39, 0x54, 0x6c, 0xc4, 0x62, 0x0e, 0xf7, 0x6f, 0xd4, 0x62, 0x0e, 0xf7, 0x2e, 0xd5, 0xd9,
-	0x20, 0xc5, 0xc5, 0x3d, 0x1f, 0xa4, 0x62, 0xf1, 0xcf, 0x07, 0x29, 0xdf, 0xfd, 0xd7, 0xd0, 0xff,
-	0x61, 0x37, 0x25, 0x7e, 0x74, 0xc0, 0x9f, 0x7b, 0x81, 0xf6, 0xe5, 0x47, 0x45, 0x71, 0x6a, 0xda,
-	0x2d, 0x98, 0x76, 0xcb, 0x4d, 0xbb, 0x05, 0xd3, 0xc9, 0x56, 0xfc, 0x0f, 0xe6, 0xe3, 0xbf, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0xf9, 0x2d, 0xf5, 0xeb, 0xd5, 0x0c, 0x00, 0x00,
+var fileDescriptor_cli_to_hub_213841ac6cd1090f = []byte{
+	// 1032 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x56, 0x5b, 0x6f, 0xdb, 0x36,
+	0x14, 0x8e, 0x13, 0x3b, 0x97, 0x13, 0xd7, 0x95, 0x99, 0x9b, 0xa3, 0x05, 0x45, 0xa6, 0x62, 0x5d,
+	0xd0, 0x01, 0x41, 0x91, 0x3e, 0x0d, 0xe8, 0x8b, 0x23, 0x2b, 0x8e, 0x31, 0x47, 0x36, 0x28, 0x39,
+	0xc3, 0xb0, 0x01, 0x86, 0x6c, 0x33, 0x89, 0x1a, 0x45, 0x52, 0x25, 0xaa, 0x9b, 0xf7, 0xb8, 0x5f,
+	0xb7, 0x5f, 0xb0, 0xdf, 0x33, 0xf0, 0xa2, 0x9b, 0x2f, 0xc3, 0xde, 0x78, 0xbe, 0xef, 0x5c, 0x79,
+	0xc8, 0x43, 0x82, 0x32, 0xf5, 0xdc, 0x31, 0x0d, 0xc6, 0x4f, 0xc9, 0xe4, 0x32, 0x8c, 0x02, 0x1a,
+	0xa0, 0x2d, 0x77, 0xe6, 0x69, 0xe7, 0xf0, 0x66, 0x14, 0x3e, 0x46, 0xce, 0x8c, 0x60, 0x32, 0x0d,
+	0xfc, 0x07, 0xf7, 0x31, 0x89, 0xc8, 0x30, 0x88, 0x68, 0x8c, 0xc9, 0x97, 0x84, 0xc4, 0x54, 0x7b,
+	0x03, 0x67, 0x6b, 0x35, 0x42, 0x6f, 0xae, 0xb9, 0xd0, 0xec, 0xf9, 0x2e, 0x75, 0x1d, 0xcf, 0xfd,
+	0x93, 0x48, 0x23, 0x74, 0x06, 0x7b, 0x81, 0x37, 0xbb, 0x76, 0xfd, 0x8e, 0x1b, 0xb5, 0x2a, 0xe7,
+	0x95, 0x8b, 0x3d, 0x9c, 0x03, 0x8c, 0xf5, 0xc9, 0xef, 0x92, 0xdd, 0x14, 0x6c, 0x06, 0xa0, 0x16,
+	0xec, 0x04, 0xde, 0x8c, 0x45, 0x68, 0x6d, 0x9d, 0x57, 0x2e, 0x6a, 0x38, 0x15, 0xb5, 0x26, 0xbc,
+	0x2e, 0x86, 0x62, 0xd1, 0x15, 0x68, 0x18, 0x7f, 0x90, 0x69, 0x42, 0xd3, 0xd0, 0xda, 0x29, 0x9c,
+	0x58, 0xd4, 0xa1, 0x49, 0xac, 0x07, 0xfe, 0x57, 0x12, 0xc5, 0x6e, 0xe0, 0xa7, 0xd4, 0x5f, 0x15,
+	0x78, 0x35, 0x8c, 0xdc, 0x17, 0x27, 0x9a, 0x0b, 0x15, 0xf4, 0x3d, 0x6c, 0x8b, 0x15, 0x4f, 0xb2,
+	0x71, 0xf5, 0xfa, 0xd2, 0x9d, 0x79, 0x97, 0x16, 0x25, 0xa1, 0x80, 0xb1, 0xa4, 0x11, 0x82, 0x6a,
+	0x67, 0xe2, 0xce, 0x78, 0xb6, 0x35, 0xcc, 0xd7, 0x2c, 0x51, 0x3d, 0xf0, 0x29, 0xf1, 0xb3, 0x44,
+	0xa5, 0x88, 0x54, 0xd8, 0xbd, 0x0d, 0x62, 0xea, 0x3b, 0x2f, 0xa4, 0x55, 0xe5, 0xf5, 0x65, 0xb2,
+	0xf6, 0x2b, 0x1c, 0x2d, 0xe7, 0x17, 0x7a, 0x73, 0x74, 0x0d, 0x68, 0x9a, 0x41, 0x42, 0x85, 0xb0,
+	0xbc, 0xb6, 0x2e, 0xf6, 0xaf, 0x10, 0xcf, 0xab, 0x94, 0x3b, 0x5e, 0xa1, 0xad, 0x1d, 0xc3, 0xa1,
+	0x58, 0x67, 0x2d, 0x13, 0x95, 0x7f, 0x06, 0xb4, 0x80, 0xb3, 0x88, 0x36, 0x9c, 0x7a, 0x6e, 0x4c,
+	0x07, 0x0f, 0x12, 0xcd, 0xeb, 0xce, 0x02, 0x1f, 0xf3, 0xc0, 0x4b, 0x3c, 0x5e, 0x6f, 0xa8, 0x4d,
+	0xa1, 0xb9, 0x04, 0xa3, 0xef, 0xa0, 0x1a, 0x53, 0x12, 0xca, 0x6d, 0x6e, 0x2e, 0x7a, 0x8d, 0x31,
+	0xa7, 0x59, 0x3f, 0x62, 0xd1, 0x8f, 0xcd, 0x35, 0xfd, 0x10, 0xb4, 0xf6, 0x1b, 0x80, 0x1e, 0x24,
+	0x3e, 0x1d, 0x92, 0xa8, 0x33, 0x41, 0xc7, 0xb0, 0xdd, 0x99, 0x98, 0x6c, 0xb7, 0xc5, 0x59, 0x93,
+	0x12, 0xeb, 0x50, 0x3b, 0xe0, 0x7a, 0xb2, 0x71, 0xa9, 0xc8, 0x8e, 0xe0, 0x2d, 0x71, 0x42, 0xc1,
+	0x89, 0xee, 0xe5, 0x00, 0x3b, 0x43, 0xfa, 0x13, 0x99, 0x3e, 0x0f, 0x26, 0x9f, 0xc9, 0x94, 0x72,
+	0x2c, 0xdd, 0xc9, 0x3e, 0x1c, 0x2d, 0x53, 0x6c, 0x33, 0x3f, 0x42, 0xbd, 0xcf, 0xf7, 0x84, 0x63,
+	0xe9, 0xfe, 0x89, 0x02, 0xf2, 0x54, 0x71, 0x49, 0x49, 0x3b, 0x82, 0x03, 0xee, 0xed, 0xbe, 0x7c,
+	0x50, 0x0d, 0x68, 0x96, 0x61, 0x16, 0xe0, 0x03, 0x1c, 0xf4, 0x62, 0x89, 0xe8, 0xc1, 0x4b, 0xe8,
+	0x50, 0x77, 0xe2, 0x89, 0x8a, 0x77, 0xf1, 0x2a, 0x4a, 0x3b, 0x91, 0xb9, 0x76, 0xdc, 0xf8, 0xd9,
+	0x0a, 0x9d, 0x69, 0x76, 0x1c, 0xba, 0x32, 0x6c, 0x81, 0x90, 0x11, 0x2c, 0xf2, 0xf8, 0x42, 0x7c,
+	0x7a, 0xe3, 0x7a, 0xc4, 0x9a, 0xc7, 0xa3, 0xd8, 0x79, 0x24, 0xbc, 0x92, 0x3d, 0xbc, 0x8a, 0xd2,
+	0xbe, 0x81, 0xd3, 0x61, 0x44, 0x42, 0x27, 0x22, 0xec, 0x62, 0xea, 0x5e, 0x12, 0x53, 0x12, 0x15,
+	0x6e, 0xe2, 0x2a, 0x92, 0x5d, 0xdb, 0x2f, 0x50, 0xd3, 0x9f, 0x12, 0xff, 0x99, 0x75, 0x6e, 0x92,
+	0x3c, 0x3c, 0x10, 0x31, 0x25, 0xea, 0x58, 0x4a, 0xe8, 0x2d, 0x54, 0xe9, 0x3c, 0x24, 0xa5, 0x63,
+	0xc0, 0x2d, 0x2e, 0xed, 0x79, 0x48, 0x30, 0x27, 0xb5, 0x1f, 0xa0, 0xca, 0x24, 0xb4, 0x0f, 0x3b,
+	0x23, 0xf3, 0x27, 0x73, 0xf0, 0xb3, 0xa9, 0x6c, 0x20, 0x80, 0x6d, 0xcb, 0xee, 0x0c, 0x46, 0xb6,
+	0x52, 0x91, 0x6b, 0x03, 0x63, 0x65, 0x53, 0xfb, 0x04, 0x8a, 0x45, 0xa8, 0xce, 0x27, 0x58, 0x3a,
+	0xa6, 0x10, 0x54, 0xfd, 0xfc, 0xd4, 0xf0, 0x35, 0x3a, 0x84, 0xda, 0x57, 0xc7, 0x4b, 0x88, 0x1c,
+	0x4c, 0x42, 0x60, 0x73, 0xa6, 0x60, 0xcd, 0x4a, 0x78, 0x07, 0x4a, 0xf7, 0x7f, 0xf8, 0xd3, 0xde,
+	0x41, 0xa3, 0x5b, 0xb2, 0xcc, 0x23, 0x54, 0x0a, 0x11, 0xde, 0xff, 0x53, 0x81, 0x7a, 0xf1, 0x46,
+	0x20, 0x05, 0xea, 0xb2, 0xaa, 0xb1, 0x65, 0x1b, 0x43, 0x51, 0x9a, 0x3e, 0x30, 0x6f, 0x7a, 0x5d,
+	0xa5, 0xc2, 0x58, 0xcb, 0x6e, 0x63, 0x7b, 0xdc, 0xee, 0x1a, 0xa6, 0x6d, 0x29, 0x9b, 0x0c, 0xe9,
+	0x99, 0x3d, 0x7b, 0xac, 0xf7, 0x47, 0x96, 0x6d, 0x60, 0x65, 0x0b, 0x1d, 0x41, 0xd3, 0xba, 0x1d,
+	0xd9, 0x1d, 0xe6, 0x42, 0xa2, 0x96, 0x52, 0x45, 0x08, 0x1a, 0xfa, 0xc0, 0xbc, 0x37, 0xb0, 0x3d,
+	0xbe, 0x6b, 0x73, 0xd5, 0x1a, 0x7a, 0x0d, 0xfb, 0xfa, 0x60, 0xf8, 0x4b, 0x0a, 0x6c, 0x33, 0xdb,
+	0x54, 0x69, 0x88, 0x7b, 0x77, 0x6d, 0xdc, 0x33, 0x2c, 0x65, 0x07, 0xa9, 0x70, 0x7c, 0xdf, 0xee,
+	0xf7, 0x3a, 0x6d, 0xdb, 0x18, 0x8b, 0xf8, 0x69, 0xb8, 0x5d, 0x66, 0x82, 0x0d, 0x91, 0xe0, 0x08,
+	0x1b, 0xe3, 0xe1, 0x00, 0xdb, 0x96, 0xb2, 0xf7, 0xde, 0x06, 0x28, 0x0c, 0x02, 0x04, 0x8d, 0xbc,
+	0xaa, 0xb6, 0x3d, 0xb2, 0x94, 0x0d, 0xd6, 0xbf, 0xa1, 0x61, 0x76, 0x7a, 0x26, 0x2b, 0x6c, 0x1f,
+	0x76, 0xf0, 0xc8, 0x34, 0x99, 0xb0, 0x89, 0xea, 0xb0, 0xab, 0x0f, 0xee, 0x86, 0x7d, 0xc3, 0x36,
+	0x94, 0x2d, 0x56, 0xff, 0x4d, 0xbb, 0xd7, 0x37, 0x3a, 0x4a, 0xf5, 0xea, 0xef, 0x1a, 0xec, 0xea,
+	0x9e, 0x6b, 0x07, 0xb7, 0xc9, 0x04, 0x19, 0xf0, 0xaa, 0x34, 0xde, 0xd0, 0xa9, 0x9c, 0x1b, 0xcb,
+	0xa3, 0x50, 0x3d, 0x59, 0x45, 0xb1, 0x86, 0x6e, 0x20, 0x13, 0x94, 0xc5, 0xd1, 0x8c, 0xce, 0x0a,
+	0xea, 0x4b, 0x2f, 0x8a, 0xaa, 0xae, 0x61, 0x33, 0x7f, 0x8b, 0xb3, 0x42, 0xfa, 0x5b, 0x33, 0x5d,
+	0xa4, 0xbf, 0x95, 0x03, 0x46, 0xdb, 0x40, 0xd7, 0x50, 0x2f, 0x8e, 0x05, 0xd4, 0xca, 0xb5, 0xcb,
+	0x03, 0x44, 0x3d, 0x5e, 0xc1, 0x08, 0x1f, 0xb7, 0xd0, 0x28, 0x5f, 0x7d, 0x54, 0x88, 0xb9, 0x38,
+	0x28, 0xd4, 0xd6, 0x4a, 0x4e, 0x78, 0xfa, 0x04, 0x90, 0xbf, 0xc6, 0x48, 0x44, 0x5c, 0xfa, 0x09,
+	0xa8, 0x87, 0x4b, 0xb8, 0xb0, 0xbe, 0x84, 0x1d, 0xf9, 0x70, 0xa3, 0x03, 0xae, 0x52, 0x7e, 0xc6,
+	0x55, 0xc8, 0xaf, 0xbc, 0xb6, 0xf1, 0xa1, 0x82, 0xa6, 0x70, 0xb2, 0xe6, 0x1b, 0x82, 0xde, 0x16,
+	0x5f, 0x93, 0x35, 0xdf, 0x18, 0xf5, 0xdb, 0xff, 0x56, 0x12, 0x49, 0xfd, 0x08, 0x7b, 0xd9, 0x2d,
+	0x47, 0x47, 0xa2, 0xb7, 0x0b, 0x77, 0x5c, 0x3d, 0x58, 0x84, 0x33, 0xd3, 0xee, 0x82, 0x69, 0x77,
+	0xb5, 0x69, 0x77, 0xc1, 0x74, 0xb2, 0xcd, 0xff, 0x63, 0x1f, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff,
+	0xe0, 0x42, 0x22, 0xce, 0xa3, 0x09, 0x00, 0x00,
 }
