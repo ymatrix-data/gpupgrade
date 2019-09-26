@@ -55,6 +55,7 @@ delete_cluster() {
 }
 
 @test "init-cluster executes gpinitsystem based on the source cluster" {
+    skip "this test can't work until we fix hub and agent PATH lookup"
     skip_if_no_gpdb
 
     PSQL="$GPHOME"/bin/psql

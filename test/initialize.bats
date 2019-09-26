@@ -10,9 +10,14 @@ setup() {
 
     kill_agents
     kill_hub
+
+    # XXX We use $PWD here instead of a real binary directory because
+    # `make check` is expected to test the locally built binaries, not the
+    # installation. This causes problems for tests that need to call GPDB
+    # executables...
     gpupgrade initialize \
-        --old-bindir="${GPHOME}/bin" \
-        --new-bindir="${GPHOME}/bin" \
+        --old-bindir="$PWD" \
+        --new-bindir="$PWD" \
         --old-port="${PGPORT}" 3>&-
 }
 
