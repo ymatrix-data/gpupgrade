@@ -43,7 +43,8 @@ get_primary_count() {
     for (( i = 0; i < $count; i++ )); do
         local pattern="PENDING - DBID ? - CONTENT ID $i - PRIMARY -*"
         if ! [[ ${lines[$i]} = $pattern ]]; then
-            fail "actual output was ${lines[$i]}"
+            log "needed '$pattern'; actual follows"
+            fail "$output"
         fi
     done
 }

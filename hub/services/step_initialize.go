@@ -61,7 +61,7 @@ func (h *Hub) startAgentsSubStep() error {
 		return err
 	}
 
-	err = StartAgents(h.source, h.target)
+	err = StartAgents(h.source, h.target, h.conf.StateDir)
 	if err != nil {
 		gplog.Error(err.Error())
 		step.MarkFailed()
@@ -125,13 +125,19 @@ func ReloadAndCommitCluster(cluster *utils.Cluster, conn *dbconn.DBConn) error {
 	return nil
 }
 
-func StartAgents(source *utils.Cluster, target *utils.Cluster) error {
+func StartAgents(source *utils.Cluster, target *utils.Cluster, stateDir string) error {
 	// XXX If there are failures, does it matter what agents have successfully
 	// started, or do we just want to stop all of them and kick back to the
 	// user?
 	logStr := "start agents on master and hosts"
 	agentPath := filepath.Join(target.BinDir, "gpupgrade_agent")
-	runAgentCmd := func(contentID int) string { return agentPath + " --daemonize" }
+
+	// XXX State directory handling on agents needs to be improved. See issue
+	// #127: all agents will silently recreate that directory if it doesn't
+	// already exist. Plus, ExecuteOnAllHosts() doesn't let us control whether
+	// we execute locally or via SSH for the master, so we don't know whether
+	// GPUPGRADE_HOME is going to be inherited.
+	runAgentCmd := func(contentID int) string { return agentPath + " --daemonize --state-directory " + stateDir }
 
 	errStr := "Failed to start all gpupgrade_agents"
 
