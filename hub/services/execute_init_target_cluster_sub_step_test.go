@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -54,14 +53,6 @@ var _ = Describe("Hub prepare init-cluster", func() {
 			gpinitsystemConfig, err := hub.CreateInitialInitsystemConfig()
 			Expect(err).To(BeNil())
 			Expect(gpinitsystemConfig).To(Equal(expectedConfig))
-		})
-
-		It("turns checksums off when upgrading from 4.x", func() {
-			source.Version = dbconn.NewVersion("4.3.3")
-
-			gpinitsystemConfig, err := hub.CreateInitialInitsystemConfig()
-			Expect(err).To(BeNil())
-			Expect(gpinitsystemConfig).To(ContainElement("HEAP_CHECKSUM=off"))
 		})
 	})
 	Describe("GetCheckpointSegmentsAndEncoding", func() {

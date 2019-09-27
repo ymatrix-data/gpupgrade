@@ -8,12 +8,12 @@ service Agent {
     rpc CheckConversionStatus (CheckConversionStatusRequest) returns (CheckConversionStatusReply) {}
     rpc CheckDiskSpaceOnAgents (CheckDiskSpaceRequestToAgent) returns (CheckDiskSpaceReplyFromAgent) {}
     rpc PingAgents (PingAgentsRequest) returns (PingAgentsReply) {}
-    rpc UpgradeConvertPrimarySegments (UpgradeConvertPrimarySegmentsRequest) returns (UpgradeConvertPrimarySegmentsReply) {}
+    rpc AgentExecuteUpgradePrimariesSubStep (UpgradePrimariesRequest) returns (UpgradePrimariesReply) {}
     rpc CreateSegmentDataDirectories (CreateSegmentDataDirRequest) returns (CreateSegmentDataDirReply) {}
-    rpc CopyMasterDirectoryToSegmentDirectories(CopyMasterDirRequest) returns (CopyMasterDirReply) {}
+    rpc CopyMasterDirectoryToSegmentDirectories (CopyMasterDirRequest) returns (CopyMasterDirReply) {}
 }
 
-message UpgradeConvertPrimarySegmentsRequest {
+message UpgradePrimariesRequest {
     string OldBinDir = 1;
     string NewBinDir = 2;
     string NewVersion = 3;
@@ -28,7 +28,7 @@ message DataDirPair {
     int32  Content    = 5;
 }
 
-message UpgradeConvertPrimarySegmentsReply {}
+message UpgradePrimariesReply {}
 
 message PingAgentsRequest {}
 message PingAgentsReply {}

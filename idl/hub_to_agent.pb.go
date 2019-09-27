@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type UpgradeConvertPrimarySegmentsRequest struct {
+type UpgradePrimariesRequest struct {
 	OldBinDir            string         `protobuf:"bytes,1,opt,name=OldBinDir" json:"OldBinDir,omitempty"`
 	NewBinDir            string         `protobuf:"bytes,2,opt,name=NewBinDir" json:"NewBinDir,omitempty"`
 	NewVersion           string         `protobuf:"bytes,3,opt,name=NewVersion" json:"NewVersion,omitempty"`
@@ -33,52 +33,52 @@ type UpgradeConvertPrimarySegmentsRequest struct {
 	XXX_sizecache        int32          `json:"-"`
 }
 
-func (m *UpgradeConvertPrimarySegmentsRequest) Reset()         { *m = UpgradeConvertPrimarySegmentsRequest{} }
-func (m *UpgradeConvertPrimarySegmentsRequest) String() string { return proto.CompactTextString(m) }
-func (*UpgradeConvertPrimarySegmentsRequest) ProtoMessage()    {}
-func (*UpgradeConvertPrimarySegmentsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{0}
+func (m *UpgradePrimariesRequest) Reset()         { *m = UpgradePrimariesRequest{} }
+func (m *UpgradePrimariesRequest) String() string { return proto.CompactTextString(m) }
+func (*UpgradePrimariesRequest) ProtoMessage()    {}
+func (*UpgradePrimariesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{0}
 }
-func (m *UpgradeConvertPrimarySegmentsRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest.Unmarshal(m, b)
+func (m *UpgradePrimariesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpgradePrimariesRequest.Unmarshal(m, b)
 }
-func (m *UpgradeConvertPrimarySegmentsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest.Marshal(b, m, deterministic)
+func (m *UpgradePrimariesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpgradePrimariesRequest.Marshal(b, m, deterministic)
 }
-func (dst *UpgradeConvertPrimarySegmentsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest.Merge(dst, src)
+func (dst *UpgradePrimariesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradePrimariesRequest.Merge(dst, src)
 }
-func (m *UpgradeConvertPrimarySegmentsRequest) XXX_Size() int {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest.Size(m)
+func (m *UpgradePrimariesRequest) XXX_Size() int {
+	return xxx_messageInfo_UpgradePrimariesRequest.Size(m)
 }
-func (m *UpgradeConvertPrimarySegmentsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest.DiscardUnknown(m)
+func (m *UpgradePrimariesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradePrimariesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UpgradeConvertPrimarySegmentsRequest proto.InternalMessageInfo
+var xxx_messageInfo_UpgradePrimariesRequest proto.InternalMessageInfo
 
-func (m *UpgradeConvertPrimarySegmentsRequest) GetOldBinDir() string {
+func (m *UpgradePrimariesRequest) GetOldBinDir() string {
 	if m != nil {
 		return m.OldBinDir
 	}
 	return ""
 }
 
-func (m *UpgradeConvertPrimarySegmentsRequest) GetNewBinDir() string {
+func (m *UpgradePrimariesRequest) GetNewBinDir() string {
 	if m != nil {
 		return m.NewBinDir
 	}
 	return ""
 }
 
-func (m *UpgradeConvertPrimarySegmentsRequest) GetNewVersion() string {
+func (m *UpgradePrimariesRequest) GetNewVersion() string {
 	if m != nil {
 		return m.NewVersion
 	}
 	return ""
 }
 
-func (m *UpgradeConvertPrimarySegmentsRequest) GetDataDirPairs() []*DataDirPair {
+func (m *UpgradePrimariesRequest) GetDataDirPairs() []*DataDirPair {
 	if m != nil {
 		return m.DataDirPairs
 	}
@@ -100,7 +100,7 @@ func (m *DataDirPair) Reset()         { *m = DataDirPair{} }
 func (m *DataDirPair) String() string { return proto.CompactTextString(m) }
 func (*DataDirPair) ProtoMessage()    {}
 func (*DataDirPair) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{1}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{1}
 }
 func (m *DataDirPair) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DataDirPair.Unmarshal(m, b)
@@ -155,35 +155,35 @@ func (m *DataDirPair) GetContent() int32 {
 	return 0
 }
 
-type UpgradeConvertPrimarySegmentsReply struct {
+type UpgradePrimariesReply struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UpgradeConvertPrimarySegmentsReply) Reset()         { *m = UpgradeConvertPrimarySegmentsReply{} }
-func (m *UpgradeConvertPrimarySegmentsReply) String() string { return proto.CompactTextString(m) }
-func (*UpgradeConvertPrimarySegmentsReply) ProtoMessage()    {}
-func (*UpgradeConvertPrimarySegmentsReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{2}
+func (m *UpgradePrimariesReply) Reset()         { *m = UpgradePrimariesReply{} }
+func (m *UpgradePrimariesReply) String() string { return proto.CompactTextString(m) }
+func (*UpgradePrimariesReply) ProtoMessage()    {}
+func (*UpgradePrimariesReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{2}
 }
-func (m *UpgradeConvertPrimarySegmentsReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsReply.Unmarshal(m, b)
+func (m *UpgradePrimariesReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpgradePrimariesReply.Unmarshal(m, b)
 }
-func (m *UpgradeConvertPrimarySegmentsReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsReply.Marshal(b, m, deterministic)
+func (m *UpgradePrimariesReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpgradePrimariesReply.Marshal(b, m, deterministic)
 }
-func (dst *UpgradeConvertPrimarySegmentsReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeConvertPrimarySegmentsReply.Merge(dst, src)
+func (dst *UpgradePrimariesReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradePrimariesReply.Merge(dst, src)
 }
-func (m *UpgradeConvertPrimarySegmentsReply) XXX_Size() int {
-	return xxx_messageInfo_UpgradeConvertPrimarySegmentsReply.Size(m)
+func (m *UpgradePrimariesReply) XXX_Size() int {
+	return xxx_messageInfo_UpgradePrimariesReply.Size(m)
 }
-func (m *UpgradeConvertPrimarySegmentsReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeConvertPrimarySegmentsReply.DiscardUnknown(m)
+func (m *UpgradePrimariesReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradePrimariesReply.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UpgradeConvertPrimarySegmentsReply proto.InternalMessageInfo
+var xxx_messageInfo_UpgradePrimariesReply proto.InternalMessageInfo
 
 type PingAgentsRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -195,7 +195,7 @@ func (m *PingAgentsRequest) Reset()         { *m = PingAgentsRequest{} }
 func (m *PingAgentsRequest) String() string { return proto.CompactTextString(m) }
 func (*PingAgentsRequest) ProtoMessage()    {}
 func (*PingAgentsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{3}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{3}
 }
 func (m *PingAgentsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PingAgentsRequest.Unmarshal(m, b)
@@ -225,7 +225,7 @@ func (m *PingAgentsReply) Reset()         { *m = PingAgentsReply{} }
 func (m *PingAgentsReply) String() string { return proto.CompactTextString(m) }
 func (*PingAgentsReply) ProtoMessage()    {}
 func (*PingAgentsReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{4}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{4}
 }
 func (m *PingAgentsReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PingAgentsReply.Unmarshal(m, b)
@@ -255,7 +255,7 @@ func (m *CheckUpgradeStatusRequest) Reset()         { *m = CheckUpgradeStatusReq
 func (m *CheckUpgradeStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckUpgradeStatusRequest) ProtoMessage()    {}
 func (*CheckUpgradeStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{5}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{5}
 }
 func (m *CheckUpgradeStatusRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckUpgradeStatusRequest.Unmarshal(m, b)
@@ -286,7 +286,7 @@ func (m *CheckUpgradeStatusReply) Reset()         { *m = CheckUpgradeStatusReply
 func (m *CheckUpgradeStatusReply) String() string { return proto.CompactTextString(m) }
 func (*CheckUpgradeStatusReply) ProtoMessage()    {}
 func (*CheckUpgradeStatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{6}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{6}
 }
 func (m *CheckUpgradeStatusReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckUpgradeStatusReply.Unmarshal(m, b)
@@ -325,7 +325,7 @@ func (m *CheckConversionStatusRequest) Reset()         { *m = CheckConversionSta
 func (m *CheckConversionStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckConversionStatusRequest) ProtoMessage()    {}
 func (*CheckConversionStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{7}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{7}
 }
 func (m *CheckConversionStatusRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckConversionStatusRequest.Unmarshal(m, b)
@@ -372,7 +372,7 @@ func (m *SegmentInfo) Reset()         { *m = SegmentInfo{} }
 func (m *SegmentInfo) String() string { return proto.CompactTextString(m) }
 func (*SegmentInfo) ProtoMessage()    {}
 func (*SegmentInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{8}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{8}
 }
 func (m *SegmentInfo) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SegmentInfo.Unmarshal(m, b)
@@ -424,7 +424,7 @@ func (m *CheckConversionStatusReply) Reset()         { *m = CheckConversionStatu
 func (m *CheckConversionStatusReply) String() string { return proto.CompactTextString(m) }
 func (*CheckConversionStatusReply) ProtoMessage()    {}
 func (*CheckConversionStatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{9}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{9}
 }
 func (m *CheckConversionStatusReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckConversionStatusReply.Unmarshal(m, b)
@@ -463,7 +463,7 @@ func (m *FileSysUsage) Reset()         { *m = FileSysUsage{} }
 func (m *FileSysUsage) String() string { return proto.CompactTextString(m) }
 func (*FileSysUsage) ProtoMessage()    {}
 func (*FileSysUsage) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{10}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{10}
 }
 func (m *FileSysUsage) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_FileSysUsage.Unmarshal(m, b)
@@ -507,7 +507,7 @@ func (m *CheckDiskSpaceRequestToAgent) Reset()         { *m = CheckDiskSpaceRequ
 func (m *CheckDiskSpaceRequestToAgent) String() string { return proto.CompactTextString(m) }
 func (*CheckDiskSpaceRequestToAgent) ProtoMessage()    {}
 func (*CheckDiskSpaceRequestToAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{11}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{11}
 }
 func (m *CheckDiskSpaceRequestToAgent) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckDiskSpaceRequestToAgent.Unmarshal(m, b)
@@ -538,7 +538,7 @@ func (m *CheckDiskSpaceReplyFromAgent) Reset()         { *m = CheckDiskSpaceRepl
 func (m *CheckDiskSpaceReplyFromAgent) String() string { return proto.CompactTextString(m) }
 func (*CheckDiskSpaceReplyFromAgent) ProtoMessage()    {}
 func (*CheckDiskSpaceReplyFromAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{12}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{12}
 }
 func (m *CheckDiskSpaceReplyFromAgent) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckDiskSpaceReplyFromAgent.Unmarshal(m, b)
@@ -576,7 +576,7 @@ func (m *CreateSegmentDataDirRequest) Reset()         { *m = CreateSegmentDataDi
 func (m *CreateSegmentDataDirRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateSegmentDataDirRequest) ProtoMessage()    {}
 func (*CreateSegmentDataDirRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{13}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{13}
 }
 func (m *CreateSegmentDataDirRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateSegmentDataDirRequest.Unmarshal(m, b)
@@ -613,7 +613,7 @@ func (m *CreateSegmentDataDirReply) Reset()         { *m = CreateSegmentDataDirR
 func (m *CreateSegmentDataDirReply) String() string { return proto.CompactTextString(m) }
 func (*CreateSegmentDataDirReply) ProtoMessage()    {}
 func (*CreateSegmentDataDirReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{14}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{14}
 }
 func (m *CreateSegmentDataDirReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateSegmentDataDirReply.Unmarshal(m, b)
@@ -645,7 +645,7 @@ func (m *CopyMasterDirRequest) Reset()         { *m = CopyMasterDirRequest{} }
 func (m *CopyMasterDirRequest) String() string { return proto.CompactTextString(m) }
 func (*CopyMasterDirRequest) ProtoMessage()    {}
 func (*CopyMasterDirRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{15}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{15}
 }
 func (m *CopyMasterDirRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CopyMasterDirRequest.Unmarshal(m, b)
@@ -689,7 +689,7 @@ func (m *CopyMasterDirReply) Reset()         { *m = CopyMasterDirReply{} }
 func (m *CopyMasterDirReply) String() string { return proto.CompactTextString(m) }
 func (*CopyMasterDirReply) ProtoMessage()    {}
 func (*CopyMasterDirReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_hub_to_agent_ab1949f2973eb96c, []int{16}
+	return fileDescriptor_hub_to_agent_18221d8cf051a383, []int{16}
 }
 func (m *CopyMasterDirReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CopyMasterDirReply.Unmarshal(m, b)
@@ -710,9 +710,9 @@ func (m *CopyMasterDirReply) XXX_DiscardUnknown() {
 var xxx_messageInfo_CopyMasterDirReply proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*UpgradeConvertPrimarySegmentsRequest)(nil), "idl.UpgradeConvertPrimarySegmentsRequest")
+	proto.RegisterType((*UpgradePrimariesRequest)(nil), "idl.UpgradePrimariesRequest")
 	proto.RegisterType((*DataDirPair)(nil), "idl.DataDirPair")
-	proto.RegisterType((*UpgradeConvertPrimarySegmentsReply)(nil), "idl.UpgradeConvertPrimarySegmentsReply")
+	proto.RegisterType((*UpgradePrimariesReply)(nil), "idl.UpgradePrimariesReply")
 	proto.RegisterType((*PingAgentsRequest)(nil), "idl.PingAgentsRequest")
 	proto.RegisterType((*PingAgentsReply)(nil), "idl.PingAgentsReply")
 	proto.RegisterType((*CheckUpgradeStatusRequest)(nil), "idl.CheckUpgradeStatusRequest")
@@ -744,7 +744,7 @@ type AgentClient interface {
 	CheckConversionStatus(ctx context.Context, in *CheckConversionStatusRequest, opts ...grpc.CallOption) (*CheckConversionStatusReply, error)
 	CheckDiskSpaceOnAgents(ctx context.Context, in *CheckDiskSpaceRequestToAgent, opts ...grpc.CallOption) (*CheckDiskSpaceReplyFromAgent, error)
 	PingAgents(ctx context.Context, in *PingAgentsRequest, opts ...grpc.CallOption) (*PingAgentsReply, error)
-	UpgradeConvertPrimarySegments(ctx context.Context, in *UpgradeConvertPrimarySegmentsRequest, opts ...grpc.CallOption) (*UpgradeConvertPrimarySegmentsReply, error)
+	AgentExecuteUpgradePrimariesSubStep(ctx context.Context, in *UpgradePrimariesRequest, opts ...grpc.CallOption) (*UpgradePrimariesReply, error)
 	CreateSegmentDataDirectories(ctx context.Context, in *CreateSegmentDataDirRequest, opts ...grpc.CallOption) (*CreateSegmentDataDirReply, error)
 	CopyMasterDirectoryToSegmentDirectories(ctx context.Context, in *CopyMasterDirRequest, opts ...grpc.CallOption) (*CopyMasterDirReply, error)
 }
@@ -793,9 +793,9 @@ func (c *agentClient) PingAgents(ctx context.Context, in *PingAgentsRequest, opt
 	return out, nil
 }
 
-func (c *agentClient) UpgradeConvertPrimarySegments(ctx context.Context, in *UpgradeConvertPrimarySegmentsRequest, opts ...grpc.CallOption) (*UpgradeConvertPrimarySegmentsReply, error) {
-	out := new(UpgradeConvertPrimarySegmentsReply)
-	err := grpc.Invoke(ctx, "/idl.Agent/UpgradeConvertPrimarySegments", in, out, c.cc, opts...)
+func (c *agentClient) AgentExecuteUpgradePrimariesSubStep(ctx context.Context, in *UpgradePrimariesRequest, opts ...grpc.CallOption) (*UpgradePrimariesReply, error) {
+	out := new(UpgradePrimariesReply)
+	err := grpc.Invoke(ctx, "/idl.Agent/AgentExecuteUpgradePrimariesSubStep", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -827,7 +827,7 @@ type AgentServer interface {
 	CheckConversionStatus(context.Context, *CheckConversionStatusRequest) (*CheckConversionStatusReply, error)
 	CheckDiskSpaceOnAgents(context.Context, *CheckDiskSpaceRequestToAgent) (*CheckDiskSpaceReplyFromAgent, error)
 	PingAgents(context.Context, *PingAgentsRequest) (*PingAgentsReply, error)
-	UpgradeConvertPrimarySegments(context.Context, *UpgradeConvertPrimarySegmentsRequest) (*UpgradeConvertPrimarySegmentsReply, error)
+	AgentExecuteUpgradePrimariesSubStep(context.Context, *UpgradePrimariesRequest) (*UpgradePrimariesReply, error)
 	CreateSegmentDataDirectories(context.Context, *CreateSegmentDataDirRequest) (*CreateSegmentDataDirReply, error)
 	CopyMasterDirectoryToSegmentDirectories(context.Context, *CopyMasterDirRequest) (*CopyMasterDirReply, error)
 }
@@ -908,20 +908,20 @@ func _Agent_PingAgents_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Agent_UpgradeConvertPrimarySegments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpgradeConvertPrimarySegmentsRequest)
+func _Agent_AgentExecuteUpgradePrimariesSubStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradePrimariesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServer).UpgradeConvertPrimarySegments(ctx, in)
+		return srv.(AgentServer).AgentExecuteUpgradePrimariesSubStep(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/idl.Agent/UpgradeConvertPrimarySegments",
+		FullMethod: "/idl.Agent/AgentExecuteUpgradePrimariesSubStep",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).UpgradeConvertPrimarySegments(ctx, req.(*UpgradeConvertPrimarySegmentsRequest))
+		return srv.(AgentServer).AgentExecuteUpgradePrimariesSubStep(ctx, req.(*UpgradePrimariesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -983,8 +983,8 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Agent_PingAgents_Handler,
 		},
 		{
-			MethodName: "UpgradeConvertPrimarySegments",
-			Handler:    _Agent_UpgradeConvertPrimarySegments_Handler,
+			MethodName: "AgentExecuteUpgradePrimariesSubStep",
+			Handler:    _Agent_AgentExecuteUpgradePrimariesSubStep_Handler,
 		},
 		{
 			MethodName: "CreateSegmentDataDirectories",
@@ -999,53 +999,53 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 	Metadata: "hub_to_agent.proto",
 }
 
-func init() { proto.RegisterFile("hub_to_agent.proto", fileDescriptor_hub_to_agent_ab1949f2973eb96c) }
+func init() { proto.RegisterFile("hub_to_agent.proto", fileDescriptor_hub_to_agent_18221d8cf051a383) }
 
-var fileDescriptor_hub_to_agent_ab1949f2973eb96c = []byte{
-	// 716 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0x5d, 0x4f, 0x1b, 0x3b,
-	0x10, 0x25, 0x40, 0xee, 0x4d, 0x26, 0x48, 0x17, 0x7c, 0x73, 0x21, 0x2c, 0xb9, 0x69, 0xba, 0x42,
-	0x82, 0x4a, 0x55, 0x1e, 0x68, 0x5f, 0xaa, 0xf6, 0x85, 0x26, 0x42, 0xad, 0x44, 0x49, 0xb4, 0x81,
-	0xbe, 0x55, 0xd4, 0xc9, 0x9a, 0xc4, 0x62, 0xb3, 0xde, 0xda, 0x4e, 0xd1, 0xfe, 0x93, 0x4a, 0xfd,
-	0x23, 0xfd, 0x79, 0x95, 0x3f, 0x76, 0xe3, 0xc0, 0x86, 0xf2, 0x96, 0x39, 0xe7, 0x78, 0x66, 0x76,
-	0xe6, 0xd8, 0x01, 0x34, 0x9d, 0x8f, 0xae, 0x25, 0xbb, 0xc6, 0x13, 0x12, 0xcb, 0x4e, 0xc2, 0x99,
-	0x64, 0x68, 0x83, 0x86, 0x91, 0xb7, 0x3d, 0x8e, 0xa8, 0x22, 0xa6, 0xf3, 0x91, 0x81, 0xfd, 0x5f,
-	0x25, 0x38, 0xbc, 0x4a, 0x26, 0x1c, 0x87, 0xa4, 0xcb, 0xe2, 0xef, 0x84, 0xcb, 0x01, 0xa7, 0x33,
-	0xcc, 0xd3, 0x21, 0x99, 0xcc, 0x48, 0x2c, 0x45, 0x40, 0xbe, 0xcd, 0x89, 0x90, 0xa8, 0x09, 0xd5,
-	0x7e, 0x14, 0xbe, 0xa7, 0x71, 0x8f, 0xf2, 0x46, 0xa9, 0x5d, 0x3a, 0xae, 0x06, 0x0b, 0x40, 0xb1,
-	0x17, 0xe4, 0xce, 0xb2, 0xeb, 0x86, 0xcd, 0x01, 0xd4, 0x02, 0xb8, 0x20, 0x77, 0x9f, 0x09, 0x17,
-	0x94, 0xc5, 0x8d, 0x0d, 0x4d, 0x3b, 0x08, 0x7a, 0x0d, 0x5b, 0x3d, 0x2c, 0x71, 0x8f, 0xf2, 0x01,
-	0xa6, 0x5c, 0x34, 0x36, 0xdb, 0x1b, 0xc7, 0xb5, 0x93, 0xed, 0x0e, 0x0d, 0xa3, 0x8e, 0x43, 0x04,
-	0x4b, 0x2a, 0xff, 0x67, 0x09, 0x6a, 0x0e, 0xa0, 0xaa, 0xf4, 0xa3, 0xd0, 0x22, 0xb6, 0x45, 0x07,
-	0xb1, 0x5d, 0x64, 0xfc, 0x7a, 0xde, 0x45, 0xc6, 0x37, 0xe0, 0xef, 0x7e, 0x14, 0x0e, 0x18, 0x97,
-	0xba, 0xc5, 0x72, 0x90, 0x85, 0x8a, 0xb9, 0x20, 0x77, 0x9a, 0xd9, 0x34, 0x8c, 0x0d, 0x15, 0xd3,
-	0x65, 0xb1, 0x24, 0xb1, 0x6c, 0x94, 0x0d, 0x63, 0x43, 0xff, 0x10, 0xfc, 0x3f, 0xcc, 0x35, 0x89,
-	0x52, 0xff, 0x5f, 0xd8, 0x19, 0xd0, 0x78, 0x72, 0x3a, 0x71, 0x46, 0xed, 0xef, 0xc0, 0x3f, 0x2e,
-	0xa8, 0x74, 0x07, 0xb0, 0xdf, 0x9d, 0x92, 0xf1, 0xad, 0x4d, 0x39, 0x94, 0x58, 0xce, 0x73, 0xfd,
-	0x5b, 0xd8, 0x2b, 0x22, 0x93, 0x28, 0x45, 0x6d, 0xa8, 0x0d, 0x38, 0x1b, 0x13, 0x21, 0xce, 0xa9,
-	0x90, 0x76, 0x28, 0x2e, 0xe4, 0x4f, 0xa1, 0xa9, 0x0f, 0x9b, 0x2e, 0xd5, 0x3a, 0x96, 0x92, 0xa3,
-	0x97, 0x50, 0xc9, 0x5a, 0x6e, 0x94, 0x9c, 0xbd, 0x58, 0xf0, 0x63, 0x7c, 0xc3, 0x82, 0x5c, 0x81,
-	0x3c, 0xa8, 0x7c, 0x60, 0x42, 0xc6, 0x78, 0x46, 0xec, 0x84, 0xf3, 0xd8, 0xbf, 0x82, 0x9a, 0x73,
-	0xc8, 0x1d, 0x5d, 0x69, 0x69, 0x74, 0x08, 0xc1, 0x66, 0x6f, 0x44, 0x43, 0x9d, 0xa0, 0x1c, 0xe8,
-	0xdf, 0x4a, 0x9d, 0x6d, 0xce, 0xf8, 0x27, 0x0b, 0xfd, 0x73, 0xf0, 0x56, 0x7c, 0x80, 0x1a, 0x40,
-	0x07, 0x2a, 0x26, 0x24, 0x59, 0xfb, 0x48, 0xb7, 0x9f, 0x6d, 0xc3, 0x48, 0x73, 0x8d, 0xdf, 0x83,
-	0xad, 0x33, 0x1a, 0x91, 0x61, 0x2a, 0xae, 0x04, 0x9e, 0x10, 0x65, 0x1a, 0x15, 0x8b, 0x54, 0x48,
-	0x32, 0xcb, 0x4c, 0xb5, 0x40, 0x50, 0x1d, 0xca, 0x5a, 0xa8, 0x9b, 0x2d, 0x05, 0x26, 0xf0, 0x5b,
-	0x76, 0xa8, 0x3d, 0x2a, 0x6e, 0x87, 0x09, 0x1e, 0x13, 0x3b, 0xcd, 0x4b, 0xa6, 0x97, 0xea, 0xe3,
-	0x87, 0x7c, 0x12, 0xa5, 0x67, 0x9c, 0xcd, 0x34, 0x8f, 0x4e, 0x01, 0xa9, 0xe5, 0xf4, 0x6f, 0xdc,
-	0x5e, 0x6c, 0xff, 0x3b, 0xba, 0x7f, 0x97, 0x08, 0x0a, 0xc4, 0xfe, 0x1b, 0x38, 0xe8, 0x72, 0x82,
-	0x25, 0xb1, 0x33, 0xb7, 0xe3, 0xca, 0xd6, 0xea, 0x41, 0x25, 0xc4, 0x12, 0x87, 0xea, 0xba, 0xa9,
-	0xbc, 0xd5, 0x20, 0x8f, 0xb5, 0xd9, 0x0a, 0x8f, 0x2a, 0x27, 0x0e, 0xa0, 0xde, 0x65, 0x49, 0xfa,
-	0x09, 0x0b, 0x49, 0xb8, 0x93, 0xb0, 0x09, 0xd5, 0x59, 0x86, 0x65, 0xef, 0x43, 0x0e, 0x2c, 0x95,
-	0x5b, 0xbf, 0x57, 0xae, 0x0e, 0xe8, 0x5e, 0xc6, 0x24, 0x4a, 0x4f, 0x7e, 0x94, 0xa1, 0x6c, 0x86,
-	0x71, 0x09, 0xe8, 0xa1, 0xbd, 0x51, 0x4b, 0x8f, 0x61, 0xe5, 0xa5, 0xf0, 0x9a, 0x2b, 0x79, 0xf5,
-	0x15, 0x6b, 0xe8, 0x0b, 0xfc, 0x57, 0x68, 0x1b, 0xf4, 0x7c, 0x71, 0x70, 0xc5, 0x9d, 0xf0, 0x9e,
-	0x3d, 0x26, 0x31, 0xe9, 0xbf, 0xc2, 0xee, 0xf2, 0x86, 0xfb, 0xb1, 0xb9, 0xcf, 0x6e, 0xfe, 0x15,
-	0xf6, 0xf0, 0x8a, 0x25, 0xae, 0x43, 0xfc, 0x35, 0xf4, 0x0e, 0x60, 0xf1, 0x4a, 0xa0, 0x5d, 0xe3,
-	0xea, 0xfb, 0x6f, 0x89, 0x57, 0x7f, 0x80, 0x9b, 0xfe, 0xe6, 0xf0, 0xff, 0xa3, 0xcf, 0x13, 0x7a,
-	0xa1, 0x0f, 0x3e, 0xe5, 0xaf, 0xc1, 0x3b, 0x7a, 0x8a, 0xd4, 0x94, 0x1d, 0x41, 0xb3, 0xc8, 0x5a,
-	0x64, 0x2c, 0x19, 0xa7, 0x44, 0xa0, 0xb6, 0xf9, 0xf2, 0xd5, 0xc6, 0xf5, 0x5a, 0x8f, 0x28, 0x4c,
-	0x8d, 0x6b, 0x38, 0x5a, 0xf2, 0x93, 0x4e, 0x9e, 0x5e, 0xb2, 0x4c, 0xed, 0x94, 0xdb, 0x37, 0xc9,
-	0x0a, 0xfc, 0xec, 0xed, 0x15, 0x51, 0xba, 0xc0, 0xe8, 0x2f, 0xfd, 0xd7, 0xf9, 0xea, 0x77, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xbe, 0x89, 0x10, 0xc0, 0x67, 0x07, 0x00, 0x00,
+var fileDescriptor_hub_to_agent_18221d8cf051a383 = []byte{
+	// 718 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x55, 0x4f, 0x73, 0x12, 0x4f,
+	0x10, 0x0d, 0x49, 0xf8, 0xfd, 0xa0, 0x49, 0x95, 0xc9, 0x48, 0x02, 0xd9, 0x50, 0x88, 0xeb, 0xc1,
+	0x1c, 0x2c, 0x0e, 0xd1, 0x8b, 0xa5, 0x97, 0x08, 0xa6, 0xb4, 0x2a, 0x06, 0x6a, 0x49, 0xbc, 0x59,
+	0x71, 0x60, 0x27, 0x30, 0x95, 0x65, 0x67, 0xdd, 0x19, 0x8c, 0x7b, 0xf7, 0x5b, 0xf8, 0x11, 0xfc,
+	0x92, 0xd6, 0xfc, 0xd9, 0x65, 0x80, 0xdd, 0xdc, 0xe8, 0xf7, 0x7a, 0xba, 0x7b, 0x5f, 0xbf, 0x19,
+	0x00, 0xcd, 0x16, 0xe3, 0x5b, 0xc1, 0x6e, 0xf1, 0x94, 0x84, 0xa2, 0x1b, 0xc5, 0x4c, 0x30, 0xb4,
+	0x43, 0xfd, 0xc0, 0xd9, 0x9f, 0x04, 0x54, 0x12, 0xb3, 0xc5, 0x58, 0xc3, 0xee, 0xdf, 0x12, 0x34,
+	0x6e, 0xa2, 0x69, 0x8c, 0x7d, 0x32, 0x8c, 0xe9, 0x1c, 0xc7, 0x94, 0x70, 0x8f, 0xfc, 0x58, 0x10,
+	0x2e, 0x50, 0x0b, 0xaa, 0x83, 0xc0, 0xff, 0x40, 0xc3, 0x3e, 0x8d, 0x9b, 0xa5, 0x4e, 0xe9, 0xb4,
+	0xea, 0x2d, 0x01, 0xc9, 0x5e, 0x91, 0x07, 0xc3, 0x6e, 0x6b, 0x36, 0x03, 0x50, 0x1b, 0xe0, 0x8a,
+	0x3c, 0x7c, 0x25, 0x31, 0xa7, 0x2c, 0x6c, 0xee, 0x28, 0xda, 0x42, 0xd0, 0x1b, 0xd8, 0xeb, 0x63,
+	0x81, 0xfb, 0x34, 0x1e, 0x62, 0x1a, 0xf3, 0xe6, 0x6e, 0x67, 0xe7, 0xb4, 0x76, 0xb6, 0xdf, 0xa5,
+	0x7e, 0xd0, 0xb5, 0x08, 0x6f, 0x25, 0xcb, 0xfd, 0x53, 0x82, 0x9a, 0x05, 0xc8, 0x2e, 0x83, 0xc0,
+	0x37, 0x88, 0x19, 0xd1, 0x42, 0xcc, 0x14, 0x29, 0xbf, 0x9d, 0x4d, 0x91, 0xf2, 0x4d, 0xf8, 0x7f,
+	0x10, 0xf8, 0x43, 0x16, 0x0b, 0x35, 0x62, 0xd9, 0x4b, 0x43, 0xc9, 0x5c, 0x91, 0x07, 0xc5, 0xec,
+	0x6a, 0xc6, 0x84, 0x92, 0xe9, 0xb1, 0x50, 0x90, 0x50, 0x34, 0xcb, 0x9a, 0x31, 0xa1, 0xdb, 0x80,
+	0xc3, 0x4d, 0x29, 0xa3, 0x20, 0x71, 0x9f, 0xc2, 0xc1, 0x90, 0x86, 0xd3, 0x73, 0xb9, 0x8e, 0x54,
+	0x5d, 0xf7, 0x00, 0x9e, 0xd8, 0xa0, 0xcc, 0x3b, 0x81, 0xe3, 0xde, 0x8c, 0x4c, 0xee, 0x4d, 0x95,
+	0x91, 0xc0, 0x62, 0x91, 0xe5, 0xbf, 0x83, 0x46, 0x1e, 0x19, 0x05, 0x09, 0xea, 0x40, 0x6d, 0x18,
+	0xb3, 0x09, 0xe1, 0xfc, 0x92, 0x72, 0x61, 0x74, 0xb0, 0x21, 0x77, 0x06, 0x2d, 0x75, 0xb8, 0xc7,
+	0xc2, 0x9f, 0x7a, 0x03, 0x2b, 0xc5, 0xd1, 0x2b, 0xa8, 0x8c, 0xc8, 0x74, 0x2e, 0x47, 0x69, 0x96,
+	0xac, 0x55, 0x18, 0xf0, 0x73, 0x78, 0xc7, 0xbc, 0x2c, 0x03, 0x39, 0x50, 0xf9, 0xc4, 0xb8, 0x08,
+	0xf1, 0x9c, 0x18, 0x51, 0xb3, 0xd8, 0xbd, 0x81, 0x9a, 0x75, 0xc8, 0x56, 0xab, 0xb4, 0xa2, 0x16,
+	0x42, 0xb0, 0xdb, 0x1f, 0x53, 0x5f, 0x15, 0x28, 0x7b, 0xea, 0xb7, 0xcc, 0x4e, 0x97, 0xa5, 0x2d,
+	0x93, 0x86, 0xee, 0x25, 0x38, 0x05, 0x1f, 0x20, 0x05, 0xe8, 0x42, 0x45, 0x87, 0x24, 0x1d, 0x1f,
+	0xa9, 0xf1, 0xf5, 0x1e, 0x12, 0x93, 0x9a, 0xe5, 0xb8, 0x7d, 0xd8, 0xbb, 0xa0, 0x01, 0x19, 0x25,
+	0xfc, 0x86, 0xe3, 0x29, 0x91, 0x3e, 0x91, 0x31, 0x4f, 0xb8, 0x20, 0xf3, 0xd4, 0x47, 0x4b, 0x04,
+	0xd5, 0xa1, 0xac, 0x12, 0xd5, 0xb0, 0x25, 0x4f, 0x07, 0x6e, 0xdb, 0x88, 0xda, 0xa7, 0xfc, 0x7e,
+	0x14, 0xe1, 0x09, 0x31, 0x6a, 0x5e, 0x33, 0xb5, 0x54, 0x17, 0x6f, 0xf2, 0x51, 0x90, 0x5c, 0xc4,
+	0x6c, 0xae, 0x78, 0x74, 0x0e, 0x48, 0x2e, 0x67, 0x70, 0x67, 0xcf, 0x62, 0xe6, 0x3f, 0x50, 0xf3,
+	0xdb, 0x84, 0x97, 0x93, 0xec, 0xbe, 0x85, 0x93, 0x5e, 0x4c, 0xb0, 0x20, 0x46, 0x73, 0x23, 0x57,
+	0xba, 0x56, 0x07, 0x2a, 0x3e, 0x16, 0xd8, 0x97, 0x37, 0x4c, 0xd6, 0xad, 0x7a, 0x59, 0xac, 0xcc,
+	0x96, 0x7b, 0x54, 0x3a, 0x71, 0x08, 0xf5, 0x1e, 0x8b, 0x92, 0x2f, 0x98, 0x0b, 0x12, 0x5b, 0x05,
+	0x5b, 0x50, 0x9d, 0xa7, 0x58, 0xfa, 0x24, 0x64, 0xc0, 0x4a, 0xbb, 0xed, 0xb5, 0x76, 0x75, 0x40,
+	0x6b, 0x15, 0xa3, 0x20, 0x39, 0xfb, 0x5d, 0x86, 0xb2, 0x16, 0xe3, 0x1a, 0xd0, 0xa6, 0xbd, 0x51,
+	0x5b, 0xc9, 0x50, 0x78, 0x29, 0x9c, 0x56, 0x21, 0x2f, 0xbf, 0x62, 0x0b, 0x7d, 0x83, 0xc3, 0x5c,
+	0xdb, 0xa0, 0xe7, 0xcb, 0x83, 0x05, 0x77, 0xc2, 0x79, 0xf6, 0x58, 0x8a, 0x2e, 0xff, 0x1d, 0x8e,
+	0x56, 0x37, 0x3c, 0x08, 0xf5, 0x7d, 0xb6, 0xeb, 0x17, 0xd8, 0xc3, 0xc9, 0x4f, 0xb1, 0x1d, 0xe2,
+	0x6e, 0xa1, 0xf7, 0x00, 0xcb, 0x57, 0x02, 0x1d, 0x69, 0x57, 0xaf, 0xbf, 0x25, 0x4e, 0x7d, 0x03,
+	0xd7, 0xf3, 0x61, 0x78, 0xa1, 0x80, 0x8f, 0xbf, 0xc8, 0x64, 0x21, 0xc8, 0xfa, 0xeb, 0x34, 0x5a,
+	0x8c, 0x47, 0x82, 0x44, 0x48, 0xab, 0x58, 0xf0, 0x37, 0xe0, 0x38, 0x05, 0xac, 0x6e, 0x31, 0x86,
+	0x56, 0x9e, 0x8d, 0xc8, 0x44, 0x30, 0x99, 0x86, 0x3a, 0xfa, 0x2b, 0x8b, 0x4d, 0xea, 0xb4, 0x1f,
+	0xc9, 0xd0, 0x3d, 0x6e, 0xe1, 0xe5, 0x8a, 0x77, 0x54, 0xf1, 0xe4, 0x9a, 0xa5, 0xd9, 0x56, 0xbb,
+	0x63, 0x5d, 0x2c, 0xc7, 0xbb, 0x4e, 0x23, 0x8f, 0x52, 0x0d, 0xc6, 0xff, 0xa9, 0x3f, 0xc3, 0xd7,
+	0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x34, 0x78, 0x30, 0xbd, 0x39, 0x07, 0x00, 0x00,
 }

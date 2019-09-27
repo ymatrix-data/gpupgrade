@@ -39,7 +39,7 @@ func (h *Hub) convertPrimaries() error {
 		go func(conn *Connection) {
 			defer wg.Done()
 
-			_, err := idl.NewAgentClient(conn.Conn).UpgradeConvertPrimarySegments(context.Background(), &idl.UpgradeConvertPrimarySegmentsRequest{
+			_, err := idl.NewAgentClient(conn.Conn).AgentExecuteUpgradePrimariesSubStep(context.Background(), &idl.UpgradePrimariesRequest{
 				OldBinDir:    h.source.BinDir,
 				NewBinDir:    h.target.BinDir,
 				NewVersion:   h.target.Version.SemVer.String(),

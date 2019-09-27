@@ -21,7 +21,7 @@ type MockAgentServer struct {
 
 	StatusConversionRequest              *idl.CheckConversionStatusRequest
 	StatusConversionResponse             *idl.CheckConversionStatusReply
-	UpgradeConvertPrimarySegmentsRequest *idl.UpgradeConvertPrimarySegmentsRequest
+	UpgradeConvertPrimarySegmentsRequest *idl.UpgradePrimariesRequest
 	CreateSegmentDataDirRequest          *idl.CreateSegmentDataDirRequest
 	CopyMasterDirRequest                 *idl.CopyMasterDirRequest
 
@@ -91,7 +91,7 @@ func (m *MockAgentServer) PingAgents(context.Context, *idl.PingAgentsRequest) (*
 	return &idl.PingAgentsReply{}, nil
 }
 
-func (m *MockAgentServer) UpgradeConvertPrimarySegments(ctx context.Context, in *idl.UpgradeConvertPrimarySegmentsRequest) (*idl.UpgradeConvertPrimarySegmentsReply, error) {
+func (m *MockAgentServer) AgentExecuteUpgradePrimariesSubStep(ctx context.Context, in *idl.UpgradePrimariesRequest) (*idl.UpgradePrimariesReply, error) {
 	m.increaseCalls()
 
 	m.mu.Lock()
@@ -103,7 +103,7 @@ func (m *MockAgentServer) UpgradeConvertPrimarySegments(ctx context.Context, in 
 		err = <-m.Err
 	}
 
-	return &idl.UpgradeConvertPrimarySegmentsReply{}, err
+	return &idl.UpgradePrimariesReply{}, err
 }
 
 func (m *MockAgentServer) CreateSegmentDataDirectories(ctx context.Context, in *idl.CreateSegmentDataDirRequest) (*idl.CreateSegmentDataDirReply, error) {
