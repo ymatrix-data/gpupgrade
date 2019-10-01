@@ -50,7 +50,7 @@ func BuildRootCommand() *cobra.Command {
 	// TODO: if called without a subcommand, the cli prints a help message with timestamp.  Remove the timestamp.
 	root := &cobra.Command{Use: "gpupgrade"}
 
-	root.AddCommand(prepare, config, status, check, version, upgrade)
+	root.AddCommand(prepare, config, status, check, version)
 	root.AddCommand(initialize())
 	root.AddCommand(execute)
 	root.AddCommand(subUpgradeReconfigurePorts)
@@ -287,12 +287,6 @@ var subStatusUpgrade = &cobra.Command{
 }
 
 //////////////////////////////////////// UPGRADE and its subcommands
-var upgrade = &cobra.Command{
-	Use:   "upgrade",
-	Short: "starts upgrade process",
-	Long:  `starts upgrade process`,
-}
-
 var subUpgradeReconfigurePorts = &cobra.Command{
 	Use:   "reconfigure-ports",
 	Short: "Set master port on upgraded cluster to the value from the older cluster",
