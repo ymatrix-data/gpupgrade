@@ -8,17 +8,19 @@ import (
 	"google.golang.org/grpc"
 )
 
+// TODO: we're just about to the point where we can remove this entirely.
+
 type MockHubClient struct {
-	ExecuteRequest *idl.ExecuteRequest
-	UpgradeReconfigurePortsRequest  *idl.UpgradeReconfigurePortsRequest
-	Err                             error
+	ExecuteRequest  *idl.ExecuteRequest
+	FinalizeRequest *idl.FinalizeRequest
+	Err             error
 }
 
 func NewMockHubClient() *MockHubClient {
 	return &MockHubClient{}
 }
 
-func (h *MockHubClient) Execute (ctx context.Context, in *idl.ExecuteRequest, opts ...grpc.CallOption)  (idl.CliToHub_ExecuteClient, error) {
+func (h *MockHubClient) Execute(ctx context.Context, in *idl.ExecuteRequest, opts ...grpc.CallOption) (idl.CliToHub_ExecuteClient, error) {
 	return nil, nil
 }
 
@@ -46,8 +48,8 @@ func (m *MockHubClient) ExecuteInitClusterSubStep() error {
 	return nil
 }
 
-func (m *MockHubClient) UpgradeReconfigurePorts(ctx context.Context, in *idl.UpgradeReconfigurePortsRequest, opts ...grpc.CallOption) (*idl.UpgradeReconfigurePortsReply, error) {
-	m.UpgradeReconfigurePortsRequest = in
+func (m *MockHubClient) Finalize(ctx context.Context, in *idl.FinalizeRequest, opts ...grpc.CallOption) (*idl.FinalizeReply, error) {
+	m.FinalizeRequest = in
 
 	return nil, m.Err
 }

@@ -1,15 +1,22 @@
 package services
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
+	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
+	"github.com/greenplum-db/gpupgrade/idl"
 )
+
+func (h *Hub) Finalize(ctx context.Context, _ *idl.FinalizeRequest) (*idl.FinalizeReply, error) {
+	err := h.UpgradeReconfigurePortsSubStep()
+	return &idl.FinalizeReply{}, err
+}
 
 // ClonePortsFromCluster will modify the gp_segment_configuration of the passed
 // sql.DB to match the cluster port settings from the source cluster.Cluster.

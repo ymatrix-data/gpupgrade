@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"os/exec"
@@ -11,16 +10,15 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
-	"github.com/greenplum-db/gpupgrade/idl"
 )
 
-func (h *Hub) UpgradeReconfigurePorts(ctx context.Context, in *idl.UpgradeReconfigurePortsRequest) (*idl.UpgradeReconfigurePortsReply, error) {
+func (h *Hub) UpgradeReconfigurePortsSubStep() error {
 	gplog.Info("starting %s", upgradestatus.RECONFIGURE_PORTS)
 
 	step, err := h.InitializeStep(upgradestatus.RECONFIGURE_PORTS)
 	if err != nil {
 		gplog.Error(err.Error())
-		return &idl.UpgradeReconfigurePortsReply{}, err
+		return err
 	}
 
 	if err := h.reconfigurePorts(); err != nil {
@@ -33,11 +31,11 @@ func (h *Hub) UpgradeReconfigurePorts(ctx context.Context, in *idl.UpgradeReconf
 		}
 
 		step.MarkFailed()
-		return &idl.UpgradeReconfigurePortsReply{}, err
+		return err
 	}
 
 	step.MarkComplete()
-	return &idl.UpgradeReconfigurePortsReply{}, nil
+	return nil
 }
 
 // reconfigurePorts executes the tricky sequence of operations required to

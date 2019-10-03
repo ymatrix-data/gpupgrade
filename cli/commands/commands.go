@@ -279,21 +279,6 @@ var subStatusUpgrade = &cobra.Command{
 	},
 }
 
-//////////////////////////////////////// UPGRADE and its subcommands
-var finalize = &cobra.Command{
-	Use:   "finalize",
-	Short: "finalizes the cluster after upgrade execution",
-	Long:  "finalizes the cluster after upgrade execution",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		err := commanders.NewUpgrader(client).ReconfigurePorts()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-
 //////////////////////////////////////// VERSION
 var version = &cobra.Command{
 	Use:   "version",
@@ -304,7 +289,10 @@ var version = &cobra.Command{
 	},
 }
 
-//////////////////////////////////////// Initialize
+//
+// Upgrade Steps
+//
+
 func initialize() *cobra.Command {
 	var oldBinDir, newBinDir string
 	var oldPort int
@@ -350,7 +338,6 @@ func initialize() *cobra.Command {
 	return subInit
 }
 
-//////////////////////////////////////// Execute
 var execute = &cobra.Command{
 	Use:   "execute",
 	Short: "executes the upgrade",
@@ -358,6 +345,20 @@ var execute = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := connectToHub()
 		err := commanders.Execute(client)
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}
+	},
+}
+
+var finalize = &cobra.Command{
+	Use:   "finalize",
+	Short: "finalizes the cluster after upgrade execution",
+	Long:  "finalizes the cluster after upgrade execution",
+	Run: func(cmd *cobra.Command, args []string) {
+		client := connectToHub()
+		err := commanders.Finalize(client)
 		if err != nil {
 			gplog.Error(err.Error())
 			os.Exit(1)

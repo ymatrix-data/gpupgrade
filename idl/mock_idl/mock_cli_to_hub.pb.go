@@ -116,6 +116,26 @@ func (mr *MockCliToHubClientMockRecorder) Execute(arg0, arg1 interface{}, arg2 .
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCliToHubClient)(nil).Execute), varargs...)
 }
 
+// Finalize mocks base method
+func (m *MockCliToHubClient) Finalize(arg0 context.Context, arg1 *idl.FinalizeRequest, arg2 ...grpc.CallOption) (*idl.FinalizeReply, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Finalize", varargs...)
+	ret0, _ := ret[0].(*idl.FinalizeReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Finalize indicates an expected call of Finalize
+func (mr *MockCliToHubClientMockRecorder) Finalize(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finalize", reflect.TypeOf((*MockCliToHubClient)(nil).Finalize), varargs...)
+}
+
 // GetConfig mocks base method
 func (m *MockCliToHubClient) GetConfig(arg0 context.Context, arg1 *idl.GetConfigRequest, arg2 ...grpc.CallOption) (*idl.GetConfigReply, error) {
 	m.ctrl.T.Helper()
@@ -216,26 +236,6 @@ func (mr *MockCliToHubClientMockRecorder) StatusUpgrade(arg0, arg1 interface{}, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusUpgrade", reflect.TypeOf((*MockCliToHubClient)(nil).StatusUpgrade), varargs...)
 }
 
-// UpgradeReconfigurePorts mocks base method
-func (m *MockCliToHubClient) UpgradeReconfigurePorts(arg0 context.Context, arg1 *idl.UpgradeReconfigurePortsRequest, arg2 ...grpc.CallOption) (*idl.UpgradeReconfigurePortsReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpgradeReconfigurePorts", varargs...)
-	ret0, _ := ret[0].(*idl.UpgradeReconfigurePortsReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpgradeReconfigurePorts indicates an expected call of UpgradeReconfigurePorts
-func (mr *MockCliToHubClientMockRecorder) UpgradeReconfigurePorts(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeReconfigurePorts", reflect.TypeOf((*MockCliToHubClient)(nil).UpgradeReconfigurePorts), varargs...)
-}
-
 // MockCliToHubServer is a mock of CliToHubServer interface
 type MockCliToHubServer struct {
 	ctrl     *gomock.Controller
@@ -318,6 +318,21 @@ func (mr *MockCliToHubServerMockRecorder) Execute(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCliToHubServer)(nil).Execute), arg0, arg1)
 }
 
+// Finalize mocks base method
+func (m *MockCliToHubServer) Finalize(arg0 context.Context, arg1 *idl.FinalizeRequest) (*idl.FinalizeReply, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Finalize", arg0, arg1)
+	ret0, _ := ret[0].(*idl.FinalizeReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Finalize indicates an expected call of Finalize
+func (mr *MockCliToHubServerMockRecorder) Finalize(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finalize", reflect.TypeOf((*MockCliToHubServer)(nil).Finalize), arg0, arg1)
+}
+
 // GetConfig mocks base method
 func (m *MockCliToHubServer) GetConfig(arg0 context.Context, arg1 *idl.GetConfigRequest) (*idl.GetConfigReply, error) {
 	m.ctrl.T.Helper()
@@ -391,21 +406,6 @@ func (m *MockCliToHubServer) StatusUpgrade(arg0 context.Context, arg1 *idl.Statu
 func (mr *MockCliToHubServerMockRecorder) StatusUpgrade(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusUpgrade", reflect.TypeOf((*MockCliToHubServer)(nil).StatusUpgrade), arg0, arg1)
-}
-
-// UpgradeReconfigurePorts mocks base method
-func (m *MockCliToHubServer) UpgradeReconfigurePorts(arg0 context.Context, arg1 *idl.UpgradeReconfigurePortsRequest) (*idl.UpgradeReconfigurePortsReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpgradeReconfigurePorts", arg0, arg1)
-	ret0, _ := ret[0].(*idl.UpgradeReconfigurePortsReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpgradeReconfigurePorts indicates an expected call of UpgradeReconfigurePorts
-func (mr *MockCliToHubServerMockRecorder) UpgradeReconfigurePorts(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpgradeReconfigurePorts", reflect.TypeOf((*MockCliToHubServer)(nil).UpgradeReconfigurePorts), arg0, arg1)
 }
 
 // MockCliToHub_ExecuteServer is a mock of CliToHub_ExecuteServer interface

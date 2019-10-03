@@ -10,13 +10,10 @@ service CliToHub {
     rpc CheckDiskSpace (CheckDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
     rpc Initialize(InitializeRequest) returns (InitializeReply) {}
     rpc Execute(ExecuteRequest) returns (stream Chunk) {}
-    rpc UpgradeReconfigurePorts (UpgradeReconfigurePortsRequest) returns (UpgradeReconfigurePortsReply) {}
+    rpc Finalize (FinalizeRequest) returns (FinalizeReply) {}
     rpc SetConfig (SetConfigRequest) returns (SetConfigReply) {}
     rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
 }
-
-message UpgradeReconfigurePortsRequest {}
-message UpgradeReconfigurePortsReply {}
 
 message InitializeRequest {
     string oldBinDir = 1;
@@ -26,6 +23,9 @@ message InitializeRequest {
 message InitializeReply {}
 
 message ExecuteRequest {}
+
+message FinalizeRequest {}
+message FinalizeReply {}
 
 message StatusConversionRequest {}
 
