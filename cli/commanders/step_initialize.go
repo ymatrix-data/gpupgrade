@@ -74,7 +74,6 @@ func StartHub() error {
 		return errors.New("gpupgrade_hub process already running")
 	}
 
-	// We rely on gpupgrade_hub's being in the PATH on the master host.
 	cmd := execCommandHubStart("gpupgrade_hub", "--daemonize")
 	stdout, cmdErr := cmd.Output()
 	if cmdErr != nil {

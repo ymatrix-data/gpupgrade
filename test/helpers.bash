@@ -57,6 +57,7 @@ kill_agents() {
 # directory.
 delete_cluster() {
     local masterdir="$1"
+    local datadir=$(dirname $(dirname "$masterdir"))
 
     # Sanity check.
     if [[ $masterdir != *_upgrade/demoDataDir* ]]; then
@@ -71,4 +72,9 @@ delete_cluster() {
     # XXX gpdeletesystem returns 1 if there are warnings. There are always
     # warnings. So we ignore the exit code...
     yes | PGPORT="$port" "$gpdeletesystem" -fd "$masterdir" || true
+
+    # XXX The master datadir copy moves the datadirs to .old instead of
+    # removing them. This causes gpupgrade to fail when copying the master
+    # data directory to segments with "file exists".
+    rm -rf "${datadir}"/*_upgrade
 }

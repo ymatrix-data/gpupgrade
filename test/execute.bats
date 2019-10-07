@@ -3,6 +3,8 @@
 load helpers
 
 setup() {
+    skip_if_no_gpdb
+
     STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
     kill_hub
@@ -14,6 +16,8 @@ setup() {
 }
 
 teardown() {
+    skip_if_no_gpdb
+
     kill_hub
     kill_agents
     rm -r "$STATE_DIR"
@@ -21,6 +25,8 @@ teardown() {
     if [ -n "$NEW_CLUSTER" ]; then
         delete_cluster $NEW_CLUSTER
     fi
+
+    gpstart -a
 }
 
 # Takes an old datadir and echoes the expected new datadir path.
@@ -36,11 +42,9 @@ upgrade_datadir() {
 }
 
 @test "gpupgrade execute runs gpinitsystem based on the source cluster" {
-    skip "this test can't work until we fix hub and agent PATH lookup"
     skip_if_no_gpdb
 
     PSQL="$GPHOME"/bin/psql
-    GPSTOP="$GPHOME"/bin/gpstop
 
     # Store the data directories for each source segment by port.
     run $PSQL -AtF$'\t' -p $PGPORT postgres -c "select port, datadir from gp_segment_configuration where role = 'p'"
@@ -50,16 +54,10 @@ upgrade_datadir() {
     while read -r port dir; do
         olddirs[$port]="$dir"
     done <<< "$output"
-    log "old directories: " $(declare -p olddirs)
 
     local masterdir="${olddirs[$PGPORT]}"
     local newport=$(( $PGPORT + 1 ))
     local newmasterdir="$(upgrade_datadir $masterdir)"
-
-    # Remove any leftover upgraded cluster.
-    # XXX we really need to stop modifying the dev system during a test; can we
-    # allow users to override data directories/ports during init-cluster?
-    delete_cluster $newport "$newmasterdir" || log "no upgraded cluster running"
 
     gpupgrade initialize \
         --old-bindir "$GPHOME/bin" \
@@ -79,7 +77,6 @@ upgrade_datadir() {
     while read -r port dir; do
         newdirs[$port]="$dir"
     done <<< "$output"
-    log "new directories: " $(declare -p newdirs)
 
     # Compare the ports and directories between the two clusters.
     for port in "${!olddirs[@]}"; do
