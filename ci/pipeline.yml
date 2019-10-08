@@ -97,6 +97,66 @@ resources:
     json_key: {{concourse-gcs-resources-service-account-key}}
     versioned_file: 5X_STABLE/simple_dump/dump.sql.xz
 
+anchors:
+  - &ccp_default_params
+    action: create
+    delete_on_failure: true
+    generate_random_name: true
+    terraform_source: ccp_src/google/
+
+  - &ccp_gen_cluster_default_params
+    AWS_ACCESS_KEY_ID: {{tf-machine-access-key-id}}
+    AWS_SECRET_ACCESS_KEY: {{tf-machine-secret-access-key}}
+    AWS_DEFAULT_REGION: {{aws-region}}
+    BUCKET_PATH: clusters-google/
+    BUCKET_NAME: {{tf-bucket-name}}
+    CLOUD_PROVIDER: google
+
+  - &ccp_destroy
+    put: terraform
+    params:
+      action: destroy
+      env_name_file: terraform/name
+      terraform_source: ccp_src/google/
+      vars:
+        aws_instance-node-instance_type: t2.micro #t2.micro is ignored in destroy, but aws_instance-node-instance_type is required.
+        aws_ebs_volume_type: standard
+    get_params:
+      action: destroy
+
+  - &set_failed
+    do:
+      - task: on_failure_set_failed
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: pivotaldata/ccp
+              tag: "7"
+          inputs:
+            - name: ccp_src
+            - name: terraform
+          run:
+            path: 'ccp_src/google/ccp_failed_test.sh'
+          params:
+            GOOGLE_CREDENTIALS: {{google-service-account-key}}
+            GOOGLE_PROJECT_ID: {{google-project-id}}
+            GOOGLE_ZONE: {{google-zone}}
+            GOOGLE_SERVICE_ACCOUNT: {{google-service-account}}
+            AWS_ACCESS_KEY_ID: {{tf-machine-access-key-id}}
+            AWS_SECRET_ACCESS_KEY: {{tf-machine-secret-access-key}}
+            AWS_DEFAULT_REGION: {{tf-machine-region}}
+            BUCKET_PATH: clusters-google/
+            BUCKET_NAME: {{tf-bucket-name}}
+
+  - &slack_alert
+    do:
+      - put: slack-alert
+        params:
+          text: |
+            Hey team, <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|gpupgrade/$BUILD_JOB_NAME> failed.
+
 jobs:
 - name: build
   plan:
@@ -109,7 +169,7 @@ jobs:
 
 - name: noinstall-tests
   plan:
-  - aggregate:
+  - in_parallel:
     - get: gpupgrade_src
       trigger: true
     - get: bats
@@ -120,7 +180,7 @@ jobs:
 
 - name: install-tests
   plan:
-  - aggregate:
+  - in_parallel:
     - get: gpupgrade_src
       trigger: true
     - get: gpdb_src
@@ -135,7 +195,7 @@ jobs:
 
 - name: 6-to-6
   plan:
-  - aggregate:
+  - in_parallel:
     - get: gpupgrade_src
       trigger: true
     - get: bin_gpdb6
@@ -176,7 +236,7 @@ jobs:
 
 - name: 5-to-6
   plan:
-    - aggregate:
+    - in_parallel:
         - get: gpupgrade_src
           trigger: true
         - get: bin_gpdb_old
@@ -274,63 +334,3 @@ jobs:
 # todo: uncomment this once compare_dumps() is fixed
 #  on_failure:
 #    <<: *slack_alert
-
-anchors:
-- &ccp_default_params
-  action: create
-  delete_on_failure: true
-  generate_random_name: true
-  terraform_source: ccp_src/google/
-
-- &ccp_gen_cluster_default_params
-  AWS_ACCESS_KEY_ID: {{tf-machine-access-key-id}}
-  AWS_SECRET_ACCESS_KEY: {{tf-machine-secret-access-key}}
-  AWS_DEFAULT_REGION: {{aws-region}}
-  BUCKET_PATH: clusters-google/
-  BUCKET_NAME: {{tf-bucket-name}}
-  CLOUD_PROVIDER: google
-
-- &ccp_destroy
-  put: terraform
-  params:
-    action: destroy
-    env_name_file: terraform/name
-    terraform_source: ccp_src/google/
-    vars:
-      aws_instance-node-instance_type: t2.micro #t2.micro is ignored in destroy, but aws_instance-node-instance_type is required.
-      aws_ebs_volume_type: standard
-  get_params:
-    action: destroy
-
-- &set_failed
-  do:
-  - task: on_failure_set_failed
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pivotaldata/ccp
-          tag: "7"
-      inputs:
-        - name: ccp_src
-        - name: terraform
-      run:
-        path: 'ccp_src/google/ccp_failed_test.sh'
-      params:
-        GOOGLE_CREDENTIALS: {{google-service-account-key}}
-        GOOGLE_PROJECT_ID: {{google-project-id}}
-        GOOGLE_ZONE: {{google-zone}}
-        GOOGLE_SERVICE_ACCOUNT: {{google-service-account}}
-        AWS_ACCESS_KEY_ID: {{tf-machine-access-key-id}}
-        AWS_SECRET_ACCESS_KEY: {{tf-machine-secret-access-key}}
-        AWS_DEFAULT_REGION: {{tf-machine-region}}
-        BUCKET_PATH: clusters-google/
-        BUCKET_NAME: {{tf-bucket-name}}
-
-- &slack_alert
-  do:
-  - put: slack-alert
-    params:
-      text: |
-        Hey team, <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|gpupgrade/$BUILD_JOB_NAME> failed.
