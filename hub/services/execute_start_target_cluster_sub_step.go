@@ -8,10 +8,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (h *Hub) ExecuteStartTargetClusterSubStep() error {
+func (h *Hub) ExecuteStartTargetClusterSubStep(stream messageSender) error {
 	gplog.Info("starting %s", upgradestatus.VALIDATE_START_CLUSTER)
 
-	step, err := h.InitializeStep(upgradestatus.VALIDATE_START_CLUSTER)
+	step, err := h.InitializeStep(upgradestatus.VALIDATE_START_CLUSTER, stream)
 	if err != nil {
 		gplog.Error(err.Error())
 		return err

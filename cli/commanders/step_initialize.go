@@ -1,7 +1,6 @@
 package commanders
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,13 +10,11 @@ import (
 	"strings"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
-
 	"github.com/greenplum-db/gpupgrade/utils"
 
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/idl"
 )
 
 // introduce this variable to allow exec.Command to be mocked out in tests
@@ -26,9 +23,12 @@ var execCommandHubCount = exec.Command
 
 // we create the state directory in the cli to ensure that at most one gpupgrade is occuring
 // at the same time.
-func CreateStateDirAndClusterConfigs(sourceBinDir, targetBinDir string) error {
+func CreateStateDirAndClusterConfigs(sourceBinDir, targetBinDir string) (err error) {
+	s := Substep("Creating directories...")
+	defer s.Finish(&err)
+
 	stateDir := utils.GetStateDir()
-	err := os.Mkdir(stateDir, 0700)
+	err = os.Mkdir(stateDir, 0700)
 	if os.IsExist(err) {
 		return fmt.Errorf("gpupgrade state dir (%s) already exists. Did you already run gpupgrade initialize?", stateDir)
 	} else if err != nil {
@@ -63,7 +63,10 @@ func CreateStateDirAndClusterConfigs(sourceBinDir, targetBinDir string) error {
 	return nil
 }
 
-func StartHub() error {
+func StartHub() (err error) {
+	s := Substep("Starting hub...")
+	defer s.Finish(&err)
+
 	countHubs, err := HowManyHubsRunning()
 	if err != nil {
 		gplog.Error("failed to determine if hub already running")
@@ -85,20 +88,6 @@ func StartHub() error {
 		return err
 	}
 	gplog.Debug("gpupgrade_hub started successfully: %s", stdout)
-	return nil
-}
-
-func Initialize(client idl.CliToHubClient, oldBinDir, newBinDir string, oldPort int) (err error) {
-	request := &idl.InitializeRequest{
-		OldBinDir: oldBinDir,
-		NewBinDir: newBinDir,
-		OldPort:   int32(oldPort),
-	}
-	_, err = client.Initialize(context.Background(), request)
-	if err != nil {
-		return errors.Wrap(err, "initializing hub")
-	}
-
 	return nil
 }
 

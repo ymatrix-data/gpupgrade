@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (h *Hub) ExecuteShutdownClustersSubStep() error {
+func (h *Hub) ExecuteShutdownClustersSubStep(stream messageSender) error {
 	gplog.Info("starting %s", upgradestatus.SHUTDOWN_CLUSTERS)
 
-	step, err := h.InitializeStep(upgradestatus.SHUTDOWN_CLUSTERS)
+	step, err := h.InitializeStep(upgradestatus.SHUTDOWN_CLUSTERS, stream)
 	if err != nil {
 		gplog.Error(err.Error())
 		return err
