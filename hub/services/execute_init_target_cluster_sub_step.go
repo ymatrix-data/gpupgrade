@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -68,7 +67,7 @@ func (h *Hub) InitTargetCluster(stream messageSender, log io.Writer, sourceDBCon
 		return nil, err
 	}
 
-	err = RunInitsystemForTargetCluster(stream, log, h.target.BinDir, gpinitsystemFilepath)
+	err = RunInitsystemForTargetCluster(stream, log, h.target, gpinitsystemFilepath)
 	if err != nil {
 		return nil, err
 	}
@@ -167,12 +166,20 @@ func CreateAllDataDirectories(agentConns []*Connection, segmentDataDirMap map[st
 	return nil
 }
 
-func RunInitsystemForTargetCluster(stream messageSender, log io.Writer, targetBinDir string, gpinitsystemFilepath string) error {
-	// gpinitsystem the new cluster
-	gphome := filepath.Dir(path.Clean(targetBinDir)) //works around https://github.com/golang/go/issues/4837 in go10.4
-	script := fmt.Sprintf("source %[1]s/greenplum_path.sh && %[1]s/bin/gpinitsystem -a -I %[2]s",
+func RunInitsystemForTargetCluster(stream messageSender, log io.Writer, target *utils.Cluster, gpinitsystemFilepath string) error {
+	gphome := filepath.Dir(path.Clean(target.BinDir)) //works around https://github.com/golang/go/issues/4837 in go10.4
+
+	args := "-a -I " + gpinitsystemFilepath
+	if target.Version.SemVer.Major < 7 {
+		// For 6X we add --ignore-warnings to gpinitsystem to return 0 on
+		// warnings and 1 on errors. 7X and later does this by default.
+		args += " --ignore-warnings"
+	}
+
+	script := fmt.Sprintf("source %[1]s/greenplum_path.sh && %[1]s/bin/gpinitsystem %[2]s",
 		gphome,
-		gpinitsystemFilepath)
+		args,
+	)
 	cmd := execCommand("bash", "-c", script)
 
 	mux := newMultiplexedStream(stream, log)
@@ -180,15 +187,7 @@ func RunInitsystemForTargetCluster(stream messageSender, log io.Writer, targetBi
 	cmd.Stderr = mux.NewStreamWriter(idl.Chunk_STDERR)
 
 	err := cmd.Run()
-	var gpinitsystemWarning bool
-	if exitErr, ok := err.(*exec.ExitError); ok {
-		// gpinitsystem exits with 1 on warnings and 2 on errors. Continue gpupgrade even when gpinitsystem has warnings.
-		gpinitsystemWarning = exitErr.ExitCode() == 1
-		if gpinitsystemWarning {
-			gplog.Warn("gpinitsystem had warnings and exited with status %d", exitErr.ExitCode())
-		}
-	}
-	if err != nil && !gpinitsystemWarning {
+	if err != nil {
 		return xerrors.Errorf("gpinitsystem: %w", err)
 	}
 

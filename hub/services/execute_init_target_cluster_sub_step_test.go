@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -23,26 +22,19 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils"
 
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func gpinitsystem() {}
 
-func gpinitsystem_Warnings() {
+func gpinitsystem_Exits1() {
 	os.Stdout.WriteString("[WARN]:-Master open file limit is 256 should be >= 65535")
 	os.Exit(1)
-}
-
-func gpinitsystem_Errors() {
-	os.Stderr.WriteString("[ERROR]:-Failure to init")
-	os.Exit(2)
 }
 
 func init() {
 	exectest.RegisterMains(
 		gpinitsystem,
-		gpinitsystem_Warnings,
-		gpinitsystem_Errors,
+		gpinitsystem_Exits1,
 	)
 }
 
@@ -235,7 +227,6 @@ func TestCreateSegmentDataDirectories(t *testing.T) {
 }
 
 func TestRunInitsystemForTargetCluster(t *testing.T) {
-	g := NewGomegaWithT(t)
 	ctrl := gomock.NewController(GinkgoT())
 	defer ctrl.Finish()
 
@@ -244,24 +235,60 @@ func TestRunInitsystemForTargetCluster(t *testing.T) {
 		Send(gomock.Any()).
 		AnyTimes()
 
+	cluster6X := &utils.Cluster{
+		BinDir: "/target/bin",
+		Version: dbconn.NewVersion("6.0.0"),
+	}
+
+	cluster7X := &utils.Cluster{
+		BinDir: "/target/bin",
+		Version: dbconn.NewVersion("7.0.0"),
+	}
+
+	gpinitsystemConfigPath := "/dir/.gpupgrade/gpinitsystem_config"
+
 	execCommand = nil
 	defer func() {
 		execCommand = nil
 	}()
 
-	targetBin := "/target/bin"
-	gpinitsystemConfigPath := "/home/gpadmin/.gpupgrade/gpinitsystem_config"
-
-	t.Run("uses the correct arguments", func(t *testing.T) {
+	t.Run("does not use --ignore-warnings when upgrading to GPDB7 or higher", func(t *testing.T) {
 		execCommand = exectest.NewCommandWithVerifier(gpinitsystem,
 			func(path string, args ...string) {
-				g.Expect(path).To(Equal("bash"))
-				g.Expect(args).To(Equal([]string{"-c", "source /target/greenplum_path.sh && " +
-					"/target/bin/gpinitsystem -a -I /home/gpadmin/.gpupgrade/gpinitsystem_config"}))
+				if path != "bash" {
+					t.Errorf("executed %q, want bash", path)
+				}
+
+				expected := []string{"-c", "source /target/greenplum_path.sh && " +
+					"/target/bin/gpinitsystem -a -I /dir/.gpupgrade/gpinitsystem_config"}
+				if !reflect.DeepEqual(args, expected) {
+					t.Errorf("args %q, want %q", args, expected)
+				}
 			})
 
 		var buf bytes.Buffer
-		err := RunInitsystemForTargetCluster(mockStream, &buf, targetBin, gpinitsystemConfigPath)
+		err := RunInitsystemForTargetCluster(mockStream, &buf, cluster7X, gpinitsystemConfigPath)
+		if err != nil {
+			t.Error("gpinitsystem failed")
+		}
+	})
+
+	t.Run("only uses --ignore-warnings when upgrading to GPDB6", func(t *testing.T) {
+		execCommand = exectest.NewCommandWithVerifier(gpinitsystem,
+			func(path string, args ...string) {
+				if path != "bash" {
+					t.Errorf("executed %q, want bash", path)
+				}
+
+				expected := []string{"-c", "source /target/greenplum_path.sh && " +
+					"/target/bin/gpinitsystem -a -I /dir/.gpupgrade/gpinitsystem_config --ignore-warnings"}
+				if !reflect.DeepEqual(args, expected) {
+					t.Errorf("args %q, want %q", args, expected)
+				}
+			})
+
+		var buf bytes.Buffer
+		err := RunInitsystemForTargetCluster(mockStream, &buf, cluster6X, gpinitsystemConfigPath)
 		if err != nil {
 			t.Error("gpinitsystem failed")
 		}
@@ -270,49 +297,54 @@ func TestRunInitsystemForTargetCluster(t *testing.T) {
 	t.Run("should use executables in the source's bindir even if bindir has a trailing slash", func(t *testing.T) {
 		execCommand = exectest.NewCommandWithVerifier(gpinitsystem,
 			func(path string, args ...string) {
-				g.Expect(path).To(Equal("bash"))
-				g.Expect(args).To(Equal([]string{"-c", "source /target/greenplum_path.sh && " +
-					"/target/bin/gpinitsystem -a -I /home/gpadmin/.gpupgrade/gpinitsystem_config"}))
+				if path != "bash" {
+					t.Errorf("executed %q, want bash", path)
+				}
+
+				expected := []string{"-c", "source /target/greenplum_path.sh && " +
+					"/target/bin/gpinitsystem -a -I /dir/.gpupgrade/gpinitsystem_config"}
+				if !reflect.DeepEqual(args, expected) {
+					t.Errorf("args %q, want %q", args, expected)
+				}
 			})
 
+		cluster7X.BinDir += "/"
 		var buf bytes.Buffer
-		err := RunInitsystemForTargetCluster(mockStream, &buf, targetBin+"/", gpinitsystemConfigPath)
+		err := RunInitsystemForTargetCluster(mockStream, &buf, cluster7X, gpinitsystemConfigPath)
 		if err != nil {
 			t.Error("gpinitsystem failed")
 		}
 	})
 
-	t.Run("when gpinitsystem has a warning it logs and does not return an error", func(t *testing.T) {
-		_, _, log := testhelper.SetupTestLogger() // initialize gplog
-
-		execCommand = exectest.NewCommand(gpinitsystem_Warnings)
+	t.Run("returns an error when gpinitsystem fails with --ignore-warnings when upgrading to GPDB6", func(t *testing.T) {
+		execCommand = exectest.NewCommand(gpinitsystem_Exits1)
 
 		var buf bytes.Buffer
-		err := RunInitsystemForTargetCluster(mockStream, &buf, targetBin, gpinitsystemConfigPath)
-		if err != nil {
-			t.Error("gpinitsystem failed")
-		}
-
-		actual := string(log.Contents())
-		expected := "[WARNING]:-gpinitsystem had warnings and exited with status 1"
-		if strings.HasSuffix(actual, expected) {
-			t.Errorf("want %q got %q", expected, actual)
-		}
-	})
-
-	t.Run("when gpinitsystem fails it returns an error", func(t *testing.T) {
-		execCommand = exectest.NewCommand(gpinitsystem_Errors)
-
-		var buf bytes.Buffer
-		err := RunInitsystemForTargetCluster(mockStream, &buf, targetBin, gpinitsystemConfigPath)
+		err := RunInitsystemForTargetCluster(mockStream, &buf, cluster6X, gpinitsystemConfigPath)
 
 		var actual *exec.ExitError
 		if !xerrors.As(err, &actual) {
-			t.Fatalf("want ExitError, but got %#v", err)
+			t.Fatalf("got %#v, want ExitError", err)
 		}
 
-		if actual.ExitCode() != 2 {
-			t.Errorf("want 2 got %d", actual.ExitCode())
+		if actual.ExitCode() != 1 {
+			t.Errorf("got %d, want 1 ", actual.ExitCode())
+		}
+	})
+
+	t.Run("returns an error when gpinitsystem errors when upgrading to GPDB7 or higher", func(t *testing.T) {
+		execCommand = exectest.NewCommand(gpinitsystem_Exits1)
+
+		var buf bytes.Buffer
+		err := RunInitsystemForTargetCluster(mockStream, &buf, cluster7X, gpinitsystemConfigPath)
+
+		var actual *exec.ExitError
+		if !xerrors.As(err, &actual) {
+			t.Fatalf("got %#v, want ExitError", err)
+		}
+
+		if actual.ExitCode() != 1 {
+			t.Errorf("got %d, want 1", actual.ExitCode())
 		}
 	})
 }
@@ -336,7 +368,7 @@ func TestGetMasterSegPrefix(t *testing.T) {
 
 			expected := "gpseg"
 			if actual != expected {
-				t.Errorf("got %q want %q", actual, expected)
+				t.Errorf("got %q, want %q", actual, expected)
 			}
 		}
 	})
