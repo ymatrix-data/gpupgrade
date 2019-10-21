@@ -24,11 +24,11 @@ resources:
     uri: {{gpupgrade-git-remote}}
     branch: {{gpupgrade-git-branch}}
 
-- name: gpdb_src
+- name: gpdb6_src
   type: git
   source:
     uri: https://github.com/greenplum-db/gpdb
-    branch: master
+    branch: 6X_STABLE
 
 - name: bin_gpdb6_centos6
   type: gcs
@@ -184,6 +184,7 @@ jobs:
     - get: gpupgrade_src
       trigger: true
     - get: gpdb_src
+      resource: gpdb6_src
     - get: bats
     - get: bin_gpdb
       resource: bin_gpdb6_centos6
