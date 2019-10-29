@@ -24,10 +24,6 @@ func (m *MockHubClient) Execute(ctx context.Context, in *idl.ExecuteRequest, opt
 	return nil, nil
 }
 
-func (m *MockHubClient) CheckObjectCount(ctx context.Context, in *idl.CheckObjectCountRequest, opts ...grpc.CallOption) (*idl.CheckObjectCountReply, error) {
-	return nil, nil
-}
-
 func (m *MockHubClient) CheckVersion(ctx context.Context, in *idl.CheckVersionRequest, opts ...grpc.CallOption) (*idl.CheckVersionReply, error) {
 	return nil, nil
 }

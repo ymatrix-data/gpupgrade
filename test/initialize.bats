@@ -107,8 +107,6 @@ outputContains() {
     commands=(
         'config set --old-bindir /dummy'
         'config show'
-        'check object-count'
-        'check disk-space'
         'execute'
         'finalize'
     )

@@ -56,26 +56,6 @@ func (mr *MockCliToHubClientMockRecorder) CheckDiskSpace(arg0, arg1 interface{},
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDiskSpace", reflect.TypeOf((*MockCliToHubClient)(nil).CheckDiskSpace), varargs...)
 }
 
-// CheckObjectCount mocks base method
-func (m *MockCliToHubClient) CheckObjectCount(arg0 context.Context, arg1 *idl.CheckObjectCountRequest, arg2 ...grpc.CallOption) (*idl.CheckObjectCountReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CheckObjectCount", varargs...)
-	ret0, _ := ret[0].(*idl.CheckObjectCountReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckObjectCount indicates an expected call of CheckObjectCount
-func (mr *MockCliToHubClientMockRecorder) CheckObjectCount(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckObjectCount", reflect.TypeOf((*MockCliToHubClient)(nil).CheckObjectCount), varargs...)
-}
-
 // CheckVersion mocks base method
 func (m *MockCliToHubClient) CheckVersion(arg0 context.Context, arg1 *idl.CheckVersionRequest, arg2 ...grpc.CallOption) (*idl.CheckVersionReply, error) {
 	m.ctrl.T.Helper()
@@ -272,21 +252,6 @@ func (m *MockCliToHubServer) CheckDiskSpace(arg0 context.Context, arg1 *idl.Chec
 func (mr *MockCliToHubServerMockRecorder) CheckDiskSpace(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDiskSpace", reflect.TypeOf((*MockCliToHubServer)(nil).CheckDiskSpace), arg0, arg1)
-}
-
-// CheckObjectCount mocks base method
-func (m *MockCliToHubServer) CheckObjectCount(arg0 context.Context, arg1 *idl.CheckObjectCountRequest) (*idl.CheckObjectCountReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckObjectCount", arg0, arg1)
-	ret0, _ := ret[0].(*idl.CheckObjectCountReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckObjectCount indicates an expected call of CheckObjectCount
-func (mr *MockCliToHubServerMockRecorder) CheckObjectCount(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckObjectCount", reflect.TypeOf((*MockCliToHubServer)(nil).CheckObjectCount), arg0, arg1)
 }
 
 // CheckVersion mocks base method

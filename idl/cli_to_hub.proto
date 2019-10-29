@@ -3,7 +3,6 @@ syntax = "proto3";
 package idl;
 
 service CliToHub {
-    rpc CheckObjectCount(CheckObjectCountRequest) returns (CheckObjectCountReply) {}
     rpc CheckVersion (CheckVersionRequest) returns (CheckVersionReply) {}
     rpc CheckDiskSpace (CheckDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
     rpc Initialize(InitializeRequest) returns (stream Message) {}
@@ -57,17 +56,6 @@ enum StepStatus {
     RUNNING = 2;
     COMPLETE = 3;
     FAILED = 4;
-}
-
-message CountPerDb {
-    string DbName = 1;
-    int32 AoCount = 2;
-    int32 HeapCount = 3;
-}
-message CheckObjectCountRequest {}
-
-message CheckObjectCountReply {
-    repeated CountPerDb ListOfCounts = 1;
 }
 
 message CheckVersionRequest {}

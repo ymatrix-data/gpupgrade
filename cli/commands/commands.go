@@ -54,7 +54,7 @@ func BuildRootCommand() *cobra.Command {
 	// TODO: if called without a subcommand, the cli prints a help message with timestamp.  Remove the timestamp.
 	root := &cobra.Command{Use: "gpupgrade"}
 
-	root.AddCommand(config, check, version)
+	root.AddCommand(config, version)
 	root.AddCommand(initialize())
 	root.AddCommand(execute())
 	root.AddCommand(finalize)
@@ -64,8 +64,6 @@ func BuildRootCommand() *cobra.Command {
 	subConfigSet := createConfigSetSubcommand()
 	subConfigShow := createConfigShowSubcommand()
 	config.AddCommand(subConfigSet, subConfigShow)
-
-	check.AddCommand(subCheckObjectCount, subCheckDiskSpace)
 
 	return root
 }
@@ -122,34 +120,6 @@ func connectToHub() idl.CliToHubClient {
 	}
 
 	return idl.NewCliToHubClient(conn)
-}
-
-//////////////////////////////////////// CHECK and its subcommands
-var check = &cobra.Command{
-	Use:   "check",
-	Short: "collects information and validates the target Greenplum installation can be upgraded",
-	Long:  `collects information and validates the target Greenplum installation can be upgraded`,
-}
-
-var subCheckDiskSpace = &cobra.Command{
-	Use:     "disk-space",
-	Short:   "check that disk space usage is less than 80% on all segments",
-	Long:    "check that disk space usage is less than 80% on all segments",
-	Aliases: []string{"du"},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client := connectToHub()
-		return commanders.NewDiskSpaceChecker(client).Execute()
-	},
-}
-var subCheckObjectCount = &cobra.Command{
-	Use:     "object-count",
-	Short:   "count database objects and numeric objects",
-	Long:    "count database objects and numeric objects",
-	Aliases: []string{"oc"},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client := connectToHub()
-		return commanders.NewObjectCountChecker(client).Execute()
-	},
 }
 
 //////////////////////////////////////// CONFIG and its subcommands
