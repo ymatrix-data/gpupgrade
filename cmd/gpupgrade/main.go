@@ -7,8 +7,9 @@ import (
 	"runtime/debug"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/cli/commands"
 	_ "github.com/lib/pq"
+
+	"github.com/greenplum-db/gpupgrade/cli/commands"
 )
 
 func main() {
@@ -17,10 +18,12 @@ func main() {
 	confirmValidCommand()
 
 	root := commands.BuildRootCommand()
+	root.SilenceErrors = true // we'll print these ourselves
+
 	err := root.Execute()
 	if err != nil {
 		// Use v to print the stack trace of an object errors.
-		fmt.Printf("%+v\n", err)
+		fmt.Printf("\n%+v\n", err)
 		os.Exit(1)
 	}
 }
