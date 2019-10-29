@@ -335,6 +335,7 @@ _gpupgrade_initialize()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--disk-free-ratio=")
     flags+=("--new-bindir=")
     flags+=("--old-bindir=")
     flags+=("--old-port=")

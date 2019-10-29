@@ -17,7 +17,8 @@ setup() {
     gpupgrade initialize \
         --old-bindir "$PWD" \
         --new-bindir "$PWD" \
-        --old-port ${PGPORT} 3>&-
+        --old-port ${PGPORT} \
+        --disk-free-ratio 0 3>&-
 }
 
 teardown() {

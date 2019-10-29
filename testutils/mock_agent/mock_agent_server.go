@@ -57,10 +57,10 @@ func NewMockAgentServer() (*MockAgentServer, services.Dialer, int) {
 	return mockServer, dialer, port
 }
 
-func (m *MockAgentServer) CheckDiskSpaceOnAgents(context.Context, *idl.CheckDiskSpaceRequestToAgent) (*idl.CheckDiskSpaceReplyFromAgent, error) {
+func (m *MockAgentServer) CheckDiskSpace(context.Context, *idl.CheckSegmentDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
 	m.increaseCalls()
 
-	return &idl.CheckDiskSpaceReplyFromAgent{}, nil
+	return &idl.CheckDiskSpaceReply{}, nil
 }
 
 func (m *MockAgentServer) AgentExecuteUpgradePrimariesSubStep(ctx context.Context, in *idl.UpgradePrimariesRequest) (*idl.UpgradePrimariesReply, error) {

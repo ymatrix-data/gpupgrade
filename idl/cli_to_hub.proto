@@ -64,10 +64,16 @@ message CheckVersionReply {
     bool IsVersionCompatible = 1;
 }
 
-message CheckDiskSpaceRequest {}
+message CheckDiskSpaceRequest {
+	float ratio = 1;
+}
 
 message CheckDiskSpaceReply {
-    repeated string SegmentFileSysUsage = 1;
+  message DiskUsage {
+    uint64 available = 1;
+    uint64 required = 2;
+  }
+  map<string, DiskUsage> failed = 1;
 }
 
 message PrepareInitClusterRequest {}

@@ -19,9 +19,8 @@ import (
 )
 
 type AgentServer struct {
-	GetDiskUsage func() (map[string]float64, error)
-	executor     cluster.Executor
-	conf         AgentConfig
+	executor cluster.Executor
+	conf     AgentConfig
 
 	mu      sync.Mutex
 	server  *grpc.Server
@@ -37,10 +36,9 @@ type AgentConfig struct {
 
 func NewAgentServer(executor cluster.Executor, conf AgentConfig) *AgentServer {
 	return &AgentServer{
-		GetDiskUsage: diskUsage,
-		executor:     executor,
-		conf:         conf,
-		stopped:      make(chan struct{}, 1),
+		executor: executor,
+		conf:     conf,
+		stopped:  make(chan struct{}, 1),
 	}
 }
 

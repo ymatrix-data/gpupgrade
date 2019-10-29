@@ -7,6 +7,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 const (
@@ -123,8 +124,24 @@ func (c *Cluster) PrimaryHostnames() []string {
 	return list
 }
 
+// ErrUnknownHost can be returned by Cluster.SegmentsOn.
+var ErrUnknownHost = xerrors.New("no such host in cluster")
+
+type UnknownHostError struct {
+	hostname string
+}
+
+func (u UnknownHostError) Error() string {
+	return fmt.Sprintf("cluster has no segments on host %q", u.hostname)
+}
+
+func (u UnknownHostError) Is(err error) bool {
+	return err == ErrUnknownHost
+}
+
 // SegmentsOn returns the configurations of segments that are running on a given
-// host excluding the master. An error will be returned for unknown hostnames.
+// host excluding the master. An error of type ErrUnknownHost will be returned
+// for unknown hostnames.
 func (c Cluster) SegmentsOn(hostname string) ([]cluster.SegConfig, error) {
 	var segments []cluster.SegConfig
 	for _, segment := range c.Segments {
@@ -134,7 +151,7 @@ func (c Cluster) SegmentsOn(hostname string) ([]cluster.SegConfig, error) {
 	}
 
 	if len(segments) == 0 {
-		return nil, fmt.Errorf("cluster has no segments on host '%s'", hostname)
+		return nil, UnknownHostError{hostname}
 	}
 
 	return segments, nil

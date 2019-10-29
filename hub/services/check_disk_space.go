@@ -1,70 +1,112 @@
 package services
 
 import (
+	"context"
 	"fmt"
-	"strconv"
+	"sync"
+
+	multierror "github.com/hashicorp/go-multierror"
+	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
-
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
+	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/disk"
 )
 
-const (
-	// todo generalize to any host
-	diskUsageWarningLimit = 80
-)
+func (h *Hub) CheckDiskSpace(ctx context.Context, in *idl.CheckDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
+	reply := new(idl.CheckDiskSpaceReply)
 
-type ClientAndHostname struct {
-	Client   idl.AgentClient
-	Hostname string
-}
-
-func (h *Hub) CheckDiskSpace(ctx context.Context,
-	in *idl.CheckDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
-
-	gplog.Info("starting CheckDiskSpace")
-	var replyMessages []string
-	hostnames := h.source.GetHostnames()
-	var clients []ClientAndHostname
-	for i := 0; i < len(hostnames); i++ {
-		conn, err := grpc.Dial(hostnames[i]+":"+strconv.Itoa(h.conf.HubToAgentPort), grpc.WithInsecure())
-		if err == nil {
-			clients = append(clients, ClientAndHostname{Client: idl.NewAgentClient(conn), Hostname: hostnames[i]})
-			defer conn.Close()
-		} else {
-			gplog.Error(err.Error())
-			replyMessages = append(replyMessages, "ERROR: couldn't get gRPC conn to "+hostnames[i])
-		}
+	agents, err := h.AgentConns()
+	if err != nil {
+		return reply, err
 	}
-	replyMessages = append(replyMessages, GetDiskSpaceFromSegmentHosts(clients)...)
 
-	return &idl.CheckDiskSpaceReply{SegmentFileSysUsage: replyMessages}, nil
+	reply.Failed, err = checkDiskSpace(ctx, h.source, agents, disk.Local, in)
+	return reply, err
 }
 
-func GetDiskSpaceFromSegmentHosts(clients []ClientAndHostname) []string {
-	replyMessages := []string{}
-	for i := 0; i < len(clients); i++ {
-		reply, err := clients[i].Client.CheckDiskSpaceOnAgents(context.Background(),
-			&idl.CheckDiskSpaceRequestToAgent{})
+func checkDiskSpace(ctx context.Context, cluster *utils.Cluster, agents []*Connection, d disk.Disk, in *idl.CheckDiskSpaceRequest) (disk.SpaceFailures, error) {
+	var wg sync.WaitGroup
+	errs := make(chan error, len(agents)+1)
+	failures := make(chan disk.SpaceFailures, len(agents)+1)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		failed, err := disk.CheckUsage(d, in.Ratio, cluster.MasterDataDir())
 		if err != nil {
-			gplog.Error(err.Error())
-			replyMessages = append(replyMessages, "Could not get disk usage from: "+clients[i].Hostname)
-			continue
+			errs <- xerrors.Errorf("check disk space on master host: %w", err)
 		}
-		foundAnyTooFull := false
-		for _, line := range reply.ListOfFileSysUsage {
-			if line.Usage >= diskUsageWarningLimit {
-				replyMessages = append(replyMessages, fmt.Sprintf("diskspace check - %s - WARNING %s %.1f use",
-					clients[i].Hostname, line.Filesystem, line.Usage))
-				foundAnyTooFull = true
+
+		if len(failed) > 0 {
+			masterHost := cluster.GetHostForContent(-1)
+			failures <- prefixWith(masterHost, failed)
+		}
+	}()
+
+	for i := range agents {
+		agent := agents[i]
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			segments, err := cluster.SegmentsOn(agent.Hostname)
+			if err != nil {
+				errs <- xerrors.Errorf("finding segments on host %s: %w", agent.Hostname, err)
+				return
 			}
-		}
-		if !foundAnyTooFull {
-			replyMessages = append(replyMessages, fmt.Sprintf("diskspace check - %s - OK", clients[i].Hostname))
-		}
+
+			req := &idl.CheckSegmentDiskSpaceRequest{
+				Request: in,
+			}
+			for _, s := range segments {
+				req.Datadirs = append(req.Datadirs, s.DataDir)
+			}
+
+			reply, err := agent.AgentClient.CheckDiskSpace(ctx, req)
+			if err != nil {
+				errs <- xerrors.Errorf("check disk space on host %s: %w", agent.Hostname, err)
+				return
+			}
+
+			if len(reply.Failed) > 0 {
+				// Because different hosts can have identical paths for their
+				// data directories, make sure every failure is uniquely
+				// identified by its hostname.
+				failures <- prefixWith(agent.Hostname, reply.Failed)
+			}
+		}()
 	}
 
-	return replyMessages
+	wg.Wait()
+	close(errs)
+	close(failures)
+
+	var multiErr *multierror.Error
+	for err := range errs {
+		multiErr = multierror.Append(multiErr, err)
+	}
+	if err := multiErr.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+
+	result := make(disk.SpaceFailures)
+	for failure := range failures {
+		for k, v := range failure {
+			result[k] = v
+		}
+	}
+	return result, nil
+}
+
+// prefixWith adds a string prefix to every key in the failure map.
+func prefixWith(prefix string, failures disk.SpaceFailures) disk.SpaceFailures {
+	prefixed := make(disk.SpaceFailures)
+	for k, v := range failures {
+		newKey := fmt.Sprintf("%s: %s", prefix, k)
+		prefixed[newKey] = v
+	}
+	return prefixed
 }

@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package idl;
 
+import "cli_to_hub.proto";
+
 service Agent {
-    rpc CheckDiskSpaceOnAgents (CheckDiskSpaceRequestToAgent) returns (CheckDiskSpaceReplyFromAgent) {}
+    rpc CheckDiskSpace (CheckSegmentDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
     rpc AgentExecuteUpgradePrimariesSubStep (UpgradePrimariesRequest) returns (UpgradePrimariesReply) {}
     rpc CreateSegmentDataDirectories (CreateSegmentDataDirRequest) returns (CreateSegmentDataDirReply) {}
     rpc CopyMasterDirectoryToSegmentDirectories (CopyMasterDirRequest) returns (CopyMasterDirReply) {}
@@ -27,17 +29,6 @@ message DataDirPair {
 
 message UpgradePrimariesReply {}
 
-message FileSysUsage {
-    string Filesystem = 1;
-    double Usage = 2;
-}
-
-message CheckDiskSpaceRequestToAgent {}
-
-message CheckDiskSpaceReplyFromAgent {
-    repeated FileSysUsage ListOfFileSysUsage = 1;
-}
-
 message CreateSegmentDataDirRequest {
 	repeated string datadirs = 1;
 }
@@ -53,3 +44,8 @@ message CopyMasterDirReply {}
 
 message StopAgentRequest {}
 message StopAgentReply {}
+
+message CheckSegmentDiskSpaceRequest {
+    CheckDiskSpaceRequest request = 1;
+    repeated string datadirs = 2;
+}

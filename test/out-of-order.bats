@@ -8,8 +8,14 @@ load helpers
 setup() {
     STATE_DIR=`mktemp -d`
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
+
     gpupgrade kill-services
-    gpupgrade initialize --old-bindir /usr/local/gpdb6/bin/ --new-bindir /usr/local/gpdb6/bin/
+
+    gpupgrade initialize \
+        --old-bindir="${GPHOME}/bin" \
+        --new-bindir="${GPHOME}/bin" \
+        --old-port="${PGPORT}" \
+        --disk-free-ratio 0 3>&-
 }
 
 teardown() {

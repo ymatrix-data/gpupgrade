@@ -60,7 +60,8 @@ upgrade_datadir() {
     gpupgrade initialize \
         --old-bindir "$GPHOME/bin" \
         --new-bindir "$GPHOME/bin" \
-        --old-port "$PGPORT" 3>&-
+        --old-port "$PGPORT" \
+        --disk-free-ratio 0 3>&-
 
     gpupgrade execute --verbose
 

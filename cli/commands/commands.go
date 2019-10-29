@@ -34,6 +34,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -41,8 +42,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	"github.com/greenplum-db/gpupgrade/idl"
@@ -234,6 +233,7 @@ var version = &cobra.Command{
 func initialize() *cobra.Command {
 	var oldBinDir, newBinDir string
 	var oldPort int
+	var diskFreeRatio float32
 
 	subInit := &cobra.Command{
 		Use:   "initialize",
@@ -243,6 +243,14 @@ Runs through pre-upgrade checks and prepares the old and new clusters for upgrad
 This step can be reverted.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if diskFreeRatio < 0.0 || diskFreeRatio > 1.0 {
+				// Match Cobra's option-error format.
+				return fmt.Errorf(
+					`invalid argument %g for "--disk-free-ratio" flag: value must be between 0.0 and 1.0`,
+					diskFreeRatio,
+				)
+			}
+
 			// If we got here, the args are okay and the user doesn't need a usage
 			// dump on failure.
 			cmd.SilenceUsage = true
@@ -278,9 +286,9 @@ This step can be reverted.
 			}
 
 			// TODO: how do we rollback here?
-			err = commanders.NewVersionChecker(client).Execute()
+			err = commanders.RunChecks(client, diskFreeRatio)
 			if err != nil {
-				return errors.Wrap(err, "checking version compatibility")
+				return err
 			}
 
 			fmt.Println(`
@@ -300,6 +308,7 @@ If you would like to return the cluster to its original state, run
 	subInit.MarkPersistentFlagRequired("new-bindir")
 	subInit.PersistentFlags().IntVar(&oldPort, "old-port", 0, "master port for old gpdb cluster")
 	subInit.MarkPersistentFlagRequired("old-port")
+	subInit.PersistentFlags().Float32Var(&diskFreeRatio, "disk-free-ratio", 0.60, "percentage of disk space that must be available (from 0.0 - 1.0)")
 
 	return subInit
 }

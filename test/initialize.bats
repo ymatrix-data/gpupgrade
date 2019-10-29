@@ -17,7 +17,8 @@ setup() {
     gpupgrade initialize \
         --old-bindir="$PWD" \
         --new-bindir="$PWD" \
-        --old-port="${PGPORT}" 3>&-
+        --old-port="${PGPORT}" \
+        --disk-free-ratio 0 3>&-
 }
 
 teardown() {
@@ -125,5 +126,30 @@ outputContains() {
 
         [ "$status" -eq 1 ]
         outputContains "could not connect to the upgrade hub (did you run 'gpupgrade initialize'?)"
+    done
+}
+
+@test "initialize fails when passed invalid --disk-free-ratio values" {
+    gpupgrade kill-services
+
+    option_list=(
+        '--disk-free-ratio=1.5'
+        '--disk-free-ratio=-0.5'
+        '--disk-free-ratio=abcd'
+    )
+
+    for opts in "${option_list[@]}"; do
+        run gpupgrade initialize \
+            $opts \
+            --old-bindir="$GPHOME"/bin \
+            --new-bindir="$GPHOME"/bin \
+            --old-port="${PGPORT}" 3>&-
+
+        # Trace which command we're on to make debugging easier.
+        echo "\$ gpupgrade initialize $opts ... -> $status"
+        echo "$output"
+
+        [ "$status" -eq 1 ]
+        [[ $output = *'invalid argument '*' for "--disk-free-ratio" flag:'* ]] || fail
     done
 }
