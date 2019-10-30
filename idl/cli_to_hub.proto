@@ -40,13 +40,15 @@ enum UpgradeSteps {
     UNKNOWN_STEP = 0; // http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
     CONFIG = 1;
     START_AGENTS = 2;
-    INIT_TARGET_CLUSTER = 3;
-    SHUTDOWN_CLUSTERS = 4;
-    UPGRADE_MASTER = 5;
-    COPY_MASTER = 6;
-    UPGRADE_PRIMARIES = 7;
-    START_TARGET_CLUSTER = 8;
-    RECONFIGURE_PORTS = 9;
+    CREATE_TARGET_CONFIG = 3;
+    SHUTDOWN_SOURCE_CLUSTER = 4;
+    INIT_TARGET_CLUSTER = 5;
+    SHUTDOWN_TARGET_CLUSTER = 6;
+    UPGRADE_MASTER = 7;
+    COPY_MASTER = 8;
+    UPGRADE_PRIMARIES = 9;
+    START_TARGET_CLUSTER = 10;
+    RECONFIGURE_PORTS = 11;
 }
 
 enum StepStatus {

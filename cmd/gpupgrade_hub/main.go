@@ -9,14 +9,15 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
 	"github.com/greenplum-db/gpupgrade/utils/log"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
 // This directory to have the implementation code for the gRPC server to serve
@@ -92,8 +93,10 @@ func main() {
 			// interfaces aren't well componentized.
 			cm.AddWritableStep(upgradestatus.CONFIG, idl.UpgradeSteps_CONFIG)
 			cm.AddWritableStep(upgradestatus.START_AGENTS, idl.UpgradeSteps_START_AGENTS)
+			cm.AddWritableStep(upgradestatus.CREATE_TARGET_CONFIG, idl.UpgradeSteps_CREATE_TARGET_CONFIG)
+			cm.AddWritableStep(upgradestatus.SHUTDOWN_SOURCE_CLUSTER, idl.UpgradeSteps_SHUTDOWN_SOURCE_CLUSTER)
 			cm.AddWritableStep(upgradestatus.INIT_TARGET_CLUSTER, idl.UpgradeSteps_INIT_TARGET_CLUSTER)
-			cm.AddWritableStep(upgradestatus.SHUTDOWN_CLUSTERS, idl.UpgradeSteps_SHUTDOWN_CLUSTERS)
+			cm.AddWritableStep(upgradestatus.SHUTDOWN_TARGET_CLUSTER, idl.UpgradeSteps_SHUTDOWN_TARGET_CLUSTER)
 			cm.AddWritableStep(upgradestatus.UPGRADE_MASTER, idl.UpgradeSteps_UPGRADE_MASTER)
 			cm.AddWritableStep(upgradestatus.COPY_MASTER, idl.UpgradeSteps_COPY_MASTER)
 			cm.AddWritableStep(upgradestatus.UPGRADE_PRIMARIES, idl.UpgradeSteps_UPGRADE_PRIMARIES)

@@ -2,33 +2,16 @@ package services
 
 import (
 	"fmt"
-	"github.com/greenplum-db/gpupgrade/idl"
 	"io"
 	"os/exec"
 
+	"github.com/greenplum-db/gpupgrade/idl"
+
 	"github.com/greenplum-db/gpupgrade/utils"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 )
 
 var stopClusterCmd = exec.Command
 var isPostmasterRunningCmd = exec.Command
-
-func (h *Hub) ShutdownClusters(stream messageSender, log io.Writer) error {
-	var shutdownErr error
-
-	err := StopCluster(stream, log, h.source)
-	if err != nil {
-		shutdownErr = multierror.Append(shutdownErr, errors.Wrap(err, "failed to stop source cluster"))
-	}
-
-	err = StopCluster(stream, log, h.target)
-	if err != nil {
-		shutdownErr = multierror.Append(shutdownErr, errors.Wrap(err, "failed to stop target cluster"))
-	}
-
-	return shutdownErr
-}
 
 func StopCluster(stream messageSender, log io.Writer, cluster *utils.Cluster) error {
 	err := IsPostmasterRunning(stream, log, cluster)
@@ -49,7 +32,7 @@ func StopCluster(stream messageSender, log io.Writer, cluster *utils.Cluster) er
 	return cmd.Run()
 }
 
-func IsPostmasterRunning(stream messageSender,  log io.Writer, cluster *utils.Cluster) error {
+func IsPostmasterRunning(stream messageSender, log io.Writer, cluster *utils.Cluster) error {
 	cmd := isPostmasterRunningCmd("bash", "-c",
 		fmt.Sprintf("pgrep -F %s/postmaster.pid",
 			cluster.MasterDataDir(),

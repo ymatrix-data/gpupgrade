@@ -97,7 +97,7 @@ func TestDeclareDataDirectories(t *testing.T) {
 			Version:    dbconn.GPDBVersion{},
 		}
 
-		actualConfig, actualSegDataDirMap, actualPort := DeclareDataDirectories([]string{}, sourceCluster)
+		actualConfig := DeclareDataDirectories([]string{}, sourceCluster)
 		expectedConfig := []string{
 			"QD_PRIMARY_ARRAY=localhost~15433~/data/qddir_upgrade/seg-1~1~-1~0",
 			`declare -a PRIMARY_ARRAY=(
@@ -107,29 +107,17 @@ func TestDeclareDataDirectories(t *testing.T) {
 		if !reflect.DeepEqual(actualConfig, expectedConfig) {
 			t.Errorf("got %v, want %v", actualConfig, expectedConfig)
 		}
-
-		expectedDataDirMap := map[string][]string{
-			"host1": {"/data/dbfast1_upgrade"},
-			"host2": {"/data/dbfast2_upgrade"},
-		}
-		if !reflect.DeepEqual(actualSegDataDirMap, expectedDataDirMap) {
-			t.Errorf("got %v, want %v", actualSegDataDirMap, expectedDataDirMap)
-		}
-
-		expectedPort := 15433
-		if actualPort != expectedPort {
-			t.Errorf("got %d, want %d", actualPort, expectedPort)
-		}
 	})
 }
 
 func TestCreateAllDataDirectories(t *testing.T) {
-	segDataDirMap := map[string][]string{
-		"host1": {"/data/dbfast1_upgrade"},
-		"host2": {"/data/dbfast2_upgrade"},
+	c := &utils.Cluster{
+		Cluster: cluster.NewCluster([]cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
+			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
+			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
+		}),
 	}
-
-	sourceMasterDataDir := "/data/qddir/seg-1"
 
 	t.Run("successfully creates all directories", func(t *testing.T) {
 		statCalls := []string{}
@@ -144,7 +132,7 @@ func TestCreateAllDataDirectories(t *testing.T) {
 			return nil
 		}
 
-		err := CreateAllDataDirectories([]*Connection{}, segDataDirMap, sourceMasterDataDir)
+		err := CreateAllDataDirectories([]*Connection{}, c)
 		if err != nil {
 			t.Fatalf("got %#v, want nil", err)
 		}
@@ -166,7 +154,7 @@ func TestCreateAllDataDirectories(t *testing.T) {
 			return nil, expected
 		}
 
-		err := CreateAllDataDirectories([]*Connection{}, segDataDirMap, sourceMasterDataDir)
+		err := CreateAllDataDirectories([]*Connection{}, c)
 		if !xerrors.Is(err, expected) {
 			t.Errorf("got %#v, want %#v", err, expected)
 		}
@@ -182,7 +170,7 @@ func TestCreateAllDataDirectories(t *testing.T) {
 			return expected
 		}
 
-		err := CreateAllDataDirectories([]*Connection{}, segDataDirMap, sourceMasterDataDir)
+		err := CreateAllDataDirectories([]*Connection{}, c)
 		if !xerrors.Is(err, expected) {
 			t.Errorf("got %#v, want %#v", err, expected)
 		}
@@ -192,38 +180,43 @@ func TestCreateAllDataDirectories(t *testing.T) {
 func TestCreateSegmentDataDirectories(t *testing.T) {
 	testhelper.SetupTestLogger() // initialize gplog
 
-	t.Run("when gpinitsystem fails it returns an error", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-		client := mock_idl.NewMockAgentClient(ctrl)
-		client.EXPECT().CreateSegmentDataDirectories(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(&idl.CreateSegmentDataDirReply{}, nil)
+	c := &utils.Cluster{
+		Cluster: cluster.NewCluster([]cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
+			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
+			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
+		}),
+	}
 
-		expected := errors.New("permission denied")
-		failedClient := mock_idl.NewMockAgentClient(ctrl)
-		failedClient.EXPECT().CreateSegmentDataDirectories(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(nil, expected)
+	client := mock_idl.NewMockAgentClient(ctrl)
+	client.EXPECT().CreateSegmentDataDirectories(
+		gomock.Any(),
+		&idl.CreateSegmentDataDirRequest{
+			Datadirs: []string{"/data/dbfast1_upgrade"},
+		},
+	).Return(&idl.CreateSegmentDataDirReply{}, nil)
 
-		segDataDirMap := map[string][]string{
-			"host1": {"/data/dbfast1_upgrade"},
-			"host2": {"/data/dbfast2_upgrade"},
-		}
+	expected := errors.New("permission denied")
+	failedClient := mock_idl.NewMockAgentClient(ctrl)
+	failedClient.EXPECT().CreateSegmentDataDirectories(
+		gomock.Any(),
+		&idl.CreateSegmentDataDirRequest{
+			Datadirs: []string{"/data/dbfast2_upgrade"},
+		},
+	).Return(nil, expected)
 
-		agentConns := []*Connection{
-			{nil, client, "host1", nil},
-			{nil, failedClient, "host2", nil},
-		}
+	agentConns := []*Connection{
+		{nil, client, "host1", nil},
+		{nil, failedClient, "host2", nil},
+	}
 
-		err := CreateSegmentDataDirectories(agentConns, segDataDirMap)
-		if !xerrors.Is(err, expected) {
-			t.Errorf("got %#v, want %#v", err, expected)
-		}
-	})
+	err := CreateSegmentDataDirectories(agentConns, c)
+	if !xerrors.Is(err, expected) {
+		t.Errorf("got %#v, want %#v", err, expected)
+	}
 }
 
 func TestRunInitsystemForTargetCluster(t *testing.T) {

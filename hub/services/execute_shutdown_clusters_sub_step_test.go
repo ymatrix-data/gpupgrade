@@ -10,6 +10,7 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
+
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -46,7 +47,7 @@ func TestShutdownClusters(t *testing.T) {
 		AnyTimes()
 
 	var buf bytes.Buffer
-	var source     *utils.Cluster
+	var source *utils.Cluster
 	cluster := cluster.NewCluster([]cluster.SegConfig{cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "basedir/seg-1"}})
 	source = &utils.Cluster{
 		Cluster:    cluster,

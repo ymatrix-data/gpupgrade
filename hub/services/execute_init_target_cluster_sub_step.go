@@ -21,58 +21,63 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
-func (h *Hub) CreateTargetCluster(stream messageSender, log io.Writer) error {
+func (h *Hub) GenerateInitsystemConfig() error {
 	sourceDBConn := db.NewDBConn("localhost", int(h.source.MasterPort()), "template1")
+	return h.writeConf(sourceDBConn)
+}
 
-	targetDBConn, err := h.InitTargetCluster(stream, log, sourceDBConn)
+func (h *Hub) CreateTargetCluster(stream messageSender, log io.Writer) error {
+	targetDBConn, err := h.InitTargetCluster(stream, log)
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to old database")
+		return err
 	}
 
 	return ReloadAndCommitCluster(h.target, targetDBConn)
 }
 
-func (h *Hub) InitTargetCluster(stream messageSender, log io.Writer, sourceDBConn *dbconn.DBConn) (*dbconn.DBConn, error) {
+func (h *Hub) initsystemConfPath() string {
+	return filepath.Join(h.conf.StateDir, "gpinitsystem_config")
+}
+
+func (h *Hub) writeConf(sourceDBConn *dbconn.DBConn) error {
 	err := sourceDBConn.Connect(1)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not connect to database")
+		return errors.Wrap(err, "could not connect to database")
 	}
 	defer sourceDBConn.Close()
 
 	gpinitsystemConfig, err := CreateInitialInitsystemConfig(h.source.MasterDataDir())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	gpinitsystemConfig, err = GetCheckpointSegmentsAndEncoding(gpinitsystemConfig, sourceDBConn)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	agentConns := []*Connection{}
-	agentConns, err = h.AgentConns()
+	gpinitsystemConfig = DeclareDataDirectories(gpinitsystemConfig, *h.source)
+
+	return WriteInitsystemFile(gpinitsystemConfig, h.initsystemConfPath())
+}
+
+func (h *Hub) InitTargetCluster(stream messageSender, log io.Writer) (*dbconn.DBConn, error) {
+	agentConns, err := h.AgentConns()
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get/create agents")
 	}
 
-	gpinitsystemConfig, segmentDataDirMap, targetPort := DeclareDataDirectories(gpinitsystemConfig, *h.source)
-	err = CreateAllDataDirectories(agentConns, segmentDataDirMap, h.source.MasterDataDir())
+	err = CreateAllDataDirectories(agentConns, h.source)
 	if err != nil {
 		return nil, err
 	}
 
-	gpinitsystemFilepath := filepath.Join(h.conf.StateDir, "gpinitsystem_config")
-	err = WriteInitsystemFile(gpinitsystemConfig, gpinitsystemFilepath)
+	err = RunInitsystemForTargetCluster(stream, log, h.target, h.initsystemConfPath())
 	if err != nil {
 		return nil, err
 	}
 
-	err = RunInitsystemForTargetCluster(stream, log, h.target, gpinitsystemFilepath)
-	if err != nil {
-		return nil, err
-	}
-
-	targetDBConn := db.NewDBConn("localhost", targetPort, "template1")
+	targetDBConn := db.NewDBConn("localhost", h.source.MasterPort()+1, "template1")
 	return targetDBConn, nil
 }
 
@@ -116,39 +121,47 @@ func WriteInitsystemFile(gpinitsystemConfig []string, gpinitsystemFilepath strin
 	return nil
 }
 
-func DeclareDataDirectories(gpinitsystemConfig []string, source utils.Cluster) ([]string, map[string][]string, int) {
+func upgradeDataDir(path string) string {
+	// e.g.
+	//   /data/primary/seg1
+	// becomes
+	//   /data/primary_upgrade/seg1
+	path = filepath.Clean(path)
+	parent := fmt.Sprintf("%s_upgrade", filepath.Dir(path))
+	return filepath.Join(parent, filepath.Base(path))
+}
+
+func DeclareDataDirectories(gpinitsystemConfig []string, source utils.Cluster) []string {
 	// declare master data directory
 	master := source.Segments[-1]
 	master.Port++
-	master.DataDir = fmt.Sprintf("%s_upgrade/%s", path.Dir(master.DataDir), path.Base(master.DataDir))
+	master.DataDir = upgradeDataDir(master.DataDir)
 	datadirDeclare := fmt.Sprintf("QD_PRIMARY_ARRAY=%s~%d~%s~%d~%d~0",
 		master.Hostname, master.Port, master.DataDir, master.DbID, master.ContentID)
 	gpinitsystemConfig = append(gpinitsystemConfig, datadirDeclare)
+
 	// declare segment data directories
-	segmentDataDirMap := map[string][]string{}
 	segmentDeclarations := []string{}
 	for _, content := range source.ContentIDs {
 		if content != -1 {
 			segment := source.Segments[content]
 			// FIXME: Arbitrary assumption.	 Do something smarter later
 			segment.Port += 4000
-			datadir := fmt.Sprintf("%s_upgrade", path.Dir(segment.DataDir))
-			segment.DataDir = fmt.Sprintf("%s/%s", datadir, path.Base(segment.DataDir))
-			segmentDataDirMap[segment.Hostname] = append(segmentDataDirMap[segment.Hostname],
-				datadir)
+			segment.DataDir = upgradeDataDir(segment.DataDir)
 			declaration := fmt.Sprintf("\t%s~%d~%s~%d~%d~0",
 				segment.Hostname, segment.Port, segment.DataDir, segment.DbID, segment.ContentID)
 			segmentDeclarations = append(segmentDeclarations, declaration)
 		}
 	}
+
 	datadirDeclare = fmt.Sprintf("declare -a PRIMARY_ARRAY=(\n%s\n)", strings.Join(segmentDeclarations, "\n"))
 	gpinitsystemConfig = append(gpinitsystemConfig, datadirDeclare)
-	return gpinitsystemConfig, segmentDataDirMap, master.Port
+	return gpinitsystemConfig
 }
 
-func CreateAllDataDirectories(agentConns []*Connection, segmentDataDirMap map[string][]string, sourceMasterDataDir string) error {
+func CreateAllDataDirectories(agentConns []*Connection, source *utils.Cluster) error {
 	// create master data directory for gpinitsystem if it doesn't exist
-	targetDataDir := path.Dir(sourceMasterDataDir) + "_upgrade"
+	targetDataDir := path.Dir(source.MasterDataDir()) + "_upgrade"
 	_, err := utils.System.Stat(targetDataDir)
 	if os.IsNotExist(err) {
 		err = utils.System.MkdirAll(targetDataDir, 0755)
@@ -159,7 +172,7 @@ func CreateAllDataDirectories(agentConns []*Connection, segmentDataDirMap map[st
 		return xerrors.Errorf("stat master upgrade directory %s: %w", targetDataDir, err)
 	}
 	// create segment data directories for gpinitsystem if they don't exist
-	err = CreateSegmentDataDirectories(agentConns, segmentDataDirMap)
+	err = CreateSegmentDataDirectories(agentConns, source)
 	if err != nil {
 		return xerrors.Errorf("segment data directories: %w", err)
 	}
@@ -209,7 +222,7 @@ func GetMasterSegPrefix(datadir string) (string, error) {
 	return segPrefix, nil
 }
 
-func CreateSegmentDataDirectories(agentConns []*Connection, dataDirMap map[string][]string) error {
+func CreateSegmentDataDirectories(agentConns []*Connection, cluster *utils.Cluster) error {
 	wg := sync.WaitGroup{}
 	errChan := make(chan error, len(agentConns))
 
@@ -219,10 +232,21 @@ func CreateSegmentDataDirectories(agentConns []*Connection, dataDirMap map[strin
 		go func(c *Connection) {
 			defer wg.Done()
 
-			_, err := c.AgentClient.CreateSegmentDataDirectories(context.Background(),
-				&idl.CreateSegmentDataDirRequest{
-					Datadirs: dataDirMap[c.Hostname],
-				})
+			segments, err := cluster.SegmentsOn(c.Hostname)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			req := new(idl.CreateSegmentDataDirRequest)
+			for _, seg := range segments {
+				// gpinitsystem needs the *parent* directories of the new
+				// segment data directories to exist.
+				datadir := filepath.Dir(upgradeDataDir(seg.DataDir))
+				req.Datadirs = append(req.Datadirs, datadir)
+			}
+
+			_, err = c.AgentClient.CreateSegmentDataDirectories(context.Background(), req)
 			if err != nil {
 				gplog.Error("Error creating segment data directories on host %s: %s",
 					c.Hostname, err.Error())

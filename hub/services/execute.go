@@ -45,12 +45,31 @@ func (h *Hub) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteSe
 		return xerrors.Errorf("failed writing to execute log: %w", err)
 	}
 
+	err = h.ExecuteSubStep(executeStream, upgradestatus.CREATE_TARGET_CONFIG,
+		func(_ messageSender, _ io.Writer) error {
+			return h.GenerateInitsystemConfig()
+		})
+	if err != nil {
+		return err
+	}
+
+	err = h.ExecuteSubStep(executeStream, upgradestatus.SHUTDOWN_SOURCE_CLUSTER,
+		func(stream messageSender, log io.Writer) error {
+			return StopCluster(stream, log, h.source)
+		})
+	if err != nil {
+		return err
+	}
+
 	err = h.ExecuteSubStep(executeStream, upgradestatus.INIT_TARGET_CLUSTER, h.CreateTargetCluster)
 	if err != nil {
 		return err
 	}
 
-	err = h.ExecuteSubStep(executeStream, upgradestatus.SHUTDOWN_CLUSTERS, h.ShutdownClusters)
+	err = h.ExecuteSubStep(executeStream, upgradestatus.SHUTDOWN_TARGET_CLUSTER,
+		func(stream messageSender, log io.Writer) error {
+			return StopCluster(stream, log, h.target)
+		})
 	if err != nil {
 		return err
 	}
