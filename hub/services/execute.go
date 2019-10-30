@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -18,7 +18,7 @@ import (
 
 type ExecuteStream struct {
 	stream messageSender
-	log *os.File
+	log    *os.File
 }
 
 func (h *Hub) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteServer) (err error) {
@@ -38,7 +38,7 @@ func (h *Hub) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteSe
 		}
 	}()
 
-	executeStream := &ExecuteStream{stream: stream, log:log}
+	executeStream := &ExecuteStream{stream: stream, log: log}
 
 	_, err = log.WriteString("\nExecute in progress.\n")
 	if err != nil {
