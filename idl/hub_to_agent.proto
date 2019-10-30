@@ -1,11 +1,8 @@
 syntax = "proto3";
 
 package idl;
-import "cli_to_hub.proto";
 
 service Agent {
-    rpc CheckUpgradeStatus (CheckUpgradeStatusRequest) returns (CheckUpgradeStatusReply) {}
-    rpc CheckConversionStatus (CheckConversionStatusRequest) returns (CheckConversionStatusReply) {}
     rpc CheckDiskSpaceOnAgents (CheckDiskSpaceRequestToAgent) returns (CheckDiskSpaceReplyFromAgent) {}
     rpc AgentExecuteUpgradePrimariesSubStep (UpgradePrimariesRequest) returns (UpgradePrimariesReply) {}
     rpc CreateSegmentDataDirectories (CreateSegmentDataDirRequest) returns (CreateSegmentDataDirReply) {}
@@ -29,27 +26,6 @@ message DataDirPair {
 }
 
 message UpgradePrimariesReply {}
-
-message CheckUpgradeStatusRequest {}
-
-message CheckUpgradeStatusReply {
-    string ProcessList = 1;
-}
-
-message CheckConversionStatusRequest {
-    repeated SegmentInfo Segments = 1;
-	string Hostname = 2;
-}
-
-message SegmentInfo {
-	int32 Content  = 1;
-	int32 Dbid     = 2;
-	string DataDir = 3;
-}
-
-message CheckConversionStatusReply {
-    repeated PrimaryStatus Statuses = 1;
-}
 
 message FileSysUsage {
     string Filesystem = 1;

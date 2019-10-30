@@ -1,39 +1,18 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"sync"
 
-	"golang.org/x/net/context"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 )
 
-func (h *Hub) ExecuteUpgradePrimariesSubStep(stream messageSender) error {
-	gplog.Info("starting %s", upgradestatus.UPGRADE_PRIMARIES)
-	const step = idl.UpgradeSteps_UPGRADE_PRIMARIES
-
-	// NOTE: this substep is special in that it handled differently by the
-	//   checklist_manager; this is why we stream directly here
-	sendStatus(stream, step, idl.StepStatus_RUNNING)
-
-	status := idl.StepStatus_COMPLETE
-	err := h.convertPrimaries()
-	if err != nil {
-		status = idl.StepStatus_FAILED
-	}
-
-	sendStatus(stream, step, status)
-	return err
-}
-
-func (h *Hub) convertPrimaries() error {
+func (h *Hub) ConvertPrimaries() error {
 	agentConns, err := h.AgentConns()
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to gpupgrade_agent")

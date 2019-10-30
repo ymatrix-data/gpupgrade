@@ -216,46 +216,6 @@ func (mr *MockCliToHubClientMockRecorder) SetConfig(arg0, arg1 interface{}, arg2
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConfig", reflect.TypeOf((*MockCliToHubClient)(nil).SetConfig), varargs...)
 }
 
-// StatusConversion mocks base method
-func (m *MockCliToHubClient) StatusConversion(arg0 context.Context, arg1 *idl.StatusConversionRequest, arg2 ...grpc.CallOption) (*idl.StatusConversionReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "StatusConversion", varargs...)
-	ret0, _ := ret[0].(*idl.StatusConversionReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StatusConversion indicates an expected call of StatusConversion
-func (mr *MockCliToHubClientMockRecorder) StatusConversion(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusConversion", reflect.TypeOf((*MockCliToHubClient)(nil).StatusConversion), varargs...)
-}
-
-// StatusUpgrade mocks base method
-func (m *MockCliToHubClient) StatusUpgrade(arg0 context.Context, arg1 *idl.StatusUpgradeRequest, arg2 ...grpc.CallOption) (*idl.StatusUpgradeReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "StatusUpgrade", varargs...)
-	ret0, _ := ret[0].(*idl.StatusUpgradeReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StatusUpgrade indicates an expected call of StatusUpgrade
-func (mr *MockCliToHubClientMockRecorder) StatusUpgrade(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusUpgrade", reflect.TypeOf((*MockCliToHubClient)(nil).StatusUpgrade), varargs...)
-}
-
 // StopServices mocks base method
 func (m *MockCliToHubClient) StopServices(arg0 context.Context, arg1 *idl.StopServicesRequest, arg2 ...grpc.CallOption) (*idl.StopServicesReply, error) {
 	m.ctrl.T.Helper()
@@ -429,36 +389,6 @@ func (m *MockCliToHubServer) SetConfig(arg0 context.Context, arg1 *idl.SetConfig
 func (mr *MockCliToHubServerMockRecorder) SetConfig(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConfig", reflect.TypeOf((*MockCliToHubServer)(nil).SetConfig), arg0, arg1)
-}
-
-// StatusConversion mocks base method
-func (m *MockCliToHubServer) StatusConversion(arg0 context.Context, arg1 *idl.StatusConversionRequest) (*idl.StatusConversionReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StatusConversion", arg0, arg1)
-	ret0, _ := ret[0].(*idl.StatusConversionReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StatusConversion indicates an expected call of StatusConversion
-func (mr *MockCliToHubServerMockRecorder) StatusConversion(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusConversion", reflect.TypeOf((*MockCliToHubServer)(nil).StatusConversion), arg0, arg1)
-}
-
-// StatusUpgrade mocks base method
-func (m *MockCliToHubServer) StatusUpgrade(arg0 context.Context, arg1 *idl.StatusUpgradeRequest) (*idl.StatusUpgradeReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StatusUpgrade", arg0, arg1)
-	ret0, _ := ret[0].(*idl.StatusUpgradeReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StatusUpgrade indicates an expected call of StatusUpgrade
-func (mr *MockCliToHubServerMockRecorder) StatusUpgrade(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatusUpgrade", reflect.TypeOf((*MockCliToHubServer)(nil).StatusUpgrade), arg0, arg1)
 }
 
 // StopServices mocks base method

@@ -34,15 +34,6 @@ teardown() {
     [ -f "$GPUPGRADE_HOME"/target_cluster_config.json ]
 }
 
-@test "substeps are marked complete after initialization" {
-    run gpupgrade status upgrade
-    [ "$status" -eq 0 ] || fail "$output"
-
-    # XXX is this a useful test? Seems like it's pinning the wrong behavior.
-    [ "${lines[0]}" = 'COMPLETE - Configuration Check' ] || fail "actual: ${lines[0]}"
-    [ "${lines[1]}" = 'COMPLETE - Agents Started on Cluster' ] || fail "actual: ${lines[1]}"
-}
-
 @test "hub daemonizes and prints the PID when passed the --daemonize option" {
     gpupgrade kill-services
 
@@ -118,8 +109,6 @@ outputContains() {
         'config show'
         'check object-count'
         'check disk-space'
-        'status upgrade'
-        'status conversion'
         'execute'
         'finalize'
     )

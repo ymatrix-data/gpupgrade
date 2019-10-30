@@ -5,9 +5,9 @@
 package mock_idl
 
 import (
-	context "context"
 	gomock "github.com/golang/mock/gomock"
 	idl "github.com/greenplum-db/gpupgrade/idl"
+	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
 	reflect "reflect"
 )
@@ -33,46 +33,6 @@ func NewMockAgentClient(ctrl *gomock.Controller) *MockAgentClient {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockAgentClient) EXPECT() *MockAgentClientMockRecorder {
 	return m.recorder
-}
-
-// CheckUpgradeStatus mocks base method
-func (m *MockAgentClient) CheckUpgradeStatus(ctx context.Context, in *idl.CheckUpgradeStatusRequest, opts ...grpc.CallOption) (*idl.CheckUpgradeStatusReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CheckUpgradeStatus", varargs...)
-	ret0, _ := ret[0].(*idl.CheckUpgradeStatusReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckUpgradeStatus indicates an expected call of CheckUpgradeStatus
-func (mr *MockAgentClientMockRecorder) CheckUpgradeStatus(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUpgradeStatus", reflect.TypeOf((*MockAgentClient)(nil).CheckUpgradeStatus), varargs...)
-}
-
-// CheckConversionStatus mocks base method
-func (m *MockAgentClient) CheckConversionStatus(ctx context.Context, in *idl.CheckConversionStatusRequest, opts ...grpc.CallOption) (*idl.CheckConversionStatusReply, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CheckConversionStatus", varargs...)
-	ret0, _ := ret[0].(*idl.CheckConversionStatusReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckConversionStatus indicates an expected call of CheckConversionStatus
-func (mr *MockAgentClientMockRecorder) CheckConversionStatus(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConversionStatus", reflect.TypeOf((*MockAgentClient)(nil).CheckConversionStatus), varargs...)
 }
 
 // CheckDiskSpaceOnAgents mocks base method
@@ -196,36 +156,6 @@ func NewMockAgentServer(ctrl *gomock.Controller) *MockAgentServer {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockAgentServer) EXPECT() *MockAgentServerMockRecorder {
 	return m.recorder
-}
-
-// CheckUpgradeStatus mocks base method
-func (m *MockAgentServer) CheckUpgradeStatus(arg0 context.Context, arg1 *idl.CheckUpgradeStatusRequest) (*idl.CheckUpgradeStatusReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckUpgradeStatus", arg0, arg1)
-	ret0, _ := ret[0].(*idl.CheckUpgradeStatusReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckUpgradeStatus indicates an expected call of CheckUpgradeStatus
-func (mr *MockAgentServerMockRecorder) CheckUpgradeStatus(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUpgradeStatus", reflect.TypeOf((*MockAgentServer)(nil).CheckUpgradeStatus), arg0, arg1)
-}
-
-// CheckConversionStatus mocks base method
-func (m *MockAgentServer) CheckConversionStatus(arg0 context.Context, arg1 *idl.CheckConversionStatusRequest) (*idl.CheckConversionStatusReply, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckConversionStatus", arg0, arg1)
-	ret0, _ := ret[0].(*idl.CheckConversionStatusReply)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckConversionStatus indicates an expected call of CheckConversionStatus
-func (mr *MockAgentServerMockRecorder) CheckConversionStatus(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConversionStatus", reflect.TypeOf((*MockAgentServer)(nil).CheckConversionStatus), arg0, arg1)
 }
 
 // CheckDiskSpaceOnAgents mocks base method

@@ -43,6 +43,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -53,7 +54,7 @@ func BuildRootCommand() *cobra.Command {
 	// TODO: if called without a subcommand, the cli prints a help message with timestamp.  Remove the timestamp.
 	root := &cobra.Command{Use: "gpupgrade"}
 
-	root.AddCommand(config, status, check, version)
+	root.AddCommand(config, check, version)
 	root.AddCommand(initialize())
 	root.AddCommand(execute())
 	root.AddCommand(finalize)
@@ -63,8 +64,6 @@ func BuildRootCommand() *cobra.Command {
 	subConfigSet := createConfigSetSubcommand()
 	subConfigShow := createConfigShowSubcommand()
 	config.AddCommand(subConfigSet, subConfigShow)
-
-	status.AddCommand(subStatusUpgrade, subStatusConversion)
 
 	check.AddCommand(subCheckObjectCount, subCheckDiskSpace)
 
@@ -246,42 +245,6 @@ func createConfigShowSubcommand() *cobra.Command {
 	subShow.Flags().Bool("new-bindir", false, "show install directory for new gpdb version")
 
 	return subShow
-}
-
-//////////////////////////////////////// STATUS and its subcommands
-var status = &cobra.Command{
-	Use:   "status",
-	Short: "subcommands to show the status of a gpupgrade",
-	Long:  "subcommands to show the status of a gpupgrade",
-}
-
-var subStatusConversion = &cobra.Command{
-	Use:   "conversion",
-	Short: "the status of the conversion",
-	Long:  "the status of the conversion",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		reporter := commanders.NewReporter(client)
-		err := reporter.OverallConversionStatus()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
-}
-var subStatusUpgrade = &cobra.Command{
-	Use:   "upgrade",
-	Short: "the status of the upgrade",
-	Long:  "the status of the upgrade",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := connectToHub()
-		reporter := commanders.NewReporter(client)
-		err := reporter.OverallUpgradeStatus()
-		if err != nil {
-			gplog.Error(err.Error())
-			os.Exit(1)
-		}
-	},
 }
 
 //////////////////////////////////////// VERSION

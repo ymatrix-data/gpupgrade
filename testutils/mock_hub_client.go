@@ -24,14 +24,6 @@ func (m *MockHubClient) Execute(ctx context.Context, in *idl.ExecuteRequest, opt
 	return nil, nil
 }
 
-func (m *MockHubClient) StatusUpgrade(ctx context.Context, in *idl.StatusUpgradeRequest, opts ...grpc.CallOption) (*idl.StatusUpgradeReply, error) {
-	return nil, nil
-}
-
-func (m *MockHubClient) StatusConversion(ctx context.Context, in *idl.StatusConversionRequest, opts ...grpc.CallOption) (*idl.StatusConversionReply, error) {
-	return nil, nil
-}
-
 func (m *MockHubClient) CheckObjectCount(ctx context.Context, in *idl.CheckObjectCountRequest, opts ...grpc.CallOption) (*idl.CheckObjectCountReply, error) {
 	return nil, nil
 }

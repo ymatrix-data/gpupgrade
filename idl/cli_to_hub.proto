@@ -3,8 +3,6 @@ syntax = "proto3";
 package idl;
 
 service CliToHub {
-    rpc StatusUpgrade(StatusUpgradeRequest) returns (StatusUpgradeReply) {}
-    rpc StatusConversion(StatusConversionRequest) returns (StatusConversionReply) {}
     rpc CheckObjectCount(CheckObjectCountRequest) returns (CheckObjectCountReply) {}
     rpc CheckVersion (CheckVersionRequest) returns (CheckVersionReply) {}
     rpc CheckDiskSpace (CheckDiskSpaceRequest) returns (CheckDiskSpaceReply) {}
@@ -32,25 +30,6 @@ message RestartAgentsReply {
 
 message StopServicesRequest {}
 message StopServicesReply {}
-
-message StatusConversionRequest {}
-
-message PrimaryStatus {
-    StepStatus Status = 1;
-    int32 Dbid = 2;
-    int32 Content = 3;
-    string Hostname = 4;
-}
-
-message StatusConversionReply {
-    repeated PrimaryStatus conversionStatuses = 1;
-}
-
-message StatusUpgradeRequest {}
-
-message StatusUpgradeReply {
-    repeated UpgradeStepStatus listOfUpgradeStepStatuses = 1;
-}
 
 message UpgradeStepStatus {
     UpgradeSteps step = 1;

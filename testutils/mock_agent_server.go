@@ -19,8 +19,6 @@ type MockAgentServer struct {
 	numCalls   int
 	mu         sync.Mutex
 
-	StatusConversionRequest              *idl.CheckConversionStatusRequest
-	StatusConversionResponse             *idl.CheckConversionStatusReply
 	UpgradeConvertPrimarySegmentsRequest *idl.UpgradePrimariesRequest
 	CreateSegmentDataDirRequest          *idl.CreateSegmentDataDirRequest
 	CopyMasterDirRequest                 *idl.CopyMasterDirRequest
@@ -58,25 +56,6 @@ func NewMockAgentServer() (*MockAgentServer, services.Dialer, int) {
 	}
 
 	return mockServer, dialer, port
-}
-
-func (m *MockAgentServer) CheckUpgradeStatus(context.Context, *idl.CheckUpgradeStatusRequest) (*idl.CheckUpgradeStatusReply, error) {
-	m.increaseCalls()
-
-	return &idl.CheckUpgradeStatusReply{}, nil
-}
-
-func (m *MockAgentServer) CheckConversionStatus(ctx context.Context, in *idl.CheckConversionStatusRequest) (*idl.CheckConversionStatusReply, error) {
-	m.increaseCalls()
-
-	m.StatusConversionRequest = in
-
-	var err error
-	if len(m.Err) != 0 {
-		err = <-m.Err
-	}
-
-	return m.StatusConversionResponse, err
 }
 
 func (m *MockAgentServer) CheckDiskSpaceOnAgents(context.Context, *idl.CheckDiskSpaceRequestToAgent) (*idl.CheckDiskSpaceReplyFromAgent, error) {

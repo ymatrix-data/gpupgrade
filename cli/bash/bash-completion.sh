@@ -434,59 +434,6 @@ _gpupgrade_restart-services()
     noun_aliases=()
 }
 
-_gpupgrade_status_conversion()
-{
-    last_command="gpupgrade_status_conversion"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_status_upgrade()
-{
-    last_command="gpupgrade_status_upgrade"
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_gpupgrade_status()
-{
-    last_command="gpupgrade_status"
-    commands=()
-    commands+=("conversion")
-    commands+=("upgrade")
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
 _gpupgrade_version()
 {
     last_command="gpupgrade_version"
@@ -515,7 +462,6 @@ _gpupgrade()
     commands+=("initialize")
     commands+=("kill-services")
     commands+=("restart-services")
-    commands+=("status")
     commands+=("version")
 
     flags=()
