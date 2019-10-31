@@ -18,7 +18,7 @@ import (
 
 type ExecuteStream struct {
 	stream messageSender
-	log    *os.File
+	log    io.Writer
 }
 
 func (h *Hub) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteServer) (err error) {
@@ -79,7 +79,7 @@ func (h *Hub) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteSe
 
 func (h *Hub) ExecuteSubStep(executeStream *ExecuteStream, subStep string, subStepFunc func(stream messageSender, log io.Writer) error) error {
 	gplog.Info("starting %s", subStep)
-	_, err := executeStream.log.WriteString(fmt.Sprintf("\nStarting %s...\n\n", subStep))
+	_, err := executeStream.log.Write([]byte(fmt.Sprintf("\nStarting %s...\n\n", subStep)))
 	if err != nil {
 		return xerrors.Errorf("failed writing to execute log: %w", err)
 	}
@@ -98,7 +98,7 @@ func (h *Hub) ExecuteSubStep(executeStream *ExecuteStream, subStep string, subSt
 		step.MarkComplete()
 	}
 
-	return nil
+	return err
 }
 
 // multiplexedStream provides io.Writers that wrap both gRPC stream and a parallel

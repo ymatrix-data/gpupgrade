@@ -15,9 +15,11 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/onsi/gomega/gbytes"
+	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
+	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -243,4 +245,34 @@ func TestStreaming(t *testing.T) {
 		g.Expect(buf.Bytes()).To(HaveLen(20))
 		g.Expect(log).To(gbytes.Say("halting client stream: error during send"))
 	})
+}
+
+func TestExecuteSubStep(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testhelper.SetupTestLogger()
+
+	cm := testutils.NewMockChecklistManager()
+	hub := NewHub(nil, nil, nil, nil, cm)
+
+	sender := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
+	sender.EXPECT().
+		Send(gomock.Any()).
+		AnyTimes()
+
+	stream := &ExecuteStream{
+		stream: sender,
+		log:    new(bytes.Buffer),
+	}
+
+	expected := errors.New("ahhhh")
+	err := hub.ExecuteSubStep(stream, "my substep",
+		func(_ messageSender, _ io.Writer) error {
+			return expected
+		})
+
+	if !xerrors.Is(err, expected) {
+		t.Errorf("returned %#v, want %#v", err, expected)
+	}
 }
