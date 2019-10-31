@@ -6,15 +6,16 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/greenplum-db/gp-common-go-libs/dbconn"
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
+	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
+
 	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
+	"github.com/greenplum-db/gpupgrade/testutils/mock_agent"
 	"github.com/greenplum-db/gpupgrade/utils"
-	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
-
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,7 +25,7 @@ var (
 	ctrl        *gomock.Controller
 	dbConnector *dbconn.DBConn
 	mock        sqlmock.Sqlmock
-	mockAgent   *testutils.MockAgentServer
+	mockAgent   *mock_agent.MockAgentServer
 	dialer      services.Dialer
 	client      *mock_idl.MockAgentClient
 	cm          *testutils.MockChecklistManager
@@ -56,7 +57,7 @@ var _ = BeforeEach(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	source, target = testutils.CreateMultinodeSampleClusterPair(dir)
-	mockAgent, dialer, port = testutils.NewMockAgentServer()
+	mockAgent, dialer, port = mock_agent.NewMockAgentServer()
 	client = mock_idl.NewMockAgentClient(ctrl)
 	hubConf = &services.HubConfig{
 		HubToAgentPort: port,

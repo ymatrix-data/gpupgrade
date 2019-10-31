@@ -1,21 +1,22 @@
 package services_test
 
 import (
+	"context"
 	"net"
 	"strconv"
 
-	"github.com/greenplum-db/gpupgrade/hub/services"
-	"github.com/greenplum-db/gpupgrade/testutils"
-	"golang.org/x/net/context"
-
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 
+	"github.com/greenplum-db/gpupgrade/hub/services"
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/testutils"
+	"github.com/greenplum-db/gpupgrade/testutils/mock_agent"
 	"github.com/greenplum-db/gpupgrade/utils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 )
 
 // msgStream is a mock server stream for InitializeStep().
@@ -30,7 +31,7 @@ func (m *msgStream) Send(msg *idl.Message) error {
 
 var _ = Describe("Hub", func() {
 	var (
-		agentA         *testutils.MockAgentServer
+		agentA         *mock_agent.MockAgentServer
 		cliToHubPort   int
 		hubToAgentPort int
 		source         *utils.Cluster
@@ -41,7 +42,7 @@ var _ = Describe("Hub", func() {
 	)
 
 	BeforeEach(func() {
-		agentA, mockDialer, hubToAgentPort = testutils.NewMockAgentServer()
+		agentA, mockDialer, hubToAgentPort = mock_agent.NewMockAgentServer()
 		source, target = testutils.CreateMultinodeSampleClusterPair("/tmp")
 		mockStream = &msgStream{}
 	})

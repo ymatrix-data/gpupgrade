@@ -1,4 +1,4 @@
-package testutils
+package mock_agent
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/greenplum-db/gpupgrade/hub/services"
-
 	"github.com/greenplum-db/gpupgrade/idl"
 
 	"google.golang.org/grpc"
