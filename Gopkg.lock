@@ -131,12 +131,11 @@
   revision = "f91d3411e481ed313eeab65ebfe9076466c39d01"
 
 [[projects]]
-  digest = "1:14327fe738e2d365af75e7d870ae5ecf03eea9d910e127b1d2ea5bd2cac477aa"
+  digest = "1:72f35d3e412bc67b121e15ea4c88a3b3da8bcbc2264339e7ffa4a1865799840c"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
     "config",
-    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -393,7 +392,6 @@
     "github.com/hashicorp/go-multierror",
     "github.com/lib/pq",
     "github.com/onsi/ginkgo",
-    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/pkg/errors",
