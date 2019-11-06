@@ -59,8 +59,11 @@ func Initialize(client idl.CliToHubClient, oldBinDir, newBinDir string, oldPort 
 	return nil
 }
 
-func InitializeCreateCluster(client idl.CliToHubClient, verbose bool) (err error) {
-	stream, err := client.InitializeCreateCluster(context.Background(), &idl.InitializeCreateClusterRequest{})
+func InitializeCreateCluster(client idl.CliToHubClient, verbose bool, ports []uint32) (err error) {
+	stream, err := client.InitializeCreateCluster(context.Background(),
+		&idl.InitializeCreateClusterRequest{
+			Ports: ports,
+		})
 	if err != nil {
 		return errors.Wrap(err, "initializing hub2")
 	}

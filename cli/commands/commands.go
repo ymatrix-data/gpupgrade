@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
@@ -236,6 +237,7 @@ func initialize() *cobra.Command {
 	var diskFreeRatio float64
 	var stopBeforeClusterCreation bool
 	var verbose bool
+	var ports string
 
 	subInit := &cobra.Command{
 		Use:   "initialize",
@@ -253,6 +255,11 @@ This step can be reverted.
 				)
 			}
 
+			ports, err := parsePorts(ports)
+			if err != nil {
+				return err
+			}
+
 			// If we got here, the args are okay and the user doesn't need a usage
 			// dump on failure.
 			cmd.SilenceUsage = true
@@ -261,7 +268,7 @@ This step can be reverted.
 			fmt.Println("Initialization in progress.")
 			fmt.Println()
 
-			err := commanders.CreateStateDirAndClusterConfigs(oldBinDir, newBinDir)
+			err = commanders.CreateStateDirAndClusterConfigs(oldBinDir, newBinDir)
 			if err != nil {
 				return errors.Wrap(err, "tried to create state directory")
 			}
@@ -297,7 +304,7 @@ This step can be reverted.
 				return nil
 			}
 
-			err = commanders.InitializeCreateCluster(client, verbose)
+			err = commanders.InitializeCreateCluster(client, verbose, ports)
 			if err != nil {
 				return errors.Wrap(err, "initializing cluster")
 			}
@@ -323,6 +330,7 @@ If you would like to return the cluster to its original state, run
 	subInit.PersistentFlags().MarkHidden("stop-before-cluster-creation")
 	subInit.PersistentFlags().Float64Var(&diskFreeRatio, "disk-free-ratio", 0.60, "percentage of disk space that must be available (from 0.0 - 1.0)")
 	subInit.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "print the output stream from all substeps")
+	subInit.Flags().StringVar(&ports, "ports", "", "set of ports to use when initializing the new cluster")
 
 	return subInit
 }
@@ -337,13 +345,11 @@ func execute() *cobra.Command {
 Upgrades the master and primary segments over to the new cluster.
 This step can be reverted.
 `,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+
 			client := connectToHub()
-			err := commanders.Execute(client, verbose)
-			if err != nil {
-				gplog.Error(err.Error())
-				os.Exit(1)
-			}
+			return commanders.Execute(client, verbose)
 		},
 	}
 
@@ -367,6 +373,48 @@ This step can not be reverted.
 			os.Exit(1)
 		}
 	},
+}
+
+func parsePorts(val string) ([]uint32, error) {
+	var ports []uint32
+
+	if val == "" {
+		return ports, nil
+	}
+
+	for _, p := range strings.Split(val, ",") {
+		parts := strings.Split(p, "-")
+		switch {
+		case len(parts) == 2: // this is a range
+			low, err := strconv.ParseUint(parts[0], 10, 16)
+			if err != nil {
+				return nil, xerrors.Errorf("failed to parse port range %s", p)
+			}
+
+			high, err := strconv.ParseUint(parts[1], 10, 16)
+			if err != nil {
+				return nil, xerrors.Errorf("failed to parse port range %s", p)
+			}
+
+			if low > high {
+				return nil, xerrors.Errorf("invalid port range %s", p)
+			}
+
+			for i := low; i <= high; i++ {
+				ports = append(ports, uint32(i))
+			}
+
+		default: // single port
+			port, err := strconv.ParseUint(p, 10, 16)
+			if err != nil {
+				return nil, xerrors.Errorf("failed to parse port %s", p)
+			}
+
+			ports = append(ports, uint32(port))
+		}
+	}
+
+	return ports, nil
 }
 
 var restartServices = &cobra.Command{

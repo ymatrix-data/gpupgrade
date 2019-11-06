@@ -7,17 +7,17 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/hashicorp/go-multierror"
-	"golang.org/x/xerrors"
-
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
+
 	"github.com/greenplum-db/gpupgrade/db"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
-	"github.com/pkg/errors"
 )
 
 type InitializeStream struct {
@@ -88,9 +88,12 @@ func (h *Hub) InitializeCreateCluster(in *idl.InitializeCreateClusterRequest, st
 		return xerrors.Errorf("failed writing to initialize log for hub: %w", err)
 	}
 
+	var targetMasterPort int
 	err = h.InitializeSubStep(initializeStream, upgradestatus.CREATE_TARGET_CONFIG,
 		func(_ messageSender, _ io.Writer) error {
-			return h.GenerateInitsystemConfig()
+			var err error
+			targetMasterPort, err = h.GenerateInitsystemConfig(in.Ports)
+			return err
 		})
 	if err != nil {
 		return err
@@ -104,7 +107,10 @@ func (h *Hub) InitializeCreateCluster(in *idl.InitializeCreateClusterRequest, st
 		return err
 	}
 
-	err = h.InitializeSubStep(initializeStream, upgradestatus.INIT_TARGET_CLUSTER, h.CreateTargetCluster)
+	err = h.InitializeSubStep(initializeStream, upgradestatus.INIT_TARGET_CLUSTER,
+		func(stream messageSender, log io.Writer) error {
+			return h.CreateTargetCluster(stream, log, targetMasterPort)
+		})
 	if err != nil {
 		return err
 	}

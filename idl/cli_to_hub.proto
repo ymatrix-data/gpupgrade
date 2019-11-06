@@ -20,8 +20,9 @@ message InitializeRequest {
     string newBinDir = 2;
     int32 oldPort = 3;
 }
-message InitializeCreateClusterRequest {}
-
+message InitializeCreateClusterRequest {
+    repeated uint32 ports = 1;
+}
 message ExecuteRequest {}
 message FinalizeRequest {}
 
