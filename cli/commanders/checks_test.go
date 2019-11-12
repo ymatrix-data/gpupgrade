@@ -163,7 +163,7 @@ func TestDiskSpaceCheck(t *testing.T) {
 
 			// exact value doesn't matter; we simply verify that it's passed
 			// through to gRPC as-is
-			ratio := float32(0.5)
+			ratio := float64(0.5)
 
 			client := mock_idl.NewMockCliToHubClient(ctrl)
 			client.EXPECT().CheckDiskSpace(

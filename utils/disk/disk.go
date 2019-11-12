@@ -5,6 +5,7 @@ import (
 	"golang.org/x/xerrors"
 
 	sigar "github.com/cloudfoundry/gosigar"
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 )
@@ -34,7 +35,7 @@ type Disk interface {
 // that space to be free for use, nor does it count that space against the total
 // disk size. For example, a disk with 25% avail space and 75% free space -- as
 // defined by statfs(2) -- would be considered 50% available by CheckUsage.
-func CheckUsage(d Disk, requiredRatio float32, paths ...string) (SpaceFailures, error) {
+func CheckUsage(d Disk, requiredRatio float64, paths ...string) (SpaceFailures, error) {
 	failures := make(SpaceFailures)
 
 	// Find the device ID for every filesystem. We'll use these to map data
@@ -60,15 +61,14 @@ func CheckUsage(d Disk, requiredRatio float32, paths ...string) (SpaceFailures, 
 			return nil, xerrors.Errorf("getting fs usage for %s: %w", path, err)
 		}
 
-		// FIXME it looks like UsePercent returns 0.0 for low usage values...
-		usedRatio := usage.UsePercent() / 100.0
-		availRatio := 1.0 - usedRatio
+		// Exclude superuser-reserved space.
+		total := usage.Used + usage.Avail
+		required := uint64(requiredRatio * float64(total))
 
-		if availRatio < float64(requiredRatio) {
-			// Exclude superuser-reserved space.
-			total := usage.Used + usage.Avail
-			required := uint64(float64(requiredRatio) * float64(total))
+		gplog.Debug("%s: %d avail of %d required (%d used, %d total)",
+			path, usage.Avail, required, usage.Used, usage.Total)
 
+		if usage.Avail < required {
 			// Get the filesystem that this path belongs to.
 			stat, err := d.Stat(path)
 			if err != nil {

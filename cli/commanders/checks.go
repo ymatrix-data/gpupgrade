@@ -14,7 +14,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils/disk"
 )
 
-func RunPreChecks(client idl.CliToHubClient, ratio float32) error {
+func RunPreChecks(client idl.CliToHubClient, ratio float64) error {
 	//TODO: when do we check this?  It requires the source cluster to be up.
 	//err := CheckVersion(client)
 	//if err != nil {
@@ -115,7 +115,7 @@ func (t tableRows) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
-func CheckDiskSpace(client idl.CliToHubClient, ratio float32) (err error) {
+func CheckDiskSpace(client idl.CliToHubClient, ratio float64) (err error) {
 	s := Substep("Checking disk space...")
 	defer s.Finish(&err)
 

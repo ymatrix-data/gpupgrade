@@ -69,7 +69,7 @@ message CheckVersionReply {
 }
 
 message CheckDiskSpaceRequest {
-	float ratio = 1;
+  double ratio = 1;
 }
 
 message CheckDiskSpaceReply {

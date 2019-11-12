@@ -233,7 +233,7 @@ var version = &cobra.Command{
 func initialize() *cobra.Command {
 	var oldBinDir, newBinDir string
 	var oldPort int
-	var diskFreeRatio float32
+	var diskFreeRatio float64
 	var stopBeforeClusterCreation bool
 	var verbose bool
 
@@ -321,7 +321,7 @@ If you would like to return the cluster to its original state, run
 	subInit.MarkPersistentFlagRequired("old-port")
 	subInit.PersistentFlags().BoolVar(&stopBeforeClusterCreation, "stop-before-cluster-creation", false, "only run up to pre-init")
 	subInit.PersistentFlags().MarkHidden("stop-before-cluster-creation")
-	subInit.PersistentFlags().Float32Var(&diskFreeRatio, "disk-free-ratio", 0.60, "percentage of disk space that must be available (from 0.0 - 1.0)")
+	subInit.PersistentFlags().Float64Var(&diskFreeRatio, "disk-free-ratio", 0.60, "percentage of disk space that must be available (from 0.0 - 1.0)")
 	subInit.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "print the output stream from all substeps")
 
 	return subInit

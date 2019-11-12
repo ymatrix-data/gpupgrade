@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	sigar "github.com/cloudfoundry/gosigar"
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
 	"golang.org/x/xerrors"
@@ -16,6 +17,8 @@ import (
 )
 
 func TestCheckUsage(t *testing.T) {
+	testhelper.SetupTestLogger()
+
 	// This test disk has two mount points:
 	//  - /, at 25% utilization
 	//  - /tmp, at 75% utilization
@@ -68,7 +71,7 @@ func TestCheckUsage(t *testing.T) {
 	cases := []struct {
 		name string
 
-		ratio    float32
+		ratio    float64
 		paths    []string
 		expected disk.SpaceFailures
 	}{
@@ -160,6 +163,42 @@ func TestCheckUsage(t *testing.T) {
 		}
 		if !reflect.DeepEqual(actual, expected) {
 			t.Errorf("returned %v want %v", actual, expected)
+		}
+	})
+
+	// regression test to catch float representation errors
+	t.Run("does floating point math correctly", func(t *testing.T) {
+		d := testDisk{
+			err: errors.New("should never happen"),
+
+			filesystems: func() (sigar.FileSystemList, error) {
+				return sigar.FileSystemList{List: []sigar.FileSystem{
+					{DirName: "/"},
+				}}, nil
+			},
+
+			// Utilization is 40% exactly.
+			usage: func(path string) (sigar.FileSystemUsage, error) {
+				u := sigar.FileSystemUsage{
+					Total: 487260160,
+					Avail: 292356096,
+				}
+				u.Free = u.Avail
+				u.Used = u.Total - u.Avail
+				return u, nil
+			},
+
+			stat: func(path string) (*unix.Stat_t, error) {
+				return &unix.Stat_t{Dev: 1}, nil
+			},
+		}
+
+		actual, err := disk.CheckUsage(d, 0.6, "/path")
+		if err != nil {
+			t.Errorf("returned error %#v", err)
+		}
+		if len(actual) > 0 {
+			t.Errorf("returned %v; want no failures", actual)
 		}
 	})
 

@@ -11,6 +11,7 @@ import (
 	sigar "github.com/cloudfoundry/gosigar"
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/sys/unix"
 	"golang.org/x/xerrors"
@@ -27,6 +28,8 @@ func TestCheckDiskSpace(t *testing.T) {
 	var agents []*Connection
 	var req *idl.CheckDiskSpaceRequest
 	ctx := context.Background()
+
+	testhelper.SetupTestLogger()
 
 	// This helper performs the boring test work. Set the above variables as
 	// part of your more interesting test setup.
