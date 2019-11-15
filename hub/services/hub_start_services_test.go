@@ -1,7 +1,6 @@
 package services_test
 
 import (
-	"errors"
 	"log"
 	"net"
 	"os"
@@ -77,7 +76,7 @@ func TestRestartAgent(t *testing.T) {
 
 		dialer := func(ctx context.Context, address string) (net.Conn, error) {
 			if strings.HasPrefix(address, expectedHost) { //fail connection attempts to expectedHost
-				return nil, errors.New("ahhhhh")
+				return nil, immediateFailure{}
 			}
 
 			return listener.Dial()
@@ -103,7 +102,7 @@ func TestRestartAgent(t *testing.T) {
 		// we fail all connections here so that RestartAgents will run the
 		//  (error producing) gpupgrade_agent_Errors
 		dialer := func(ctx context.Context, address string) (net.Conn, error) {
-			return nil, errors.New("ahhhh")
+			return nil, immediateFailure{}
 		}
 
 		restartedHosts, err := services.RestartAgents(ctx, dialer, hostnames, port, stateDir)
@@ -130,3 +129,16 @@ func TestRestartAgent(t *testing.T) {
 	})
 
 }
+
+// immediateFailure is an error that is explicitly marked non-temporary for
+// gRPC's definition of "temporary connection failures". Return this from a
+// Dialer implementation to fail fast instead of waiting for the full connection
+// timeout.
+//
+// It seems like gRPC should treat any error that doesn't implement Temporary()
+// as non-temporary, but it doesn't; we have to explicitly say that it's _not_
+// temporary...
+type immediateFailure struct{}
+
+func (_ immediateFailure) Error() string   { return "failing fast" }
+func (_ immediateFailure) Temporary() bool { return false }
