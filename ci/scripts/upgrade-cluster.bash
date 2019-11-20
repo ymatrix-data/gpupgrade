@@ -80,6 +80,33 @@ EOF
     done
 }
 
+dump_sql() {
+    local port=$1
+    local dumpfile=$2
+
+    echo "Dumping cluster contents from port ${port} to ${dumpfile}..."
+
+    ssh -n mdw "
+        source ${GPHOME_NEW}/greenplum_path.sh
+        pg_dumpall -p ${port} -f '$dumpfile'
+    "
+}
+
+compare_dumps() {
+    local old_dump=$1
+    local new_dump=$2
+
+    echo "Comparing dumps at ${old_dump} and ${new_dump}..."
+
+    ssh -n mdw "
+        diff -U3 --speed-large-files --ignore-space-change '$old_dump' '$new_dump'
+    "
+}
+
+#
+# MAIN
+#
+
 # We'll need this to transfer our built binaries over to the cluster hosts.
 ./ccp_src/scripts/setup_ssh_to_cluster.sh
 
@@ -116,34 +143,12 @@ EOF
 echo 'Creating fake binary directories for the environment...'
 make_trampoline_directories "${hosts[@]}"
 
+# Dump the old cluster for later comparison.
+dump_sql 5432 /tmp/old.sql
+
 # Now do the upgrade.
-time ssh mdw GPHOME_OLD="${GPHOME_OLD}" GPHOME_NEW="${GPHOME_NEW}" bash <<"EOF"
+time ssh mdw bash <<EOF
     set -eux -o pipefail
-
-    dump_sql() {
-        local port=$1
-        local dumpfile=$2
-
-        echo "Dumping cluster contents from port ${port} to ${dumpfile}..."
-
-        ssh -n mdw "
-            source ${GPHOME_NEW}/greenplum_path.sh
-            pg_dumpall -p ${port} -f '$dumpfile'
-        "
-    }
-
-    compare_dumps() {
-        local old_dump=$1
-        local new_dump=$2
-
-        echo "Comparing dumps at ${old_dump} and ${new_dump}..."
-
-        ssh -n mdw "
-            diff -U3 --speed-large-files --ignore-space-change '$old_dump' '$new_dump'
-        "
-    }
-
-    dump_sql 5432 /tmp/old.sql
 
     gpupgrade initialize \
               --new-bindir ${GPHOME_NEW}/fake-bin \
@@ -152,12 +157,13 @@ time ssh mdw GPHOME_OLD="${GPHOME_OLD}" GPHOME_NEW="${GPHOME_NEW}" bash <<"EOF"
 
     gpupgrade execute
     gpupgrade finalize
-
-    dump_sql 5432 /tmp/new.sql
-    if ! compare_dumps /tmp/old.sql /tmp/new.sql; then
-        echo 'error: before and after dumps differ'
-        exit 1
-    fi
-
-    echo 'Upgrade successful.'
 EOF
+
+# Dump the new cluster and compare.
+dump_sql 5432 /tmp/new.sql
+if ! compare_dumps /tmp/old.sql /tmp/new.sql; then
+    echo 'error: before and after dumps differ'
+    exit 1
+fi
+
+echo 'Upgrade successful.'
