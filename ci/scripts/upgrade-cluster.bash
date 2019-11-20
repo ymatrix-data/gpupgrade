@@ -98,8 +98,23 @@ compare_dumps() {
 
     echo "Comparing dumps at ${old_dump} and ${new_dump}..."
 
+    # 5 to 6 requires some massaging of the diff due to expected changes.
+    if (( $FILTER_DIFF )); then
+        go build ./ci/scripts/filter
+        scp ./filter mdw:/tmp/filter
+
+        # First filter out any algorithmically-fixable differences, then
+        # patch out the remaining expected diffs explicitly.
+        ssh mdw "
+            /tmp/filter < '$new_dump' > '$new_dump.filtered'
+            patch -R '$new_dump.filtered'
+        " < ./ci/scripts/filter/acceptable_diff
+
+        new_dump="$new_dump.filtered"
+    fi
+
     ssh -n mdw "
-        diff -U3 --speed-large-files --ignore-space-change '$old_dump' '$new_dump'
+        diff -U3 --speed-large-files --ignore-space-change --ignore-blank-lines '$old_dump' '$new_dump'
     "
 }
 

@@ -328,10 +328,10 @@ jobs:
       params:
         GPHOME_OLD: /usr/local/greenplum-db-old
         GPHOME_NEW: /usr/local/greenplum-db-new
+        FILTER_DIFF: 1
   ensure:
     <<: *set_failed
   on_success:
     <<: *ccp_destroy
-# todo: uncomment this once compare_dumps() is fixed
-#  on_failure:
-#    <<: *slack_alert
+  on_failure:
+    <<: *slack_alert
