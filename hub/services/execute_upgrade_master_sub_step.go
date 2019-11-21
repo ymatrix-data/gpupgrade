@@ -46,9 +46,11 @@ func (c clusterPair) ConvertMaster(stream messageSender, out io.Writer, wd strin
 		"--old-bindir", c.Source.BinDir,
 		"--old-datadir", c.Source.MasterDataDir(),
 		"--old-port", strconv.Itoa(c.Source.MasterPort()),
+		"--old-gp-dbid", strconv.Itoa(c.Source.GetDbidForContent(-1)),
 		"--new-bindir", c.Target.BinDir,
 		"--new-datadir", c.Target.MasterDataDir(),
 		"--new-port", strconv.Itoa(c.Target.MasterPort()),
+		"--new-gp-dbid", strconv.Itoa(c.Target.GetDbidForContent(-1)),
 		"--mode=dispatcher",
 	}
 	if checkOnly {

@@ -39,8 +39,8 @@ var _ = Describe("hub.ExecuteUpgradePrimariesSubStep()", func() {
 		Expect(mockAgent.UpgradeConvertPrimarySegmentsRequest.OldBinDir).To(Equal("/source/bindir"))
 		Expect(mockAgent.UpgradeConvertPrimarySegmentsRequest.NewBinDir).To(Equal("/target/bindir"))
 		Expect(mockAgent.UpgradeConvertPrimarySegmentsRequest.DataDirPairs).To(ConsistOf([]*idl.DataDirPair{
-			{OldDataDir: filepath.Join(dir, "seg1"), NewDataDir: filepath.Join(dir, "seg1_upgrade"), Content: 0, OldPort: 25432, NewPort: 27432},
-			{OldDataDir: filepath.Join(dir, "seg2"), NewDataDir: filepath.Join(dir, "seg2_upgrade"), Content: 1, OldPort: 25433, NewPort: 27433},
+			{OldDataDir: filepath.Join(dir, "seg1"), NewDataDir: filepath.Join(dir, "seg1_upgrade"), Content: 0, OldPort: 25432, NewPort: 27432, DBID: 2},
+			{OldDataDir: filepath.Join(dir, "seg2"), NewDataDir: filepath.Join(dir, "seg2_upgrade"), Content: 1, OldPort: 25433, NewPort: 27433, DBID: 3},
 		}))
 	})
 

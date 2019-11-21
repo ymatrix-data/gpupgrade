@@ -87,6 +87,7 @@ func (h *Hub) getDataDirPairs() (map[string][]*idl.DataDirPair, error) {
 			OldPort:    int32(oldSeg.Port),
 			NewPort:    int32(newSeg.Port),
 			Content:    int32(contentID),
+			DBID:       int32(oldSeg.DbID),
 		}
 
 		dataDirPairMap[oldSeg.Hostname] = append(dataDirPairMap[oldSeg.Hostname], dataPair)

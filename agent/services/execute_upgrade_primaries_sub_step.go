@@ -71,13 +71,16 @@ func UpgradeSegments(sourceBinDir string, targetBinDir string, segments []Segmen
 		wg.Add(1)
 
 		path := filepath.Join(targetBinDir, "pg_upgrade")
+		dbid := strconv.Itoa(int(segment.DBID))
 		args := []string{
 			"--old-bindir", sourceBinDir,
 			"--old-datadir", segment.OldDataDir,
 			"--old-port", strconv.Itoa(int(segment.OldPort)),
+			"--old-gp-dbid", dbid,
 			"--new-bindir", targetBinDir,
 			"--new-datadir", segment.NewDataDir,
 			"--new-port", strconv.Itoa(int(segment.NewPort)),
+			"--new-gp-dbid", dbid,
 			"--mode=segment",
 		}
 		if checkOnly {

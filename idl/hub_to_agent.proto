@@ -26,6 +26,7 @@ message DataDirPair {
     int32  OldPort    = 3;
     int32  NewPort    = 4;
     int32  Content    = 5;
+    int32  DBID       = 6;
 }
 
 message UpgradePrimariesReply {}

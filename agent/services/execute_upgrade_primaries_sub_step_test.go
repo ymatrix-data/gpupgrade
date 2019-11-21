@@ -51,7 +51,14 @@ var _ = Describe("UpgradeSegments", func() {
 		targetBinDir = "/new/bin"
 
 		segments = []Segment{
-			{UpgradeDir: "", DataDirPair: &idl.DataDirPair{OldDataDir: "old/datadir1", NewDataDir: "new/datadir1", Content: 0, OldPort: 1, NewPort: 11}},
+			{UpgradeDir: "", DataDirPair: &idl.DataDirPair{
+				OldDataDir: "old/datadir1",
+				NewDataDir: "new/datadir1",
+				Content:    0,
+				OldPort:    1,
+				NewPort:    11,
+				DBID:       2,
+			}},
 			// TODO: Add a way to test multiple calls to execCommand.
 			//{UpgradeDir: "", DataDirPair: &idl.DataDirPair{OldDataDir: "old/datadir2", NewDataDir: "new/datadir2", Content: 1, OldPort: 2, NewPort: 22}},
 		}
@@ -87,6 +94,8 @@ var _ = Describe("UpgradeSegments", func() {
 				oldPort := fs.Int("old-port", -1, "")
 				newPort := fs.Int("new-port", -1, "")
 				mode := fs.String("mode", "", "")
+				oldDBID := fs.Int("old-gp-dbid", -1, "")
+				newDBID := fs.Int("new-gp-dbid", -1, "")
 
 				err := fs.Parse(args)
 				Expect(err).NotTo(HaveOccurred())
@@ -98,6 +107,8 @@ var _ = Describe("UpgradeSegments", func() {
 				Expect(*oldPort).To(Equal(int(segments[0].OldPort)))
 				Expect(*newPort).To(Equal(int(segments[0].NewPort)))
 				Expect(*mode).To(Equal("segment"))
+				Expect(*oldDBID).To(Equal(int(segments[0].DBID)))
+				Expect(*newDBID).To(Equal(int(segments[0].DBID)))
 
 				// No other arguments should be passed.
 				Expect(fs.Args()).To(BeEmpty())
@@ -126,6 +137,8 @@ var _ = Describe("UpgradeSegments", func() {
 				newPort := fs.Int("new-port", -1, "")
 				mode := fs.String("mode", "", "")
 				checkOnly := fs.Bool("check", false, "")
+				oldDBID := fs.Int("old-gp-dbid", -1, "")
+				newDBID := fs.Int("new-gp-dbid", -1, "")
 
 				err := fs.Parse(args)
 				Expect(err).NotTo(HaveOccurred())
@@ -138,6 +151,8 @@ var _ = Describe("UpgradeSegments", func() {
 				Expect(*newPort).To(Equal(int(segments[0].NewPort)))
 				Expect(*mode).To(Equal("segment"))
 				Expect(*checkOnly).To(Equal(true))
+				Expect(*oldDBID).To(Equal(int(segments[0].DBID)))
+				Expect(*newDBID).To(Equal(int(segments[0].DBID)))
 
 				// No other arguments should be passed.
 				Expect(fs.Args()).To(BeEmpty())

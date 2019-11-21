@@ -3,8 +3,10 @@ package services
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -16,6 +18,12 @@ import (
 
 	. "github.com/onsi/gomega"
 )
+
+func EmptyMain() {}
+
+func init() {
+	exectest.RegisterMains(EmptyMain)
+}
 
 // Writes the current working directory to stdout.
 func WorkingDirectoryMain() {
@@ -43,8 +51,6 @@ func init() {
 }
 
 func TestUpgradeMaster(t *testing.T) {
-	g := NewGomegaWithT(t)
-
 	// Disable exec.Command. This way, if a test forgets to mock it out, we
 	// crash the test instead of executing code on a dev system.
 	execCommand = nil
@@ -59,6 +65,7 @@ func TestUpgradeMaster(t *testing.T) {
 					-1: cluster.SegConfig{
 						Port:    5432,
 						DataDir: "/data/old",
+						DbID:    1,
 					},
 				},
 			},
@@ -71,6 +78,7 @@ func TestUpgradeMaster(t *testing.T) {
 					-1: cluster.SegConfig{
 						Port:    5433,
 						DataDir: "/data/new",
+						DbID:    2,
 					},
 				},
 			},
@@ -78,6 +86,8 @@ func TestUpgradeMaster(t *testing.T) {
 	}
 
 	t.Run("sets the working directory", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -101,6 +111,8 @@ func TestUpgradeMaster(t *testing.T) {
 	})
 
 	t.Run("unsets PGPORT and PGHOST", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -132,5 +144,105 @@ func TestUpgradeMaster(t *testing.T) {
 				"PGHOST was not stripped from the child environment")
 		}
 		g.Expect(scanner.Err()).NotTo(HaveOccurred())
+	})
+
+	t.Run("calls pg_upgrade with the expected options with no check", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
+		execCommand = exectest.NewCommandWithVerifier(EmptyMain,
+			func(path string, args ...string) {
+				// pg_upgrade should be run from the target installation.
+				expectedPath := filepath.Join(pair.Target.BinDir, "pg_upgrade")
+				g.Expect(path).To(Equal(expectedPath))
+
+				// Check the arguments. We use a FlagSet so as not to couple
+				// against option order.
+				var fs flag.FlagSet
+
+				oldBinDir := fs.String("old-bindir", "", "")
+				newBinDir := fs.String("new-bindir", "", "")
+				oldDataDir := fs.String("old-datadir", "", "")
+				newDataDir := fs.String("new-datadir", "", "")
+				oldPort := fs.Int("old-port", -1, "")
+				newPort := fs.Int("new-port", -1, "")
+				oldDBID := fs.Int("old-gp-dbid", -1, "")
+				newDBID := fs.Int("new-gp-dbid", -1, "")
+				mode := fs.String("mode", "", "")
+
+				err := fs.Parse(args)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				g.Expect(*oldBinDir).To(Equal(pair.Source.BinDir))
+				g.Expect(*newBinDir).To(Equal(pair.Target.BinDir))
+				g.Expect(*oldDataDir).To(Equal(pair.Source.MasterDataDir()))
+				g.Expect(*newDataDir).To(Equal(pair.Target.MasterDataDir()))
+				g.Expect(*oldPort).To(Equal(pair.Source.MasterPort()))
+				g.Expect(*newPort).To(Equal(pair.Target.MasterPort()))
+				g.Expect(*oldDBID).To(Equal(pair.Source.GetDbidForContent(-1)))
+				g.Expect(*newDBID).To(Equal(pair.Target.GetDbidForContent(-1)))
+				g.Expect(*mode).To(Equal("dispatcher"))
+
+				// No other arguments should be passed.
+				g.Expect(fs.Args()).To(BeEmpty())
+			})
+
+		var buf bytes.Buffer
+		err := pair.ConvertMaster(mockStream, &buf, "", false)
+		g.Expect(err).NotTo(HaveOccurred())
+	})
+
+	t.Run("calls pg_upgrade with the expected options with no check", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockStream := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
+		execCommand = exectest.NewCommandWithVerifier(EmptyMain,
+			func(path string, args ...string) {
+				// pg_upgrade should be run from the target installation.
+				expectedPath := filepath.Join(pair.Target.BinDir, "pg_upgrade")
+				g.Expect(path).To(Equal(expectedPath))
+
+				// Check the arguments. We use a FlagSet so as not to couple
+				// against option order.
+				var fs flag.FlagSet
+
+				oldBinDir := fs.String("old-bindir", "", "")
+				newBinDir := fs.String("new-bindir", "", "")
+				oldDataDir := fs.String("old-datadir", "", "")
+				newDataDir := fs.String("new-datadir", "", "")
+				oldPort := fs.Int("old-port", -1, "")
+				newPort := fs.Int("new-port", -1, "")
+				oldDBID := fs.Int("old-gp-dbid", -1, "")
+				newDBID := fs.Int("new-gp-dbid", -1, "")
+				mode := fs.String("mode", "", "")
+				checkOnly := fs.Bool("check", false, "")
+
+				err := fs.Parse(args)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				g.Expect(*oldBinDir).To(Equal(pair.Source.BinDir))
+				g.Expect(*newBinDir).To(Equal(pair.Target.BinDir))
+				g.Expect(*oldDataDir).To(Equal(pair.Source.MasterDataDir()))
+				g.Expect(*newDataDir).To(Equal(pair.Target.MasterDataDir()))
+				g.Expect(*oldPort).To(Equal(pair.Source.MasterPort()))
+				g.Expect(*newPort).To(Equal(pair.Target.MasterPort()))
+				g.Expect(*oldDBID).To(Equal(pair.Source.GetDbidForContent(-1)))
+				g.Expect(*newDBID).To(Equal(pair.Target.GetDbidForContent(-1)))
+				g.Expect(*mode).To(Equal("dispatcher"))
+				g.Expect(*checkOnly).To(Equal(true))
+
+				// No other arguments should be passed.
+				g.Expect(fs.Args()).To(BeEmpty())
+			})
+
+		var buf bytes.Buffer
+		err := pair.ConvertMaster(mockStream, &buf, "", true)
+		g.Expect(err).NotTo(HaveOccurred())
 	})
 }
