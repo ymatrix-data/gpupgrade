@@ -13,6 +13,8 @@ setup() {
     # gpdeletesystem on this cluster.
     NEW_CLUSTER=
     KEEP_STATE_DIR=1
+
+    PSQL="$GPHOME"/bin/psql
 }
 
 teardown() {
@@ -31,7 +33,6 @@ teardown() {
 
     gpstart -a
 
-    PSQL="$GPHOME"/bin/psql
     $PSQL -d postgres -p $PGPORT -c "DROP TABLE IF EXISTS test_pg_upgrade CASCADE;"
 }
 
@@ -49,8 +50,6 @@ upgrade_datadir() {
 
 setup_newmasterdir() {
     # TODO: code factor this with execute.bats
-    PSQL="$GPHOME"/bin/psql
-
     run $PSQL -At -p $PGPORT postgres -c "SELECT datadir FROM gp_segment_configuration WHERE role = 'p' and content = -1"
     [ "$status" -eq 0 ] || fail "$output"
 
@@ -116,6 +115,40 @@ setup_newmasterdir() {
     [ ! -s "$GPUPGRADE_HOME"/pg_upgrade_check_stderr_seg_0.log ]
     [ ! -s "$GPUPGRADE_HOME"/pg_upgrade_check_stderr_seg_1.log ]
     [ ! -s "$GPUPGRADE_HOME"/pg_upgrade_check_stderr_seg_2.log ]
+
+    KEEP_STATE_DIR=0
+}
+
+# Prints the number of unique primary gp_dbids on a system, as indicated by the
+# gp_dbid GUCs actually stored on each segment, NOT the gp_segment_configuration
+# stored on the master.
+count_primary_gp_dbids() {
+    local port=$1
+
+    for datadir in $($PSQL -At -p $port postgres -c "
+        select datadir from gp_segment_configuration where role='p'
+    "); do
+        "$GPHOME"/bin/postgres -C gp_dbid -D $datadir
+    done | sort | uniq | wc -l
+}
+
+@test "upgrade maintains separate DBIDs for each segment" {
+    local old_dbid_num=$(count_primary_gp_dbids $PGPORT)
+
+    setup_newmasterdir
+    gpupgrade initialize \
+        --verbose \
+        --old-bindir "$GPHOME/bin" \
+        --new-bindir "$GPHOME/bin" \
+        --old-port "$PGPORT" \
+        --disk-free-ratio=0 3>&-
+    NEW_CLUSTER="$newmasterdir"
+
+    gpupgrade execute --verbose
+
+    local new_dbid_num=$(count_primary_gp_dbids 50432)
+
+    [ $old_dbid_num -eq $new_dbid_num ] || fail "expected $old_dbid_num distinct DBIDs; got $new_dbid_num"
 
     KEEP_STATE_DIR=0
 }

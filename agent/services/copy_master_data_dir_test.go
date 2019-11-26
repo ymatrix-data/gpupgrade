@@ -1,17 +1,18 @@
 package services_test
 
 import (
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/utils"
-
 	"os"
 	"strings"
 
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
+	"github.com/pkg/errors"
+
 	"github.com/greenplum-db/gpupgrade/agent/services"
+	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 )
 
 var _ = Describe("CopyMasterDirectoryToSegmentDirectories", func() {
@@ -70,10 +71,12 @@ var _ = Describe("CopyMasterDirectoryToSegmentDirectories", func() {
 
 		Expect(renamedFiles).To(Equal([]string{
 			"/tmp/dataDir0.old",
+			"/tmp/dataDir0/internal.auto.conf",
 			"/tmp/dataDir0/postgresql.conf",
 			"/tmp/dataDir0/pg_hba.conf",
 			"/tmp/dataDir0/postmaster.opts",
 			"/tmp/dataDir1.old",
+			"/tmp/dataDir1/internal.auto.conf",
 			"/tmp/dataDir1/postgresql.conf",
 			"/tmp/dataDir1/pg_hba.conf",
 			"/tmp/dataDir1/postmaster.opts",

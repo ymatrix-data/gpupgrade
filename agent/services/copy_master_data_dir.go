@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/utils"
-	"github.com/pkg/errors"
-
 	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"github.com/pkg/errors"
+
+	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 func (s *AgentServer) CopyMasterDirectoryToSegmentDirectories(ctx context.Context, in *idl.CopyMasterDirRequest) (*idl.CopyMasterDirReply, error) {
@@ -88,7 +87,12 @@ func copyMasterDirOverSegment(executor cluster.Executor, masterDir string, segDa
 // Put segment config files back, overwriting the master versions
 func restoreSegmentFiles(segDataDir string) error {
 	// Files that differ between the master and the segments, where we want to keep the segment versions
-	filesToPreserve := []string{"postgresql.conf", "pg_hba.conf", "postmaster.opts"}
+	filesToPreserve := []string{
+		"internal.auto.conf",
+		"postgresql.conf",
+		"pg_hba.conf",
+		"postmaster.opts",
+	}
 	backupSegDir := fmt.Sprintf("%s.old", segDataDir)
 	for _, file := range filesToPreserve {
 		err := utils.System.Rename(filepath.Join(backupSegDir, file), filepath.Join(segDataDir, file))
