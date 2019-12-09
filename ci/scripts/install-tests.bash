@@ -17,20 +17,20 @@ time make_cluster
 
 time chown -R gpadmin:gpadmin go
 
-su gpadmin <<'EOF'
-set -ex
+su gpadmin -c '
+    set -ex
 
-export GOPATH=$PWD/go
-export PATH=$GOPATH/bin:$PATH
-source /usr/local/greenplum-db-devel/greenplum_path.sh
-source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
+    export TERM=linux
+    export GOPATH=$PWD/go
+    export PATH=$GOPATH/bin:$PATH
+    source /usr/local/greenplum-db-devel/greenplum_path.sh
+    source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
 
-cd $GOPATH/src/github.com/greenplum-db/gpupgrade
-make
-make check --keep-going
+    cd $GOPATH/src/github.com/greenplum-db/gpupgrade
+    make
+    make check --keep-going
 
-# Note that installcheck is currently destructive.
-make install
-make installcheck
-EOF
-
+    # Note that installcheck is currently destructive.
+    make install
+    make installcheck
+'
