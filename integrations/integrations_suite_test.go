@@ -45,7 +45,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	var allErrs error
-	for _, bin := range []string{"gpupgrade", "gpupgrade_hub", "gpupgrade_agent"} {
+	for _, bin := range []string{"gpupgrade", "gpupgrade_agent"} {
 		binPath, err := exec.LookPath(bin)
 		if err != nil {
 			allErrs = multierror.Append(allErrs, err)
@@ -85,7 +85,7 @@ var _ = AfterEach(func() {
 // XXX we should really use a PID file for this, and allow side-by-side hubs,
 // rather than blowing away developer state.
 func killHub() {
-	killCommand := exec.Command("pkill", "-9", "-x", "gpupgrade_hub")
+	killCommand := exec.Command("pkill", "-f", "^gpupgrade hub")
 	err := killCommand.Run()
 
 	// pkill returns exit code 1 if no processes were matched, which is fine.

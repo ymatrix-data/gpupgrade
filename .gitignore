@@ -3,5 +3,4 @@ vendor
 .Gopkg.updated
 
 /gpupgrade
-/gpupgrade_hub
 /gpupgrade_agent

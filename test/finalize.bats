@@ -77,7 +77,7 @@ EOF
     # restart the hub.
     PGPORT=40000 go run ./testutils/dump_config "$GPHOME/bin" "$GPUPGRADE_HOME/target_cluster_config.json"
     gpupgrade kill-services
-    gpupgrade_hub --daemonize 3>&-
+    gpupgrade hub --daemonize 3>&-
 
     gpupgrade finalize
 

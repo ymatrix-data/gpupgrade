@@ -33,7 +33,7 @@ func CreateStateDirAndClusterConfigs(sourceBinDir, targetBinDir string) (err err
 		return err
 	}
 
-	// Create empty clusters in source and target so that gpupgrade_hub can
+	// Create empty clusters in source and target so that gpupgrade hub can
 	// start without having replaced them with current values.
 	// TODO: implement a slicker scheme to allow this.
 	emptyCluster := cluster.NewCluster([]cluster.SegConfig{})
@@ -65,7 +65,7 @@ func StartHub() (err error) {
 	s := Substep("Starting hub...")
 	defer s.Finish(&err)
 
-	cmd := execCommandHubStart("gpupgrade_hub", "--daemonize")
+	cmd := execCommandHubStart("gpupgrade", "hub", "--daemonize")
 	stdout, cmdErr := cmd.Output()
 	if cmdErr != nil {
 		err := fmt.Errorf("failed to start hub (%s)", cmdErr)
@@ -75,12 +75,12 @@ func StartHub() (err error) {
 		}
 		return err
 	}
-	gplog.Debug("gpupgrade_hub started successfully: %s", stdout)
+	gplog.Debug("gpupgrade hub started successfully: %s", stdout)
 	return nil
 }
 
 func IsHubRunning() (bool, error) {
-	script := `ps -ef | grep -wGc "[g]pupgrade_hub"` // use square brackets to avoid finding yourself in matches
+	script := `ps -ef | grep -wGc "[g]pupgrade hub"` // use square brackets to avoid finding yourself in matches
 	_, err := execCommandHubCount("bash", "-c", script).Output()
 
 	if exitError, ok := err.(*exec.ExitError); ok {

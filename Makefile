@@ -4,7 +4,6 @@ all: build
 MODULE_NAME=gpupgrade
 AGENT=gpupgrade_agent
 CLI=gpupgrade
-HUB=gpupgrade_hub
 
 # TAGGING
 #   YOUR_BRANCH> make all of the changes you want for your tag
@@ -74,7 +73,7 @@ coverage:
 sshd_build:
 		make -C integrations/sshd
 
-PACKAGES := $(addsuffix -package,agent cli hub)
+PACKAGES := $(addsuffix -package,agent cli)
 INSTALLS := $(addprefix install-,$(PACKAGES))
 BUILD_ENV = $($(OS)_ENV)
 EXTENSION = $($(OS)_EXTENSION)
@@ -90,7 +89,6 @@ build_linux build_mac: build
 
 agent-package install-agent-package: EXE_NAME := $(AGENT)
 cli-package install-cli-package: EXE_NAME := $(CLI)
-hub-package install-hub-package: EXE_NAME := $(HUB)
 
 BUILD_FLAGS = -gcflags="all=-N -l"
 override BUILD_FLAGS += -ldflags $(VERSION_LD_STR)
@@ -114,7 +112,6 @@ clean:
 		# Build artifacts
 		rm -f $(AGENT)
 		rm -f $(CLI)
-		rm -f $(HUB)
 		# Test artifacts
 		rm -rf /tmp/go-build*
 		rm -rf /tmp/gexec_artifacts*

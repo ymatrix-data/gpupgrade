@@ -45,6 +45,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
+	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 )
@@ -60,6 +61,7 @@ func BuildRootCommand() *cobra.Command {
 	root.AddCommand(finalize)
 	root.AddCommand(restartServices)
 	root.AddCommand(killServices)
+	root.AddCommand(hub.Command())
 
 	subConfigSet := createConfigSetSubcommand()
 	subConfigShow := createConfigShowSubcommand()
@@ -279,8 +281,8 @@ This step can be reverted.
 				return err
 			}
 			if running {
-				gplog.Error("gpupgrade_hub process already running")
-				return errors.New("gpupgrade_hub process already running")
+				gplog.Error("gpupgrade hub process already running")
+				return errors.New("gpupgrade hub process already running")
 			}
 
 			err = commanders.StartHub()

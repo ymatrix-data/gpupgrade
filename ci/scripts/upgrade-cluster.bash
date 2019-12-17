@@ -140,7 +140,7 @@ make depend
 make
 
 # Install the artifacts onto the cluster machines.
-artifacts='gpupgrade gpupgrade_hub gpupgrade_agent'
+artifacts='gpupgrade gpupgrade_agent'
 for host in "${hosts[@]}"; do
     scp $artifacts "gpadmin@$host:/tmp"
     ssh centos@$host "sudo mv /tmp/gpupgrade* /usr/local/bin"

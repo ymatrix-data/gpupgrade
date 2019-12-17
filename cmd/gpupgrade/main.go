@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/greenplum-db/gpupgrade/cli/commands"
+	"github.com/greenplum-db/gpupgrade/utils/daemon"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 	root.SilenceErrors = true // we'll print these ourselves
 
 	err := root.Execute()
-	if err != nil {
+	if err != nil && err != daemon.ErrSuccessfullyDaemonized {
 		// Use v to print the stack trace of an object errors.
 		fmt.Printf("\n%+v\n", err)
 		os.Exit(1)

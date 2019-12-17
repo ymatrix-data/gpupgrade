@@ -8,10 +8,10 @@
     [[ "${lines[0]}" =~ ^gpupgrade[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
 }
 
-@test "gpupgrade_hub version subcommand reasonable" {
-    run gpupgrade_hub --version
+@test "gpupgrade hub version subcommand reasonable" {
+    run gpupgrade hub --version
     [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^gpupgrade_hub[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
+    [[ "${lines[0]}" =~ ^gpupgrade[[:space:]]hub[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
 }
 
 @test "gpupgrade_agent version subcommand reasonable" {

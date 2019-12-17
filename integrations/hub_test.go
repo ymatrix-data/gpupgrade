@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("gpupgrade_hub", func() {
+var _ = Describe("gpupgrade hub", func() {
 
 	// XXX We should be testing the locally built artifacts, and killing only
 	// hubs that are started as part of this test. The current logic will break
@@ -26,7 +26,7 @@ var _ = Describe("gpupgrade_hub", func() {
 		err := commanders.CreateStateDirAndClusterConfigs("", "")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd := exec.Command("gpupgrade_hub")
+		cmd := exec.Command("gpupgrade", "hub")
 		done := make(chan error, 1)
 
 		go func() {

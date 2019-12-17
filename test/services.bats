@@ -31,14 +31,14 @@ process_is_running() {
 
 @test "kill-services actually stops hub and agents" {
     # check that hub and agent are up
-    process_is_running "[g]pupgrade_hub"
+    process_is_running "[g]pupgrade hub"
     process_is_running "[g]pupgrade_agent"
 
     # stop them
     gpupgrade kill-services
 
     # make sure that they are down
-    ! process_is_running "[g]pupgrade_hub"
+    ! process_is_running "[g]pupgrade hub"
     ! process_is_running "[g]pupgrade_agent"
 }
 
@@ -51,13 +51,13 @@ process_is_running() {
     gpupgrade kill-services
 
     # make sure that all services are down
-    ! process_is_running "[g]pupgrade_hub"
+    ! process_is_running "[g]pupgrade hub"
     ! process_is_running "[g]pupgrade_agent"
 
     gpupgrade restart-services
 
     # check that hub and agent are up
-    process_is_running "[g]pupgrade_hub"
+    process_is_running "[g]pupgrade hub"
     process_is_running "[g]pupgrade_agent"
 }
 
@@ -65,6 +65,6 @@ process_is_running() {
     # we rely on the services' being up from setup
     gpupgrade restart-services
 
-    process_is_running "[g]pupgrade_hub"
+    process_is_running "[g]pupgrade hub"
     process_is_running "[g]pupgrade_agent"
 }

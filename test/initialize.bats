@@ -39,7 +39,7 @@ teardown() {
 @test "hub daemonizes and prints the PID when passed the --daemonize option" {
     gpupgrade kill-services
 
-    run gpupgrade_hub --daemonize 3>&-
+    run gpupgrade hub --daemonize 3>&-
     [ "$status" -eq 0 ] || fail "$output"
 
     regex='pid ([[:digit:]]+)'
@@ -47,14 +47,14 @@ teardown() {
 
     pid="${BASH_REMATCH[1]}"
     procname=$(ps -o ucomm= $pid)
-    [ $procname = gpupgrade_hub ] || fail "actual process name: $procname"
+    [ $procname = "gpupgrade" ] || fail "actual process name: $procname"
 }
 
 @test "hub fails if the source configuration hasn't been initialized" {
     gpupgrade kill-services
 
     rm $GPUPGRADE_HOME/source_cluster_config.json
-    run gpupgrade_hub --daemonize
+    run gpupgrade hub --daemonize
     [ "$status" -eq 1 ]
 
     [[ "$output" = *"Unable to load source cluster configuration"* ]]
@@ -64,7 +64,7 @@ teardown() {
     gpupgrade kill-services
 
     rm $GPUPGRADE_HOME/target_cluster_config.json
-    run gpupgrade_hub --daemonize
+    run gpupgrade hub --daemonize
     [ "$status" -eq 1 ]
 
     [[ "$output" = *"Unable to load target cluster configuration"* ]]
@@ -76,15 +76,15 @@ teardown() {
     # TODO: check for a useful error message
 }
 
-@test "hub does not return an error if an unrelated process has gpupgrade_hub in its name" {
+@test "hub does not return an error if an unrelated process has gpupgrade hub in its name" {
     gpupgrade kill-services
 
-    # Create a long-running process with gpupgrade_hub in the name.
-    exec -a gpupgrade_hub_test_log sleep 5 3>&- &
+    # Create a long-running process with gpupgrade hub in the name.
+    exec -a "gpupgrade hub test log" sleep 5 3>&- &
     bgproc=$! # save the PID to kill later
 
     # Wait a little bit for the background process to get its new name.
-    while ! ps -ef | grep -Gq "[g]pupgrade_hub"; do
+    while ! ps -ef | grep -Gq "[g]pupgrade hub"; do
         sleep .001
 
         # To avoid hanging forever if something goes terribly wrong, make sure
@@ -93,10 +93,13 @@ teardown() {
     done
 
     # Start the hub; there should be no errors.
-    gpupgrade_hub --daemonize 3>&-
+    gpupgrade hub --daemonize 3>&-
 
     # Clean up. Use SIGINT rather than SIGTERM to avoid a nasty-gram from BATS.
     kill -INT $bgproc
+
+    # ensure that the process is cleared
+    wait $bgproc
 }
 
 outputContains() {
