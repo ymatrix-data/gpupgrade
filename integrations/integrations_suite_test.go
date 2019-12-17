@@ -45,7 +45,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	var allErrs error
-	for _, bin := range []string{"gpupgrade", "gpupgrade_agent"} {
+	for _, bin := range []string{"gpupgrade"} {
 		binPath, err := exec.LookPath(bin)
 		if err != nil {
 			allErrs = multierror.Append(allErrs, err)

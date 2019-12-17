@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -45,7 +44,7 @@ func Command() *cobra.Command {
 				os.Exit(0)
 			}
 
-			conf := &hub.Config{
+			conf := &Config{
 				CliToHubPort:   7527,
 				HubToAgentPort: 6416,
 				StateDir:       utils.GetStateDir(),
@@ -84,7 +83,7 @@ func Command() *cobra.Command {
 
 			cm := upgradestatus.NewChecklistManager(conf.StateDir)
 
-			h := hub.New(source, target, grpc.DialContext, conf, cm)
+			h := New(source, target, grpc.DialContext, conf, cm)
 
 			// Set up the checklist steps in order.
 			//

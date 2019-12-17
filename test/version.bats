@@ -14,8 +14,8 @@
     [[ "${lines[0]}" =~ ^gpupgrade[[:space:]]hub[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
 }
 
-@test "gpupgrade_agent version subcommand reasonable" {
-    run gpupgrade_agent --version
+@test "gpupgrade agent version subcommand reasonable" {
+    run gpupgrade agent --version
     [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^gpupgrade_agent[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
+    [[ "${lines[0]}" =~ ^gpupgrade[[:space:]]agent[[:space:]]version[[:space:]][[:digit:]]\.[[:digit:]]\.[[:digit:]] ]]
 }

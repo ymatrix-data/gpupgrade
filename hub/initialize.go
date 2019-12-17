@@ -179,7 +179,7 @@ func getAgentPath() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(filepath.Dir(hubPath), "gpupgrade_agent"), nil
+	return filepath.Join(filepath.Dir(hubPath), "gpupgrade"), nil
 }
 
 // TODO: use the implementation in RestartAgents() for this function and combine them
@@ -203,10 +203,10 @@ func (h *Hub) startAgentsSubStep(stream OutStreams) error {
 	// we execute locally or via SSH for the master, so we don't know whether
 	// GPUPGRADE_HOME is going to be inherited.
 	runAgentCmd := func(contentID int) string {
-		return agentPath + " --daemonize --state-directory " + stateDir
+		return agentPath + " agent --daemonize --state-directory " + stateDir
 	}
 
-	errStr := "Failed to start all gpupgrade_agents"
+	errStr := "Failed to start all gpupgrade agents"
 
 	remoteOutput, err := source.ExecuteOnAllHosts(logStr, runAgentCmd)
 	if err != nil {
@@ -214,7 +214,7 @@ func (h *Hub) startAgentsSubStep(stream OutStreams) error {
 	}
 
 	errMessage := func(contentID int) string {
-		return fmt.Sprintf("Could not start gpupgrade_agent on segment with contentID %d", contentID)
+		return fmt.Sprintf("Could not start gpupgrade agent on segment with contentID %d", contentID)
 	}
 	source.CheckClusterError(remoteOutput, errStr, errMessage, true)
 

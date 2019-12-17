@@ -2,7 +2,6 @@ all: build
 
 .DEFAULT_GOAL := all
 MODULE_NAME=gpupgrade
-AGENT=gpupgrade_agent
 CLI=gpupgrade
 
 # TAGGING
@@ -73,7 +72,7 @@ coverage:
 sshd_build:
 		make -C integrations/sshd
 
-PACKAGES := $(addsuffix -package,agent cli)
+PACKAGES := $(addsuffix -package,cli)
 INSTALLS := $(addprefix install-,$(PACKAGES))
 BUILD_ENV = $($(OS)_ENV)
 EXTENSION = $($(OS)_EXTENSION)
@@ -87,7 +86,6 @@ build_linux: OS := LINUX
 build_mac: OS := MAC
 build_linux build_mac: build
 
-agent-package install-agent-package: EXE_NAME := $(AGENT)
 cli-package install-cli-package: EXE_NAME := $(CLI)
 
 BUILD_FLAGS = -gcflags="all=-N -l"
@@ -110,7 +108,6 @@ installcheck:
 
 clean:
 		# Build artifacts
-		rm -f $(AGENT)
 		rm -f $(CLI)
 		# Test artifacts
 		rm -rf /tmp/go-build*

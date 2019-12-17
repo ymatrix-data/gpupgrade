@@ -96,7 +96,7 @@ func TestRestartAgent(t *testing.T) {
 		}
 	})
 
-	t.Run("returns an error when gpupgrade_agent fails", func(t *testing.T) {
+	t.Run("returns an error when gpupgrade agent fails", func(t *testing.T) {
 		hub.SetExecCommand(exectest.NewCommand(gpupgrade_agent_Errors))
 
 		// we fail all connections here so that RestartAgents will run the

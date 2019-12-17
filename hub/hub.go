@@ -258,7 +258,7 @@ func RestartAgents(ctx context.Context,
 				return
 			}
 			cmd := execCommand("ssh", host,
-				fmt.Sprintf("bash -c \"%s --daemonize --state-directory %s\"", agentPath, stateDir))
+				fmt.Sprintf("bash -c \"%s agent --daemonize --state-directory %s\"", agentPath, stateDir))
 			stdout, err := cmd.Output()
 			if err != nil {
 				errs <- err

@@ -73,7 +73,6 @@ sudo ln -s trampoline pg_upgrade
 sudo ln -s trampoline psql
 sudo ln -s trampoline vacuumdb
 
-sudo ln -s trampoline gpupgrade_agent # XXX this is silly
 sudo ln -s trampoline gpinitsystem
 sudo ln -s trampoline gpstart
 EOF
@@ -140,7 +139,7 @@ make depend
 make
 
 # Install the artifacts onto the cluster machines.
-artifacts='gpupgrade gpupgrade_agent'
+artifacts='gpupgrade'
 for host in "${hosts[@]}"; do
     scp $artifacts "gpadmin@$host:/tmp"
     ssh centos@$host "sudo mv /tmp/gpupgrade* /usr/local/bin"

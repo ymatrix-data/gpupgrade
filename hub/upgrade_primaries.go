@@ -15,7 +15,7 @@ import (
 func (h *Hub) ConvertPrimaries(checkOnly bool) error {
 	agentConns, err := h.AgentConns()
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to gpupgrade_agent")
+		return errors.Wrap(err, "failed to connect to gpupgrade agent")
 	}
 
 	dataDirPair, err := h.getDataDirPairs()
@@ -40,7 +40,7 @@ func (h *Hub) ConvertPrimaries(checkOnly bool) error {
 			})
 
 			if err != nil {
-				agentErrs <- errors.Wrapf(err, "gpupgrade_agent failed to convert primary segment on host %s", conn.Hostname)
+				agentErrs <- errors.Wrapf(err, "gpupgrade agent failed to convert primary segment on host %s", conn.Hostname)
 			}
 		}(agentConn)
 	}
