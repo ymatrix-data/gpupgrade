@@ -7,7 +7,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils/disk"
 )
 
-func (s *AgentServer) CheckDiskSpace(ctx context.Context, in *idl.CheckSegmentDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
+func (s *Server) CheckDiskSpace(ctx context.Context, in *idl.CheckSegmentDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
 	failed, err := disk.CheckUsage(disk.Local, in.Request.Ratio, in.Datadirs...)
 	if err != nil {
 		return nil, err

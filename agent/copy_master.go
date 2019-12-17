@@ -14,7 +14,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
-func (s *AgentServer) CopyMaster(ctx context.Context, in *idl.CopyMasterRequest) (*idl.CopyMasterReply, error) {
+func (s *Server) CopyMaster(ctx context.Context, in *idl.CopyMasterRequest) (*idl.CopyMasterReply, error) {
 	gplog.Info("got a request to copy the master data directory to the segment hosts from the hub")
 
 	masterDir := in.MasterDir

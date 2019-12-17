@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 
-	as "github.com/greenplum-db/gpupgrade/agent"
+	"github.com/greenplum-db/gpupgrade/agent"
 	services "github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
@@ -42,7 +42,7 @@ func TestRestartAgent(t *testing.T) {
 	agentServer := grpc.NewServer()
 	defer agentServer.Stop()
 
-	idl.RegisterAgentServer(agentServer, &as.AgentServer{})
+	idl.RegisterAgentServer(agentServer, &agent.Server{})
 	go func() {
 		if err := agentServer.Serve(listener); err != nil {
 			log.Fatalf("Server exited with error: %v", err)

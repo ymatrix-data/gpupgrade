@@ -6,7 +6,7 @@ import (
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 
-	services "github.com/greenplum-db/gpupgrade/agent"
+	"github.com/greenplum-db/gpupgrade/agent"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -14,10 +14,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("AgentServer", func() {
+var _ = Describe("Server", func() {
 	var (
 		dir       string
-		agentConf services.AgentConfig
+		agentConf agent.Config
 		exists    func() bool
 	)
 
@@ -29,7 +29,7 @@ var _ = Describe("AgentServer", func() {
 		agentPort, err := testutils.GetOpenPort()
 		Expect(err).ToNot(HaveOccurred())
 
-		agentConf = services.AgentConfig{
+		agentConf = agent.Config{
 			Port:     agentPort,
 			StateDir: dir,
 		}
@@ -48,10 +48,10 @@ var _ = Describe("AgentServer", func() {
 	})
 
 	It("starts if stateDir already exists", func() {
-		agent := services.NewAgentServer(nil, agentConf)
+		server := agent.NewServer(nil, agentConf)
 
-		go agent.Start()
-		defer agent.Stop()
+		go server.Start()
+		defer server.Stop()
 
 		Eventually(exists).Should(BeTrue())
 		os.RemoveAll(dir)
@@ -63,9 +63,9 @@ var _ = Describe("AgentServer", func() {
 		_, err = os.Stat(dir)
 		Expect(os.IsNotExist(err)).To(BeTrue())
 
-		agent := services.NewAgentServer(nil, agentConf)
-		go agent.Start()
-		defer agent.Stop()
+		server := agent.NewServer(nil, agentConf)
+		go server.Start()
+		defer server.Stop()
 
 		Eventually(exists).Should(BeTrue())
 		os.RemoveAll(dir)

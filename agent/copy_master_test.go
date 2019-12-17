@@ -7,7 +7,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/pkg/errors"
 
-	services "github.com/greenplum-db/gpupgrade/agent"
+	"github.com/greenplum-db/gpupgrade/agent"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
 
@@ -59,8 +59,8 @@ var _ = Describe("CopyMaster", func() {
 	})
 
 	It("copies master directory to segment directories successfully", func() {
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err).To(BeNil())
 
 		Expect(stattedFiles).To(Equal([]string{"/tmp/dataDir0", "/tmp/dataDir1"}))
@@ -97,8 +97,8 @@ var _ = Describe("CopyMaster", func() {
 			return nil, os.ErrNotExist
 		}
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Segment data directory /tmp/dataDir0 does not exist"))
 	})
 
@@ -107,16 +107,16 @@ var _ = Describe("CopyMaster", func() {
 			return errors.Errorf("failed to rename %s", oldpath)
 		}
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Could not back up segment data directory"))
 	})
 
 	It("errors when failing to copy the master directory to segment directory", func() {
 		testExecutor.LocalError = errors.New("failed to copy")
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Could not copy master data directory to segment data directory"))
 	})
 
@@ -128,8 +128,8 @@ var _ = Describe("CopyMaster", func() {
 			return nil
 		}
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Could not copy postgresql.conf from backup segment directory to segment data directory"))
 	})
 
@@ -138,8 +138,8 @@ var _ = Describe("CopyMaster", func() {
 			return errors.New("failed to delete directory")
 		}
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Could not remove gp_dbid from segment data directory"))
 	})
 
@@ -151,8 +151,8 @@ var _ = Describe("CopyMaster", func() {
 			return nil
 		}
 
-		agent := services.NewAgentServer(testExecutor, services.AgentConfig{})
-		_, err := agent.CopyMaster(nil, agentRequest)
+		server := agent.NewServer(testExecutor, agent.Config{})
+		_, err := server.CopyMaster(nil, agentRequest)
 		Expect(err.Error()).To(ContainSubstring("Could not delete copy of master data directory"))
 	})
 

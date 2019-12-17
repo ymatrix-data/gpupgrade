@@ -8,7 +8,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
 
-	services "github.com/greenplum-db/gpupgrade/agent"
+	"github.com/greenplum-db/gpupgrade/agent"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
 	"github.com/greenplum-db/gpupgrade/utils/log"
@@ -41,12 +41,12 @@ func main() {
 				os.Exit(0)
 			}
 
-			conf := services.AgentConfig{
+			conf := agent.Config{
 				Port:     6416,
 				StateDir: statedir,
 			}
 
-			agentServer := services.NewAgentServer(&cluster.GPDBExecutor{}, conf)
+			agentServer := agent.NewServer(&cluster.GPDBExecutor{}, conf)
 			if shouldDaemonize {
 				agentServer.MakeDaemon()
 			}

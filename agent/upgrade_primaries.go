@@ -22,7 +22,7 @@ import (
 // Allow exec.Command to be mocked out by exectest.NewCommand.
 var execCommand = exec.Command
 
-func (s *AgentServer) UpgradePrimaries(ctx context.Context, in *idl.UpgradePrimariesRequest) (*idl.UpgradePrimariesReply, error) {
+func (s *Server) UpgradePrimaries(ctx context.Context, in *idl.UpgradePrimariesRequest) (*idl.UpgradePrimariesReply, error) {
 	gplog.Info("agent starting %s", upgradestatus.UPGRADE_PRIMARIES)
 
 	err := UpgradePrimary(in.OldBinDir, in.NewBinDir, in.DataDirPairs, s.conf.StateDir, in.CheckOnly)

@@ -10,7 +10,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 )
 
-func (s *AgentServer) CreateSegmentDataDirectories(ctx context.Context, in *idl.CreateSegmentDataDirRequest) (*idl.CreateSegmentDataDirReply, error) {
+func (s *Server) CreateSegmentDataDirectories(ctx context.Context, in *idl.CreateSegmentDataDirRequest) (*idl.CreateSegmentDataDirReply, error) {
 	gplog.Info("got a request to create segment data directories from the hub")
 
 	datadirs := in.Datadirs

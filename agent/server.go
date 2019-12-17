@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type AgentServer struct {
+type Server struct {
 	executor cluster.Executor
-	conf     AgentConfig
+	conf     Config
 
 	mu      sync.Mutex
 	server  *grpc.Server
@@ -29,26 +29,26 @@ type AgentServer struct {
 	daemon  bool
 }
 
-type AgentConfig struct {
+type Config struct {
 	Port     int
 	StateDir string
 }
 
-func NewAgentServer(executor cluster.Executor, conf AgentConfig) *AgentServer {
-	return &AgentServer{
+func NewServer(executor cluster.Executor, conf Config) *Server {
+	return &Server{
 		executor: executor,
 		conf:     conf,
 		stopped:  make(chan struct{}, 1),
 	}
 }
 
-// MakeDaemon tells the AgentServer to disconnect its stdout/stderr streams
-// after successfully starting up.
-func (a *AgentServer) MakeDaemon() {
+// MakeDaemon tells the Server to disconnect its stdout/stderr streams after
+// successfully starting up.
+func (a *Server) MakeDaemon() {
 	a.daemon = true
 }
 
-func (a *AgentServer) Start() {
+func (a *Server) Start() {
 	createIfNotExists(a.conf.StateDir)
 	lis, err := net.Listen("tcp", ":"+strconv.Itoa(a.conf.Port))
 	if err != nil {
@@ -89,12 +89,12 @@ func (a *AgentServer) Start() {
 	a.stopped <- struct{}{}
 }
 
-func (a *AgentServer) StopAgent(ctx context.Context, in *idl.StopAgentRequest) (*idl.StopAgentReply, error) {
+func (a *Server) StopAgent(ctx context.Context, in *idl.StopAgentRequest) (*idl.StopAgentReply, error) {
 	a.Stop()
 	return &idl.StopAgentReply{}, nil
 }
 
-func (a *AgentServer) Stop() {
+func (a *Server) Stop() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
