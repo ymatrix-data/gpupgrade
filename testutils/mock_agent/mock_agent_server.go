@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/greenplum-db/gpupgrade/hub/services"
+	services "github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 
 	"google.golang.org/grpc"
