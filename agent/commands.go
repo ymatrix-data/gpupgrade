@@ -1,9 +1,6 @@
 package agent
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
@@ -16,7 +13,6 @@ import (
 func Command() *cobra.Command {
 	var logdir, statedir string
 	var shouldDaemonize bool
-	var doLogVersionAndExit bool
 
 	var cmd = &cobra.Command{
 		Use:    "agent",
@@ -27,12 +23,6 @@ func Command() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			gplog.InitializeLogging("gpupgrade agent", logdir)
 			defer log.WritePanics()
-
-			if doLogVersionAndExit {
-				fmt.Println(utils.VersionString("gpupgrade agent"))
-				gplog.Info(utils.VersionString("gpupgrade agent"))
-				os.Exit(0)
-			}
 
 			conf := Config{
 				Port:     6416,
@@ -55,7 +45,6 @@ func Command() *cobra.Command {
 	cmd.Flags().StringVar(&statedir, "state-directory", utils.GetStateDir(), "Agent state directory")
 
 	daemon.MakeDaemonizable(cmd, &shouldDaemonize)
-	utils.VersionAddCmdlineOption(cmd, &doLogVersionAndExit)
 
 	return cmd
 }

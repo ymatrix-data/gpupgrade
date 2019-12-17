@@ -25,7 +25,6 @@ import (
 func Command() *cobra.Command {
 	var logdir string
 	var shouldDaemonize bool
-	var doLogVersionAndExit bool
 
 	var cmd = &cobra.Command{
 		Use:    "hub",
@@ -37,12 +36,6 @@ func Command() *cobra.Command {
 			gplog.InitializeLogging("gpupgrade hub", logdir)
 			debug.SetTraceback("all")
 			defer log.WritePanics()
-
-			if doLogVersionAndExit {
-				fmt.Println(utils.VersionString("gpupgrade hub"))
-				gplog.Info(utils.VersionString("gpupgrade hub"))
-				os.Exit(0)
-			}
 
 			conf := &Config{
 				CliToHubPort:   7527,
@@ -120,7 +113,6 @@ func Command() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&logdir, "log-directory", "", "gpupgrade hub log directory")
 
 	daemon.MakeDaemonizable(cmd, &shouldDaemonize)
-	utils.VersionAddCmdlineOption(cmd, &doLogVersionAndExit)
 
 	return cmd
 }
