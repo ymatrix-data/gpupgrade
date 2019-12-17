@@ -138,11 +138,10 @@ cd $GOPATH/src/github.com/greenplum-db/gpupgrade
 make depend
 make
 
-# Install the artifacts onto the cluster machines.
-artifacts='gpupgrade'
+# Install gpupgrade binary onto the cluster machines.
 for host in "${hosts[@]}"; do
-    scp $artifacts "gpadmin@$host:/tmp"
-    ssh centos@$host "sudo mv /tmp/gpupgrade* /usr/local/bin"
+    scp gpupgrade "gpadmin@$host:/tmp"
+    ssh centos@$host "sudo mv /tmp/gpupgrade /usr/local/bin"
 done
 
 echo 'Loading SQL dump into old cluster...'

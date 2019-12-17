@@ -2,7 +2,6 @@ all: build
 
 .DEFAULT_GOAL := all
 MODULE_NAME=gpupgrade
-CLI=gpupgrade
 
 # TAGGING
 #   YOUR_BRANCH> make all of the changes you want for your tag
@@ -72,32 +71,24 @@ coverage:
 sshd_build:
 		make -C integrations/sshd
 
-PACKAGES := $(addsuffix -package,cli)
-INSTALLS := $(addprefix install-,$(PACKAGES))
 BUILD_ENV = $($(OS)_ENV)
 EXTENSION = $($(OS)_EXTENSION)
 
-.PHONY: build build_linux build_mac $(PACKAGES)
+.PHONY: build build_linux build_mac
 
-build: $(PACKAGES)
+build: .Gopkg.updated
+	$(BUILD_ENV) go build -o gpupgrade$(EXTENSION) $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/gpupgrade
 	go generate ./cli/bash
 
 build_linux: OS := LINUX
 build_mac: OS := MAC
 build_linux build_mac: build
 
-cli-package install-cli-package: EXE_NAME := $(CLI)
-
 BUILD_FLAGS = -gcflags="all=-N -l"
 override BUILD_FLAGS += -ldflags $(VERSION_LD_STR)
 
-$(PACKAGES): .Gopkg.updated
-	$(BUILD_ENV) go build -o $(EXE_NAME)$(EXTENSION) $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/$(EXE_NAME)
-
-$(INSTALLS): .Gopkg.updated
-	go install $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/$(EXE_NAME)
-
-install: $(INSTALLS)
+install: .Gopkg.updated
+	go install $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/gpupgrade
 
 # We intentionally do not depend on install here -- the point of installcheck is
 # to test whatever has already been installed.
@@ -108,7 +99,7 @@ installcheck:
 
 clean:
 		# Build artifacts
-		rm -f $(CLI)
+		rm -f gpupgrade
 		# Test artifacts
 		rm -rf /tmp/go-build*
 		rm -rf /tmp/gexec_artifacts*
