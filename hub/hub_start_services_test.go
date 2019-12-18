@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/greenplum-db/gpupgrade/agent"
-	services "github.com/greenplum-db/gpupgrade/hub"
+	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 )
@@ -54,15 +54,15 @@ func TestRestartAgent(t *testing.T) {
 	stateDir := "/not/existent/directory"
 	ctx := context.Background()
 
-	services.SetExecCommand(exectest.NewCommand(gpupgrade_agent))
-	defer services.ResetExecCommand()
+	hub.SetExecCommand(exectest.NewCommand(gpupgrade_agent))
+	defer hub.ResetExecCommand()
 
 	t.Run("does not start running agents", func(t *testing.T) {
 		dialer := func(ctx context.Context, address string) (net.Conn, error) {
 			return listener.Dial()
 		}
 
-		restartedHosts, err := services.RestartAgents(ctx, dialer, hostnames, port, stateDir)
+		restartedHosts, err := hub.RestartAgents(ctx, dialer, hostnames, port, stateDir)
 		if err != nil {
 			t.Errorf("returned %#v", err)
 		}
@@ -82,7 +82,7 @@ func TestRestartAgent(t *testing.T) {
 			return listener.Dial()
 		}
 
-		restartedHosts, err := services.RestartAgents(ctx, dialer, hostnames, port, stateDir)
+		restartedHosts, err := hub.RestartAgents(ctx, dialer, hostnames, port, stateDir)
 		if err != nil {
 			t.Errorf("returned %#v", err)
 		}
@@ -97,7 +97,7 @@ func TestRestartAgent(t *testing.T) {
 	})
 
 	t.Run("returns an error when gpupgrade_agent fails", func(t *testing.T) {
-		services.SetExecCommand(exectest.NewCommand(gpupgrade_agent_Errors))
+		hub.SetExecCommand(exectest.NewCommand(gpupgrade_agent_Errors))
 
 		// we fail all connections here so that RestartAgents will run the
 		//  (error producing) gpupgrade_agent_Errors
@@ -105,7 +105,7 @@ func TestRestartAgent(t *testing.T) {
 			return nil, immediateFailure{}
 		}
 
-		restartedHosts, err := services.RestartAgents(ctx, dialer, hostnames, port, stateDir)
+		restartedHosts, err := hub.RestartAgents(ctx, dialer, hostnames, port, stateDir)
 		if err == nil {
 			t.Errorf("expected restart agents to fail")
 		}

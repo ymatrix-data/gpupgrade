@@ -35,7 +35,7 @@ var ErrHubStopped = errors.New("hub is stopped")
 type Dialer func(ctx context.Context, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
 
 type Hub struct {
-	conf *HubConfig
+	conf *Config
 
 	agentConns []*Connection
 	source     *utils.Cluster
@@ -66,14 +66,14 @@ type Connection struct {
 	CancelContext func()
 }
 
-type HubConfig struct {
+type Config struct {
 	CliToHubPort   int
 	HubToAgentPort int
 	StateDir       string
 	LogDir         string
 }
 
-func NewHub(sourceCluster *utils.Cluster, targetCluster *utils.Cluster, grpcDialer Dialer, conf *HubConfig, checklist upgradestatus.Checklist) *Hub {
+func New(sourceCluster *utils.Cluster, targetCluster *utils.Cluster, grpcDialer Dialer, conf *Config, checklist upgradestatus.Checklist) *Hub {
 	h := &Hub{
 		stopped:    make(chan struct{}, 1),
 		conf:       conf,

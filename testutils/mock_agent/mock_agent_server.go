@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	services "github.com/greenplum-db/gpupgrade/hub"
+	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 
 	"google.golang.org/grpc"
@@ -26,10 +26,13 @@ type MockAgentServer struct {
 }
 
 // NewMockAgentServer starts a locally running Agent server and returns a struct
-// that facilitates unit testing. It also returns a services.Dialer that will
+// that facilitates unit testing. It also returns a hub.Dialer that will
 // redirect any outgoing connections to this mock server, as well as the port
 // that the server is listening on.
-func NewMockAgentServer() (*MockAgentServer, services.Dialer, int) {
+//
+// XXX Why is the Dialer type that we need for this agent defined in the hub
+// package?
+func NewMockAgentServer() (*MockAgentServer, hub.Dialer, int) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		panic(err)

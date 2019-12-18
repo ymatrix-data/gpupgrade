@@ -10,7 +10,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	services "github.com/greenplum-db/gpupgrade/hub"
+	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
@@ -26,15 +26,15 @@ var (
 	dbConnector *dbconn.DBConn
 	mock        sqlmock.Sqlmock
 	mockAgent   *mock_agent.MockAgentServer
-	dialer      services.Dialer
+	dialer      hub.Dialer
 	client      *mock_idl.MockAgentClient
 	cm          *testutils.MockChecklistManager
 	port        int
 	dir         string
-	hubConf     *services.HubConfig
+	hubConf     *hub.Config
 	source      *utils.Cluster
 	target      *utils.Cluster
-	hub         *services.Hub
+	testHub     *hub.Hub
 )
 
 func TestCommands(t *testing.T) {
@@ -59,11 +59,11 @@ var _ = BeforeEach(func() {
 	source, target = testutils.CreateMultinodeSampleClusterPair(dir)
 	mockAgent, dialer, port = mock_agent.NewMockAgentServer()
 	client = mock_idl.NewMockAgentClient(ctrl)
-	hubConf = &services.HubConfig{
+	hubConf = &hub.Config{
 		HubToAgentPort: port,
 		StateDir:       dir,
 	}
-	hub = services.NewHub(source, target, dialer, hubConf, cm)
+	testHub = hub.New(source, target, dialer, hubConf, cm)
 })
 
 var _ = AfterEach(func() {

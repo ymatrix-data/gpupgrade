@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	services "github.com/greenplum-db/gpupgrade/hub"
+	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/hub/upgradestatus"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -44,7 +44,7 @@ func main() {
 				os.Exit(0)
 			}
 
-			conf := &services.HubConfig{
+			conf := &hub.Config{
 				CliToHubPort:   7527,
 				HubToAgentPort: 6416,
 				StateDir:       utils.GetStateDir(),
@@ -83,7 +83,7 @@ func main() {
 
 			cm := upgradestatus.NewChecklistManager(conf.StateDir)
 
-			hub := services.NewHub(source, target, grpc.DialContext, conf, cm)
+			h := hub.New(source, target, grpc.DialContext, conf, cm)
 
 			// Set up the checklist steps in order.
 			//
@@ -105,10 +105,10 @@ func main() {
 			cm.AddWritableStep(upgradestatus.RECONFIGURE_PORTS, idl.UpgradeSteps_RECONFIGURE_PORTS)
 
 			if shouldDaemonize {
-				hub.MakeDaemon()
+				h.MakeDaemon()
 			}
 
-			err = hub.Start()
+			err = h.Start()
 			if err != nil {
 				return err
 			}
