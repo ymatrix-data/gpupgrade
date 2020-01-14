@@ -81,6 +81,7 @@ type messageSender interface {
 	Send(*idl.Message) error // matches gRPC streaming Send()
 }
 
+// TODO: remove; this is part of step.Step now
 func sendStatus(stream messageSender, step idl.UpgradeSteps, status idl.StepStatus) {
 	// A stream is not guaranteed to remain connected during execution, so
 	// errors are explicitly ignored.
@@ -156,6 +157,16 @@ func (m *multiplexedStream) Stdout() io.Writer {
 
 func (m *multiplexedStream) Stderr() io.Writer {
 	return m.stderr
+}
+
+// Close closes the stream's io.Writer if that writer also provides a Close
+// method (i.e. it also implements io.WriteCloser). If not, Close is a no-op.
+func (m *multiplexedStream) Close() error {
+	if closer, ok := m.writer.(io.WriteCloser); ok {
+		return closer.Close()
+	}
+
+	return nil
 }
 
 type streamWriter struct {

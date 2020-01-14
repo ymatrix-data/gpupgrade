@@ -53,6 +53,14 @@
   version = "v1.3.2"
 
 [[projects]]
+  digest = "1:c3388642e07731a240e14f4bc7207df59cfcc009447c657b9de87fec072d07e3"
+  name = "github.com/google/renameio"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f0e32980c006571efd537032e5f9cd8c1a92819e"
+  version = "v0.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:b7388e8388cea56e5fd6b604eecfe56f5d02c0f41c49ad5a853da39b6dc197a0"
   name = "github.com/greenplum-db/gp-common-go-libs"
@@ -383,6 +391,7 @@
     "github.com/golang/mock/mockgen",
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/protoc-gen-go",
+    "github.com/google/renameio",
     "github.com/greenplum-db/gp-common-go-libs/cluster",
     "github.com/greenplum-db/gp-common-go-libs/dbconn",
     "github.com/greenplum-db/gp-common-go-libs/gplog",
