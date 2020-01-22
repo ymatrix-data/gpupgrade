@@ -27,6 +27,25 @@ teardown() {
     fi
 }
 
+# Takes an old datadir and echoes the expected new datadir path.
+#
+# NOTE for devs: this is just for getting the expected data directories, which
+# is an implementation detail. If you want the actual location of the new master
+# data directory after an initialization, you can just ask the hub with
+#
+#    gpupgrade config show --new-datadir
+#
+expected_datadir() {
+    local base="$(basename $1)"
+    local dir="$(dirname $1)_upgrade"
+
+    # Sanity check.
+    [ -n "$base" ]
+    [ -n "$dir" ]
+
+    echo "$dir/$base"
+}
+
 @test "initialize runs gpinitsystem based on the source cluster" {
     # Store the data directories for each source segment by port.
     run $PSQL -AtF$'\t' -p $PGPORT postgres -c "select port, datadir from gp_segment_configuration where role = 'p'"
@@ -39,7 +58,6 @@ teardown() {
 
     local masterdir="${olddirs[$PGPORT]}"
     local newport=50432
-    local newmasterdir="$(upgrade_datadir $masterdir)"
 
     gpupgrade initialize \
         --verbose \
@@ -49,7 +67,11 @@ teardown() {
         --disk-free-ratio 0 3>&-
 
     # Make sure we clean up during teardown().
-    NEW_CLUSTER="$newmasterdir"
+    local newmasterdir="$(gpupgrade config show --new-datadir)"
+    NEW_CLUSTER="${newmasterdir}"
+
+    # Sanity check the newly created master's location.
+    [ "$newmasterdir" = $(expected_datadir "$masterdir") ]
 
     PGPORT=$newport gpstart -a -d "$newmasterdir"
 
@@ -70,16 +92,13 @@ teardown() {
         (( newport++ ))
 
         [ -n "$newdir" ] || fail "could not find upgraded segment on expected port $newport"
-        [ "$newdir" = $(upgrade_datadir "$olddir") ]
+        [ "$newdir" = $(expected_datadir "$olddir") ]
     done
 }
 
 @test "initialize accepts a port range" {
     local expected_ports="15432,15433,15434,15435"
     local newport=15432
-
-    local masterdir="$($PSQL -At postgres -c "select datadir from gp_segment_configuration where content = -1 and role = 'p'")"
-    local newmasterdir="$(upgrade_datadir $masterdir)"
 
     gpupgrade initialize \
         --ports $expected_ports \
@@ -90,7 +109,8 @@ teardown() {
         --disk-free-ratio 0 3>&-
 
     # Make sure we clean up during teardown().
-    NEW_CLUSTER="$newmasterdir"
+    local newmasterdir="$(gpupgrade config show --new-datadir)"
+    NEW_CLUSTER="${newmasterdir}"
 
     PGPORT=$newport gpstart -a -d "$newmasterdir"
 
