@@ -6,11 +6,16 @@ import (
 	"os/user"
 	"path/filepath"
 	"time"
+
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
+	"golang.org/x/xerrors"
 )
 
 var (
 	System = InitializeSystemFunctions()
 )
+
+const markerFile = ".gpupgrade"
 
 /*
  * SystemFunctions holds function pointers for built-in functions that will need
@@ -38,6 +43,7 @@ type SystemFunctions struct {
 	Stat         func(name string) (os.FileInfo, error)
 	FilePathGlob func(pattern string) ([]string, error)
 	Create       func(name string) (*os.File, error)
+	Mkdir        func(name string, perm os.FileMode) error
 }
 
 func InitializeSystemFunctions() *SystemFunctions {
@@ -59,6 +65,7 @@ func InitializeSystemFunctions() *SystemFunctions {
 		ReadFile:     ioutil.ReadFile,
 		WriteFile:    ioutil.WriteFile,
 		Create:       os.Create,
+		Mkdir:        os.Mkdir,
 	}
 }
 
@@ -90,4 +97,33 @@ func GetStateDir() string {
 	}
 
 	return stateDir
+}
+
+func CreateDataDirectory(dataDir string) error {
+	file := filepath.Join(dataDir, markerFile)
+	_, err := System.Stat(file)
+	if err == nil {
+		err = System.RemoveAll(dataDir)
+		if err != nil {
+			return xerrors.Errorf("remove data directory %s: %w", dataDir, err)
+		}
+	}
+
+	if !os.IsNotExist(err) && err != nil {
+		return xerrors.Errorf("stat marker file %s: %w", markerFile, err)
+	}
+
+	gplog.Info("creating directory %s", dataDir)
+	err = System.Mkdir(dataDir, 0755)
+	if err != nil {
+		return xerrors.Errorf("create data directory %s: %w", dataDir, err)
+	}
+
+	mFile := filepath.Join(dataDir, markerFile)
+	gplog.Info("creating marker file %s", mFile)
+	err = System.WriteFile(mFile, []byte{}, 0644)
+	if err != nil {
+		return xerrors.Errorf("create gpupgrade marker file %s: %w", mFile, err)
+	}
+	return nil
 }

@@ -3,7 +3,6 @@ package hub
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -244,22 +243,16 @@ func WriteSegmentArray(config []string, source *utils.Cluster, ports []uint32) (
 }
 
 func CreateAllDataDirectories(agentConns []*Connection, source *utils.Cluster) error {
-	// create master data directory for gpinitsystem if it doesn't exist
 	targetDataDir := path.Dir(source.MasterDataDir()) + "_upgrade"
-	_, err := utils.System.Stat(targetDataDir)
-	if os.IsNotExist(err) {
-		err = utils.System.MkdirAll(targetDataDir, 0755)
-		if err != nil {
-			return xerrors.Errorf("master upgrade directory %s: %w", targetDataDir, err)
-		}
-	} else if err != nil {
-		return xerrors.Errorf("stat master upgrade directory %s: %w", targetDataDir, err)
+	err := utils.CreateDataDirectory(targetDataDir)
+	if err != nil {
+		return err
 	}
-	// create segment data directories for gpinitsystem if they don't exist
 	err = CreateSegmentDataDirectories(agentConns, source)
 	if err != nil {
-		return xerrors.Errorf("segment data directories: %w", err)
+		return err
 	}
+
 	return nil
 }
 
