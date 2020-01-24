@@ -16,7 +16,7 @@ func TestConfig(t *testing.T) {
 		source, target := testutils.CreateMultinodeSampleClusterPair("/tmp")
 		source.Executor = new(cluster.GPDBExecutor)
 		target.Executor = new(cluster.GPDBExecutor)
-		original := &Config{source, target, 12345, 54321, false}
+		original := &Config{source, target, 12345, 54321, false, 50432}
 
 		buf := new(bytes.Buffer)
 		err := original.Save(buf)

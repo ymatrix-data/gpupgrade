@@ -59,10 +59,22 @@ func (h *Hub) InitializeCreateCluster(in *idl.InitializeCreateClusterRequest, st
 		}
 	}()
 
-	var targetMasterPort int
 	s.Run(idl.Substep_CREATE_TARGET_CONFIG, func(_ step.OutStreams) error {
 		var err error
-		targetMasterPort, err = h.GenerateInitsystemConfig(in.Ports)
+		targetMasterPort, err := h.GenerateInitsystemConfig(in.Ports)
+		if err != nil {
+			return err
+		}
+
+		// target master port is used for querying segment configuration.
+		// once the target master port is decided, it's persisted in hub configuration
+		// to allow further steps to use it in case they are being re-run after a failed
+		// attempt.
+		h.Config.TargetMasterPort = targetMasterPort
+		if err := h.SaveConfig(); err != nil {
+			return err
+		}
+
 		return err
 	})
 
@@ -71,7 +83,7 @@ func (h *Hub) InitializeCreateCluster(in *idl.InitializeCreateClusterRequest, st
 	})
 
 	s.Run(idl.Substep_INIT_TARGET_CLUSTER, func(stream step.OutStreams) error {
-		return h.CreateTargetCluster(stream, targetMasterPort)
+		return h.CreateTargetCluster(stream, h.Config.TargetMasterPort)
 	})
 
 	s.Run(idl.Substep_SHUTDOWN_TARGET_CLUSTER, func(stream step.OutStreams) error {

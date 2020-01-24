@@ -61,7 +61,7 @@ var _ = BeforeEach(func() {
 	mockAgent, dialer, port = mock_agent.NewMockAgentServer()
 	client = mock_idl.NewMockAgentClient(ctrl)
 	useLinkMode = false
-	conf := &hub.Config{source, target, 0, port, useLinkMode}
+	conf := &hub.Config{source, target, 0, port, useLinkMode, 50432}
 	testHub = hub.New(conf, dialer, dir)
 })
 

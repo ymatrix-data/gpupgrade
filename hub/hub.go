@@ -358,9 +358,10 @@ type Config struct {
 	Source *utils.Cluster
 	Target *utils.Cluster
 
-	Port        int
-	AgentPort   int
-	UseLinkMode bool
+	Port             int
+	AgentPort        int
+	UseLinkMode      bool
+	TargetMasterPort int
 }
 
 func (c *Config) Load(r io.Reader) error {

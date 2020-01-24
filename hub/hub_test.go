@@ -53,7 +53,7 @@ var _ = Describe("Hub", func() {
 		agentA, mockDialer, hubToAgentPort = mock_agent.NewMockAgentServer()
 		source, target = testutils.CreateMultinodeSampleClusterPair("/tmp")
 		useLinkMode = false
-		conf = &hub.Config{source, target, cliToHubPort, hubToAgentPort, useLinkMode}
+		conf = &hub.Config{source, target, cliToHubPort, hubToAgentPort, useLinkMode, 50432}
 	})
 
 	AfterEach(func() {
@@ -193,7 +193,7 @@ func TestHubSaveConfig(t *testing.T) {
 	source.Executor = new(cluster.GPDBExecutor)
 	target.Executor = new(cluster.GPDBExecutor)
 	useLinkMode := false
-	conf := &hub.Config{source, target, 12345, 54321, useLinkMode}
+	conf := &hub.Config{source, target, 12345, 54321, useLinkMode, 50432}
 
 	h := hub.New(conf, nil, "")
 
