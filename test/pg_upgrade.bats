@@ -65,12 +65,16 @@ setup_newmasterdir() {
     $PSQL -d postgres -p $PGPORT -c "CREATE TABLE test_pg_upgrade(a int) DISTRIBUTED BY (a) PARTITION BY RANGE (a)(start (1) end(4) every(1));"
     $PSQL -d postgres -p $PGPORT -c "CREATE UNIQUE INDEX fomo ON test_pg_upgrade (a);"
 
-    run gpupgrade initialize \
+    # Use --verbose to help debug cases where the grep fails. run() will hide
+    # that output, so manually store the status and ignore the expected failure.
+    local status=0
+    gpupgrade initialize \
         --old-bindir "$GPHOME/bin" \
         --new-bindir "$GPHOME/bin" \
         --old-port "$PGPORT" \
-        --disk-free-ratio=0 3>&-
-    [ "$status" -eq 1 ] || fail "$output"
+        --disk-free-ratio=0 \
+        --verbose 3>&- || status=$?
+    [ "$status" -eq 1 ]
 
     NEW_CLUSTER="$newmasterdir"
 
@@ -88,12 +92,11 @@ setup_newmasterdir() {
     skip_if_no_gpdb
     setup_newmasterdir
 
-    run gpupgrade initialize \
+    gpupgrade initialize \
         --old-bindir "$GPHOME/bin" \
         --new-bindir "$GPHOME/bin" \
         --old-port "$PGPORT" \
         --disk-free-ratio=0 3>&-
-    [ "$status" -eq 0 ]
 
     NEW_CLUSTER="$newmasterdir"
 
