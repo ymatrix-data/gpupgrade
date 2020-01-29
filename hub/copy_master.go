@@ -1,33 +1,29 @@
 package hub
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"path/filepath"
 	"sync"
 
 	"github.com/greenplum-db/gpupgrade/step"
 
-	"github.com/pkg/errors"
-
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/utils"
-
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
-	"golang.org/x/net/context"
+	"golang.org/x/xerrors"
 )
 
-func (s *Server) CopyMasterDataDir(_ step.OutStreams) error {
-	var err error
-	rsyncFlags := "-rzpogt"
+type Result struct {
+	stdout bytes.Buffer
+	stderr bytes.Buffer
+	err    error
+}
 
+func (s *Server) CopyMasterDataDir(streams step.OutStreams) error {
 	// Make sure sourceDir ends with a trailing slash so that rsync will
 	// transfer the directory contents and not the directory itself.
 	sourceDir := filepath.Clean(s.Target.MasterDataDir()) + string(filepath.Separator)
-	commandMap := make(map[int][]string, len(s.Target.ContentIDs)-1)
-
-	destinationDirName := "/tmp/masterDirCopy"
+	destinationDirName := filepath.Join(s.StateDir, "master.bak")
 
 	/*
 	 * Copy the directory once per host.
@@ -36,83 +32,54 @@ func (s *Server) CopyMasterDataDir(_ step.OutStreams) error {
 	 * If there are primaries on the same host, the hostname will be
 	 * added for the corresponding primaries.
 	 */
-	for _, content := range contentsByHost(s.Target, false) {
-		destinationDirectory := fmt.Sprintf("%s:%s", s.Target.GetHostForContent(content), destinationDirName)
-		commandMap[content] = []string{"rsync", rsyncFlags, sourceDir, destinationDirectory}
-	}
+	var wg sync.WaitGroup
 
-	remoteOutput := s.Source.ExecuteClusterCommand(cluster.ON_HOSTS, commandMap)
-	for segmentID, segmentErr := range remoteOutput.Errors {
-		if segmentErr != nil { // TODO: Refactor remoteOutput to return maps with keys and valid values, and not values that can be nil. If there is no value, then do not have a key.
-			return multierror.Append(err, errors.Wrapf(segmentErr, "failed to copy master data directory to segment %d", segmentID))
-		}
-	}
+	hosts := s.Target.PrimaryHostnames()
+	results := make(chan *Result, len(hosts))
 
-	copyErr := CopyMaster(s.agentConns, s.Target, destinationDirName)
-	if copyErr != nil {
-		return multierror.Append(err, copyErr)
-	}
+	for _, hostname := range hosts {
+		hostname := hostname // capture range variable
 
-	return err
-}
-
-func CopyMaster(agentConns []*Connection, target *utils.Cluster, destinationDirName string) error {
-	segmentDataDirMap := map[string][]string{}
-	for _, content := range target.ContentIDs {
-		if content != -1 {
-			segment := target.Segments[content]
-			segmentDataDirMap[segment.Hostname] = append(segmentDataDirMap[segment.Hostname], target.GetDirForContent(content))
-		}
-	}
-
-	errMsg := "Error copying master data directory to segment data directories"
-	wg := sync.WaitGroup{}
-	errChan := make(chan error, len(agentConns))
-
-	for _, conn := range agentConns {
 		wg.Add(1)
-
-		go func(conn *Connection) {
+		go func() {
 			defer wg.Done()
 
-			_, err := conn.AgentClient.CopyMaster(context.Background(),
-				&idl.CopyMasterRequest{
-					MasterDir: destinationDirName,
-					Datadirs:  segmentDataDirMap[conn.Hostname],
-				})
+			dest := fmt.Sprintf("%s:%s", hostname, destinationDirName)
+			cmd := execCommand("rsync",
+				"--archive", "--compress", "--delete", "--stats",
+				sourceDir, dest)
+
+			result := Result{}
+			cmd.Stdout = &result.stdout
+			cmd.Stderr = &result.stderr
+
+			err := cmd.Run()
 			if err != nil {
-				gplog.Error("%s on host %s: %s", errMsg, conn.Hostname, err.Error())
-				errChan <- err
+				err = xerrors.Errorf("copying master data directory to host %s: %w", hostname, err)
+				result.err = err
 			}
-		}(conn)
+			results <- &result
+		}()
 	}
 
 	wg.Wait()
-	close(errChan)
+	close(results)
 
-	for err := range errChan {
-		if err != nil {
-			return errors.Wrap(err, errMsg)
+	var multierr *multierror.Error
+
+	for result := range results {
+		if _, err := io.Copy(streams.Stdout(), &result.stdout); err != nil {
+			multierr = multierror.Append(multierr, err)
+		}
+
+		if _, err := io.Copy(streams.Stderr(), &result.stderr); err != nil {
+			multierr = multierror.Append(multierr, err)
+		}
+
+		if result.err != nil {
+			multierr = multierror.Append(multierr, result.err)
 		}
 	}
-	return nil
-}
 
-/*
- * Generate a list of content IDs such that running ExecuteClusterCommand
- * against them will execute once per host.
- */
-func contentsByHost(c *utils.Cluster, includeMaster bool) []int {
-	hostSegMap := make(map[string]int, 0)
-	for content, seg := range c.Segments {
-		if content == -1 && !includeMaster {
-			continue
-		}
-		hostSegMap[seg.Hostname] = content
-	}
-	contents := []int{}
-	for _, content := range hostSegMap {
-		contents = append(contents, content)
-	}
-	return contents
+	return multierr.ErrorOrNil()
 }

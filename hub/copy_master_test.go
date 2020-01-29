@@ -1,45 +1,62 @@
 package hub
 
 import (
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"reflect"
+	"sort"
+	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 
 	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
+	multierror "github.com/hashicorp/go-multierror"
 
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
+	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
-
-	. "github.com/onsi/gomega"
 )
 
+const (
+	rsyncExitCode     int    = 23 // rsync returns 23 for a partial transfer
+	rsyncErrorMessage string = `rsync: recv_generator: mkdir "/tmp/master_copy/gpseg-1" failed: Permission denied(13)
+*** Skipping any contents from this failed directory ***
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) atmain.c(1052) [sender=3.0.9]
+`
+)
+
+func RsyncFailure() {
+	fmt.Fprint(os.Stderr, rsyncErrorMessage)
+	os.Exit(rsyncExitCode)
+}
+
+func init() {
+	exectest.RegisterMains(
+		RsyncFailure,
+	)
+}
+
 func TestCopyMaster(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	testhelper.SetupTestLogger() // initialize gplog
-
-	sourceNodes := cluster.NewCluster([]cluster.SegConfig{
-		cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-		cluster.SegConfig{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
-		cluster.SegConfig{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
-	})
 	sourceCluster := utils.Cluster{
-		Cluster: sourceNodes,
+		Cluster: cluster.NewCluster([]cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
+			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
+			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
+		}),
 		BinDir:  "/source/bindir",
 		Version: dbconn.GPDBVersion{},
 	}
 
-	targetNodes := cluster.NewCluster([]cluster.SegConfig{
-		cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-		cluster.SegConfig{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
-		cluster.SegConfig{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
-	})
 	targetCluster := utils.Cluster{
-		Cluster: targetNodes,
+		Cluster: cluster.NewCluster([]cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
+			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
+			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
+		}),
 		BinDir:  "/target/bindir",
 		Version: dbconn.GPDBVersion{},
 	}
@@ -49,75 +66,142 @@ func TestCopyMaster(t *testing.T) {
 		Target:      &targetCluster,
 		UseLinkMode: false,
 	}
-	hub := New(conf, grpc.DialContext, "")
+	hub := New(conf, grpc.DialContext, ".gpupgrade")
 
 	t.Run("copies the master data directory to each primary host", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+		// The verifier function can be called in parallel, so use a channel to
+		// communicate which hosts were actually used.
+		hosts := make(chan string, len(targetCluster.PrimaryHostnames()))
 
-		testExecutor := &testhelper.TestExecutor{}
-		mockOutput := &cluster.RemoteOutput{}
-		testExecutor.ClusterOutput = mockOutput
-		sourceNodes.Executor = testExecutor
+		// Validate the rsync call and arguments.
+		execCommand = exectest.NewCommandWithVerifier(Success, func(name string, args ...string) {
+			expected := "rsync"
+			if name != expected {
+				t.Errorf("CopyMasterDataDir() invoked %q, want %q", name, expected)
+			}
 
-		client := mock_idl.NewMockAgentClient(ctrl)
-		client.EXPECT().CopyMaster(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(&idl.CopyMasterReply{}, nil)
+			// The last argument is host:/destination/directory. Remove the
+			// host (saving it for later verification) to make comparison
+			// easier.
+			parts := strings.SplitN(args[len(args)-1], ":", 2)
+			host, dest := parts[0], parts[1]
+			args[len(args)-1] = dest
 
-		agentConns := []*Connection{
-			{nil, client, "host1", nil},
-		}
+			expectedArgs := []string{
+				"--archive", "--compress", "--delete", "--stats",
+				"/data/qddir/seg-1/", ".gpupgrade/master.bak",
+			}
+			if !reflect.DeepEqual(args, expectedArgs) {
+				t.Errorf("rsync invoked with %q, want %q", args, expectedArgs)
+			}
 
-		hub.agentConns = agentConns
+			hosts <- host
+		})
 
 		err := hub.CopyMasterDataDir(DevNull)
-		g.Expect(err).ToNot(HaveOccurred())
+		if err != nil {
+			t.Errorf("copying master data directory: %+v", err)
+		}
 
-		g.Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(1))
+		close(hosts)
 
-		expectedCmds := []map[int][]string{{
-			0: {"rsync", "-rzpogt", "/data/qddir/seg-1/", "host1:/tmp/masterDirCopy"},
-			1: {"rsync", "-rzpogt", "/data/qddir/seg-1/", "host2:/tmp/masterDirCopy"},
-		}}
-		g.Expect(testExecutor.ClusterCommands).To(Equal(expectedCmds))
+		// Collect the hostnames for validation.
+		var actualHosts []string
+		for host := range hosts {
+			actualHosts = append(actualHosts, host)
+		}
+		sort.Strings(actualHosts) // receive order not guaranteed
+
+		expectedHosts := []string{"host1", "host2"}
+		if !reflect.DeepEqual(actualHosts, expectedHosts) {
+			t.Errorf("copied to hosts %q, want %q", actualHosts, expectedHosts)
+		}
 	})
 
 	t.Run("copies the master data directory only once per host", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		testExecutor := &testhelper.TestExecutor{}
-		mockOutput := &cluster.RemoteOutput{}
-		testExecutor.ClusterOutput = mockOutput
-		sourceNodes.Executor = testExecutor
-
-		client := mock_idl.NewMockAgentClient(ctrl)
-		client.EXPECT().CopyMaster(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(&idl.CopyMasterReply{}, nil)
-
-		agentConns := []*Connection{
-			{nil, client, "localhost", nil},
+		// Create a one-host cluster.
+		oneHostTargetCluster := utils.Cluster{
+			Cluster: cluster.NewCluster([]cluster.SegConfig{
+				{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
+				{ContentID: 0, DbID: 2, Port: 25432, Hostname: "localhost", DataDir: "/data/dbfast1/seg1"},
+				{ContentID: 1, DbID: 3, Port: 25433, Hostname: "localhost", DataDir: "/data/dbfast2/seg2"},
+			}),
+			BinDir:  "/target/bindir",
+			Version: dbconn.GPDBVersion{},
 		}
+		hub.Target = &oneHostTargetCluster
+		defer func() { hub.Target = &targetCluster }()
 
-		hub.agentConns = agentConns
+		// Validate the rsync call and arguments.
+		execCommand = exectest.NewCommandWithVerifier(Success, func(name string, args ...string) {
+			expected := "rsync"
+			if name != expected {
+				t.Errorf("CopyMasterDataDir() invoked %q, want %q", name, expected)
+			}
 
-		// Set all target segment hosts to be the same.
-		for content, segment := range targetCluster.Segments {
-			segment.Hostname = targetCluster.Segments[-1].Hostname
-			targetCluster.Segments[content] = segment
-		}
+			expectedArgs := []string{
+				"--archive", "--compress", "--delete", "--stats",
+				"/data/qddir/seg-1/", "localhost:.gpupgrade/master.bak",
+			}
+			if !reflect.DeepEqual(args, expectedArgs) {
+				t.Errorf("rsync invoked with %q, want %q", args, expectedArgs)
+			}
+		})
 
 		err := hub.CopyMasterDataDir(DevNull)
-		g.Expect(err).ToNot(HaveOccurred())
+		if err != nil {
+			t.Errorf("copying master data directory: %+v", err)
+		}
+	})
 
-		g.Eventually(func() int { return testExecutor.NumExecutions }).Should(Equal(1))
+	t.Run("serializes rsync failures to the log stream", func(t *testing.T) {
+		execCommand = exectest.NewCommand(RsyncFailure)
+		buffer := new(bufferedStreams)
 
-		expectedCmd := testExecutor.ClusterCommands[0]
-		g.Expect(expectedCmd).To(HaveLen(1))
-		g.Expect(expectedCmd).To(ContainElement([]string{"rsync", "-rzpogt", "/data/qddir/seg-1/", "localhost:/tmp/masterDirCopy"}))
+		err := hub.CopyMasterDataDir(buffer)
+
+		// Make sure the errors are correctly propagated up.
+		var merr *multierror.Error
+		if !xerrors.As(err, &merr) {
+			t.Fatalf("returned %#v, want error type %T", err, merr)
+		}
+		var exitErr *exec.ExitError
+		for _, err := range merr.Errors {
+			if !xerrors.As(err, &exitErr) || exitErr.ExitCode() != rsyncExitCode {
+				t.Errorf("returned error %#v, want exit code %d", err, rsyncExitCode)
+			}
+		}
+
+		stdout := buffer.stdout.String()
+		if len(stdout) != 0 {
+			t.Errorf("got stdout %q, expected no output", stdout)
+		}
+
+		// Make sure we have as many copies of the stderr string as there are
+		// hosts. They should be serialized sanely, even though we may execute
+		// in parallel.
+		stderr := buffer.stderr.String()
+		expected := strings.Repeat(rsyncErrorMessage, len(targetCluster.PrimaryHostnames()))
+		if stderr != expected {
+			t.Errorf("got stderr:\n%v\nwant:\n%v", stderr, expected)
+		}
+	})
+
+	t.Run("returns errors when writing stdout and stderr buffers to the stream", func(t *testing.T) {
+		execCommand = exectest.NewCommand(StreamingMain)
+		streams := failingStreams{errors.New("e")}
+
+		err := hub.CopyMasterDataDir(streams)
+
+		// Make sure the errors are correctly propagated up.
+		var merr *multierror.Error
+		if !xerrors.As(err, &merr) {
+			t.Fatalf("returned %#v, want error type %T", err, merr)
+		}
+		for _, err := range merr.Errors {
+			if !xerrors.Is(err, streams.err) {
+				t.Errorf("returned error %#v, want %#v", err, streams.err)
+			}
+		}
 	})
 }
