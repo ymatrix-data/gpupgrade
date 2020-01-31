@@ -89,7 +89,7 @@ func TestCopyMaster(t *testing.T) {
 
 			expectedArgs := []string{
 				"--archive", "--compress", "--delete", "--stats",
-				"/data/qddir/seg-1/", ".gpupgrade/master.bak",
+				"/data/qddir/seg-1/", "foobar/path",
 			}
 			if !reflect.DeepEqual(args, expectedArgs) {
 				t.Errorf("rsync invoked with %q, want %q", args, expectedArgs)
@@ -98,7 +98,7 @@ func TestCopyMaster(t *testing.T) {
 			hosts <- host
 		})
 
-		err := hub.CopyMasterDataDir(DevNull)
+		err := hub.CopyMasterDataDir(DevNull, "foobar/path")
 		if err != nil {
 			t.Errorf("copying master data directory: %+v", err)
 		}
@@ -141,14 +141,14 @@ func TestCopyMaster(t *testing.T) {
 
 			expectedArgs := []string{
 				"--archive", "--compress", "--delete", "--stats",
-				"/data/qddir/seg-1/", "localhost:.gpupgrade/master.bak",
+				"/data/qddir/seg-1/", "localhost:foobar/path",
 			}
 			if !reflect.DeepEqual(args, expectedArgs) {
 				t.Errorf("rsync invoked with %q, want %q", args, expectedArgs)
 			}
 		})
 
-		err := hub.CopyMasterDataDir(DevNull)
+		err := hub.CopyMasterDataDir(DevNull, "foobar/path")
 		if err != nil {
 			t.Errorf("copying master data directory: %+v", err)
 		}
@@ -158,7 +158,7 @@ func TestCopyMaster(t *testing.T) {
 		execCommand = exectest.NewCommand(RsyncFailure)
 		buffer := new(bufferedStreams)
 
-		err := hub.CopyMasterDataDir(buffer)
+		err := hub.CopyMasterDataDir(buffer, "foobar/path")
 
 		// Make sure the errors are correctly propagated up.
 		var merr *multierror.Error
@@ -191,7 +191,7 @@ func TestCopyMaster(t *testing.T) {
 		execCommand = exectest.NewCommand(StreamingMain)
 		streams := failingStreams{errors.New("e")}
 
-		err := hub.CopyMasterDataDir(streams)
+		err := hub.CopyMasterDataDir(streams, "")
 
 		// Make sure the errors are correctly propagated up.
 		var merr *multierror.Error

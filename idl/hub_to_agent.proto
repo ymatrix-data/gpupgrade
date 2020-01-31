@@ -18,6 +18,7 @@ message UpgradePrimariesRequest {
     repeated DataDirPair DataDirPairs = 4;
     bool CheckOnly = 5;
     bool UseLinkMode = 6;
+    string MasterBackupDir = 7;
 }
 
 message DataDirPair {

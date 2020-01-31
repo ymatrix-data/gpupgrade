@@ -2,6 +2,9 @@ package hub
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
@@ -10,7 +13,11 @@ import (
 	"github.com/greenplum-db/gpupgrade/step"
 )
 
+const executeMasterBackupName = "upgraded-master.bak"
+
 func (s *Server) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_ExecuteServer) (err error) {
+	upgradedMasterBackupDir := filepath.Join(s.StateDir, executeMasterBackupName)
+
 	st, err := BeginStep(s.StateDir, "execute", stream)
 	if err != nil {
 		return err
@@ -35,10 +42,24 @@ func (s *Server) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_Execut
 		return UpgradeMaster(s.Source, s.Target, stateDir, streams, false, s.UseLinkMode)
 	})
 
-	st.Run(idl.Substep_COPY_MASTER, s.CopyMasterDataDir)
+	st.Run(idl.Substep_COPY_MASTER, func(streams step.OutStreams) error {
+		return s.CopyMasterDataDir(streams, upgradedMasterBackupDir)
+	})
 
 	st.Run(idl.Substep_UPGRADE_PRIMARIES, func(_ step.OutStreams) error {
-		return s.ConvertPrimaries(false)
+		agentConns, err := s.AgentConns()
+
+		if err != nil {
+			return errors.Wrap(err, "failed to connect to gpupgrade agent")
+		}
+
+		dataDirPair, err := s.GetDataDirPairs()
+
+		if err != nil {
+			return errors.Wrap(err, "failed to get old and new primary data directories")
+		}
+
+		return UpgradePrimaries(false, upgradedMasterBackupDir, agentConns, dataDirPair, s.Source, s.Target, s.UseLinkMode)
 	})
 
 	st.Run(idl.Substep_START_TARGET_CLUSTER, func(streams step.OutStreams) error {

@@ -10,19 +10,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils"
 )
 
-func (s *Server) ConvertPrimaries(checkOnly bool) error {
-	agentConns, err := s.AgentConns()
-	if err != nil {
-		return errors.Wrap(err, "failed to connect to gpupgrade agent")
-	}
-
-	dataDirPair, err := s.getDataDirPairs()
-	if err != nil {
-		return errors.Wrap(err, "failed to get old and new primary data directories")
-	}
-
+func UpgradePrimaries(checkOnly bool, masterBackupDir string, agentConns []*Connection, dataDirPairMap map[string][]*idl.DataDirPair, source *utils.Cluster, target *utils.Cluster, useLinkMode bool) error {
 	wg := sync.WaitGroup{}
 	agentErrs := make(chan error, len(agentConns))
 	for _, agentConn := range agentConns {
@@ -32,12 +23,13 @@ func (s *Server) ConvertPrimaries(checkOnly bool) error {
 			defer wg.Done()
 
 			_, err := idl.NewAgentClient(conn.Conn).UpgradePrimaries(context.Background(), &idl.UpgradePrimariesRequest{
-				SourceBinDir:  s.Source.BinDir,
-				TargetBinDir:  s.Target.BinDir,
-				TargetVersion: s.Target.Version.SemVer.String(),
-				DataDirPairs:  dataDirPair[conn.Hostname],
-				CheckOnly:     checkOnly,
-				UseLinkMode:   s.UseLinkMode,
+				SourceBinDir:    source.BinDir,
+				TargetBinDir:    target.BinDir,
+				TargetVersion:   target.Version.SemVer.String(),
+				DataDirPairs:    dataDirPairMap[conn.Hostname],
+				CheckOnly:       checkOnly,
+				UseLinkMode:     useLinkMode,
+				MasterBackupDir: masterBackupDir,
 			})
 
 			if err != nil {
@@ -49,6 +41,8 @@ func (s *Server) ConvertPrimaries(checkOnly bool) error {
 	wg.Wait()
 	close(agentErrs)
 
+	var err error
+
 	for agentErr := range agentErrs {
 		err = multierror.Append(err, agentErr)
 	}
@@ -56,7 +50,7 @@ func (s *Server) ConvertPrimaries(checkOnly bool) error {
 	return err
 }
 
-func (s *Server) getDataDirPairs() (map[string][]*idl.DataDirPair, error) {
+func (s *Server) GetDataDirPairs() (map[string][]*idl.DataDirPair, error) {
 	dataDirPairMap := make(map[string][]*idl.DataDirPair)
 
 	sourceContents := s.Source.ContentIDs
