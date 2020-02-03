@@ -70,7 +70,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dfbad1d5926f6bc1661596f0b53394ba16c560bd939b7024dcfce78aa2d85220"
+  digest = "1:085ca6a2d6e658fff6d59462b69ea79abaa01387567f0d05701928503ae9cf57"
   name = "github.com/greenplum-db/gp-common-go-libs"
   packages = [
     "cluster",
