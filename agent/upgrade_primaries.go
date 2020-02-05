@@ -36,7 +36,7 @@ func UpgradePrimary(stateDir string, request *idl.UpgradePrimariesRequest) error
 	segments := make([]Segment, 0, len(request.DataDirPairs))
 
 	for _, dataPair := range request.DataDirPairs {
-		workdir := utils.SegmentPGUpgradeDirectory(stateDir, int(dataPair.Content))
+		workdir := upgrade.SegmentWorkingDirectory(stateDir, int(dataPair.Content))
 		err := utils.System.MkdirAll(workdir, 0700)
 		if err != nil {
 			return xerrors.Errorf("upgrading primaries: %w", err)

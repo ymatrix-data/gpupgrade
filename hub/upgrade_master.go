@@ -22,7 +22,7 @@ const masterBackup = "master.bak"
 // Server that the parameters have been split out for testing. Revisit if/when the
 // Server monolith is broken up.
 func UpgradeMaster(source, target *utils.Cluster, stateDir string, stream step.OutStreams, checkOnly bool, useLinkMode bool) error {
-	wd := utils.MasterPGUpgradeDirectory(stateDir)
+	wd := upgrade.MasterWorkingDirectory(stateDir)
 	err := utils.System.MkdirAll(wd, 0700)
 	if err != nil {
 		return err

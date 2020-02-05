@@ -16,6 +16,7 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
+	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
@@ -171,7 +172,7 @@ func TestUpgradeMaster(t *testing.T) {
 			t.Errorf("returned error %+v", err)
 		}
 
-		expectedWD := utils.MasterPGUpgradeDirectory(tempDir)
+		expectedWD := upgrade.MasterWorkingDirectory(tempDir)
 		if createdWD != expectedWD {
 			t.Errorf("created working directory %q, want %q", createdWD, expectedWD)
 		}
