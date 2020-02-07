@@ -141,3 +141,29 @@ reset_master_and_primary_pg_control_files() {
 
     TEARDOWN_FUNCTIONS+=( reset_master_and_primary_pg_control_files )
 }
+
+# TODO: this test is a replica of one in initialize.bats. If/when we start to
+# make a third copy for finalize, decide whether the implementations should be
+# shared via helpers, or consolidated into one file or test, or otherwise --
+# depending on what makes the most sense at that time.
+@test "all substeps can be re-run after completion" {
+    gpupgrade initialize \
+        --old-bindir="$GPHOME/bin" \
+        --new-bindir="$GPHOME/bin" \
+        --old-port="${PGPORT}"\
+        --disk-free-ratio 0 \
+        --verbose 3>&-
+
+    NEW_CLUSTER="$(gpupgrade config show --new-datadir)"
+
+    gpupgrade execute --verbose 3>&-
+
+    # Put the source and target clusters back the way they were.
+    gpstop -a -d "$NEW_CLUSTER"
+    gpstart -a 3>&-
+
+    # Mark every substep in the status file as failed. Then re-execute.
+    sed -i.bak -e 's/"COMPLETE"/"FAILED"/g' "$GPUPGRADE_HOME/status.json"
+
+    gpupgrade execute --verbose 3>&-
+}
