@@ -10,15 +10,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/greenplum-db/gp-common-go-libs/dbconn"
+	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	multierror "github.com/hashicorp/go-multierror"
-
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 const (

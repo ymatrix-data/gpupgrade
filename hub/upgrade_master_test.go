@@ -12,12 +12,12 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 func Success() {}

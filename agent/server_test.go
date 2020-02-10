@@ -48,7 +48,7 @@ var _ = Describe("Server", func() {
 	})
 
 	It("starts if stateDir already exists", func() {
-		server := agent.NewServer(nil, agentConf)
+		server := agent.NewServer(agentConf)
 
 		go server.Start()
 		defer server.Stop()
@@ -63,7 +63,7 @@ var _ = Describe("Server", func() {
 		_, err = os.Stat(dir)
 		Expect(os.IsNotExist(err)).To(BeTrue())
 
-		server := agent.NewServer(nil, agentConf)
+		server := agent.NewServer(agentConf)
 		go server.Start()
 		defer server.Stop()
 

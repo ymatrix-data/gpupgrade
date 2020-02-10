@@ -14,8 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils"
@@ -190,8 +188,6 @@ var _ = Describe("Hub", func() {
 
 func TestHubSaveConfig(t *testing.T) {
 	source, target := testutils.CreateMultinodeSampleClusterPair("/tmp")
-	source.Executor = new(cluster.GPDBExecutor)
-	target.Executor = new(cluster.GPDBExecutor)
 	useLinkMode := false
 	conf := &hub.Config{source, target, 12345, 54321, useLinkMode, 50432}
 

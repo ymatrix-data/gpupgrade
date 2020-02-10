@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-
 	"github.com/greenplum-db/gpupgrade/testutils"
 )
 
@@ -14,8 +12,6 @@ func TestConfig(t *testing.T) {
 	// "stream" refers to the io.Writer/Reader interfaces.
 	t.Run("saves itself to the provided stream", func(t *testing.T) {
 		source, target := testutils.CreateMultinodeSampleClusterPair("/tmp")
-		source.Executor = new(cluster.GPDBExecutor)
-		target.Executor = new(cluster.GPDBExecutor)
 		original := &Config{source, target, 12345, 54321, false, 50432}
 
 		buf := new(bytes.Buffer)

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/pkg/errors"
@@ -20,6 +19,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 func (s *Server) GenerateInitsystemConfig(ports []uint32) (int, error) {

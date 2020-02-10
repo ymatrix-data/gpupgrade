@@ -1,10 +1,11 @@
 package testutils
 
 import (
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 // MockSegmentConfiguration returns a set of sqlmock.Rows that contains the
@@ -31,7 +32,6 @@ func MockCluster() *cluster.Cluster {
 			-1: {DbID: 1, ContentID: -1, Port: 15432, Hostname: "mdw", DataDir: "/data/master/gpseg-1"},
 			0:  {DbID: 2, ContentID: 0, Port: 25432, Hostname: "sdw1", DataDir: "/data/primary/gpseg0"},
 		},
-		Executor: &cluster.GPDBExecutor{},
 	}
 }
 

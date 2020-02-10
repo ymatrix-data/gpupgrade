@@ -4,14 +4,14 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/greenplum-db/gp-common-go-libs/dbconn"
+	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

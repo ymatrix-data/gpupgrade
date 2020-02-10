@@ -6,10 +6,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gpupgrade/hub"
-
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
-
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

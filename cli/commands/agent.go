@@ -1,12 +1,10 @@
 package commands
 
 import (
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/spf13/cobra"
 
 	"github.com/greenplum-db/gpupgrade/agent"
-
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
 	"github.com/greenplum-db/gpupgrade/utils/log"
@@ -31,7 +29,7 @@ func Agent() *cobra.Command {
 				StateDir: statedir,
 			}
 
-			agentServer := agent.NewServer(&cluster.GPDBExecutor{}, conf)
+			agentServer := agent.NewServer(conf)
 			if shouldDaemonize {
 				agentServer.MakeDaemon()
 			}

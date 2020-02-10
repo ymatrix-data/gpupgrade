@@ -12,7 +12,6 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"golang.org/x/xerrors"
@@ -21,6 +20,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 func gpinitsystem() {}

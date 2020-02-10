@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 const (
@@ -97,14 +96,12 @@ func InitClusterPairFromDB() (*utils.Cluster, *utils.Cluster) {
 func assembleClusters(baseDir string, sourceCluster *cluster.Cluster, targetCluster *cluster.Cluster) (source *utils.Cluster, target *utils.Cluster) {
 	gpdbVersion := dbconn.NewVersion("6.0.0")
 
-	sourceCluster.Executor = &testhelper.TestExecutor{}
 	source = &utils.Cluster{
 		Cluster: sourceCluster,
 		BinDir:  "/source/bindir",
 		Version: gpdbVersion,
 	}
 
-	targetCluster.Executor = &testhelper.TestExecutor{}
 	target = &utils.Cluster{
 		Cluster: targetCluster,
 		BinDir:  "/target/bindir",

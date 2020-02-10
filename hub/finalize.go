@@ -4,15 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 
-	"github.com/greenplum-db/gpupgrade/step"
-
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeServer) (err error) {

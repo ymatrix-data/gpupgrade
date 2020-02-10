@@ -9,7 +9,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 
 	. "github.com/greenplum-db/gpupgrade/hub"
 )

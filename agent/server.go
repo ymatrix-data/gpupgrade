@@ -8,19 +8,17 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/greenplum-db/gpupgrade/idl"
-	"github.com/greenplum-db/gpupgrade/utils/daemon"
-	"github.com/greenplum-db/gpupgrade/utils/log"
-
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/log"
 )
 
 type Server struct {
-	executor cluster.Executor
-	conf     Config
+	conf Config
 
 	mu      sync.Mutex
 	server  *grpc.Server
@@ -34,11 +32,10 @@ type Config struct {
 	StateDir string
 }
 
-func NewServer(executor cluster.Executor, conf Config) *Server {
+func NewServer(conf Config) *Server {
 	return &Server{
-		executor: executor,
-		conf:     conf,
-		stopped:  make(chan struct{}, 1),
+		conf:    conf,
+		stopped: make(chan struct{}, 1),
 	}
 }
 

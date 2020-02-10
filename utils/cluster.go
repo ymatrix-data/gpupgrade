@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/greenplum-db/gp-common-go-libs/cluster"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
+
+	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
 type Cluster struct {
@@ -107,7 +108,6 @@ func (s *serializableCluster) cluster() *Cluster {
 		&cluster.Cluster{
 			s.ContentIDs,
 			s.Segments,
-			&cluster.GPDBExecutor{},
 		},
 		s.BinDir,
 		s.Version,
