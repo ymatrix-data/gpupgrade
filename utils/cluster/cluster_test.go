@@ -3,125 +3,128 @@ package cluster_test
 import (
 	"database/sql/driver"
 	"fmt"
-	"os"
-	"os/user"
+	"reflect"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/greenplum-db/gp-common-go-libs/operating"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 
 	"github.com/greenplum-db/gpupgrade/utils/cluster"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 )
 
 func TestCluster(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "cluster tests")
-}
+	segments := map[int]cluster.SegConfig{
+		-1: cluster.SegConfig{DbID: 1, ContentID: -1, Port: 5432, Hostname: "localhost", DataDir: "/data/gpseg-1"},
+		0:  cluster.SegConfig{DbID: 2, ContentID: 0, Port: 20000, Hostname: "localhost", DataDir: "/data/gpseg0"},
+		2:  cluster.SegConfig{DbID: 4, ContentID: 2, Port: 20002, Hostname: "localhost", DataDir: "/data/gpseg2"},
+		3:  cluster.SegConfig{DbID: 5, ContentID: 3, Port: 20003, Hostname: "remotehost2", DataDir: "/data/gpseg3"},
+	}
+	master := segments[-1]
 
-var (
-	connection *dbconn.DBConn
-	mock       sqlmock.Sqlmock
-	logfile    *gbytes.Buffer
-)
+	cases := []struct {
+		name     string
+		segments []cluster.SegConfig
+	}{
+		{"single-host, single-segment", []cluster.SegConfig{master, segments[0]}},
+		{"single-host, multi-segment", []cluster.SegConfig{master, segments[0], segments[2]}},
+		{"multi-host, multi-segment", []cluster.SegConfig{master, segments[0], segments[3]}},
+	}
 
-func expectPathToExist(path string) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		Fail(fmt.Sprintf("Expected %s to exist", path))
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%s cluster", c.name), func(t *testing.T) {
+			cluster := cluster.NewCluster(c.segments)
+
+			actualContents := cluster.GetContentList()
+
+			var expectedContents []int
+			for _, seg := range c.segments {
+				expectedContents = append(expectedContents, seg.ContentID)
+			}
+
+			if !reflect.DeepEqual(actualContents, expectedContents) {
+				t.Errorf("had contents %v, want %v", actualContents, expectedContents)
+			}
+
+			for _, expected := range c.segments {
+				content := expected.ContentID
+
+				actual := cluster.Segments[content]
+				if actual != expected {
+					t.Errorf("had segment[%d] = %+v, want %+v", content, actual, expected)
+				}
+
+				actualHost := cluster.GetHostForContent(content)
+				if actualHost != expected.Hostname {
+					t.Errorf("had hostname[%d] = %q, want %q", content, actualHost, expected.Hostname)
+				}
+			}
+		})
 	}
 }
 
-var _ = BeforeSuite(func() {
-	_, _, _, _, logfile = testhelper.SetupTestEnvironment()
-})
+func TestGetSegmentConfiguration(t *testing.T) {
+	testhelper.SetupTestLogger() // init gplog
 
-var _ = BeforeEach(func() {
-	connection, mock = testhelper.CreateAndConnectMockDB(1)
-})
+	cases := []struct {
+		name     string
+		rows     [][]driver.Value
+		expected []cluster.SegConfig
+	}{{
+		"single-host, single-segment",
+		[][]driver.Value{
+			{"0", "localhost", "/data/gpseg0"},
+		},
+		[]cluster.SegConfig{
+			{ContentID: 0, Hostname: "localhost", DataDir: "/data/gpseg0"},
+		},
+	}, {
+		"single-host, multi-segment",
+		[][]driver.Value{
+			{"0", "localhost", "/data/gpseg0"},
+			{"1", "localhost", "/data/gpseg1"},
+		},
+		[]cluster.SegConfig{
+			{ContentID: 0, Hostname: "localhost", DataDir: "/data/gpseg0"},
+			{ContentID: 1, Hostname: "localhost", DataDir: "/data/gpseg1"},
+		},
+	}, {
+		"multi-host, multi-segment",
+		[][]driver.Value{
+			{"0", "localhost", "/data/gpseg0"},
+			{"1", "localhost", "/data/gpseg1"},
+			{"2", "remotehost", "/data/gpseg2"},
+		},
+		[]cluster.SegConfig{
+			{ContentID: 0, Hostname: "localhost", DataDir: "/data/gpseg0"},
+			{ContentID: 1, Hostname: "localhost", DataDir: "/data/gpseg1"},
+			{ContentID: 2, Hostname: "remotehost", DataDir: "/data/gpseg2"},
+		},
+	}}
 
-var _ = Describe("cluster/cluster tests", func() {
-	masterSeg := cluster.SegConfig{DbID: 1, ContentID: -1, Port: 5432, Hostname: "localhost", DataDir: "/data/gpseg-1"}
-	localSegOne := cluster.SegConfig{DbID: 2, ContentID: 0, Port: 20000, Hostname: "localhost", DataDir: "/data/gpseg0"}
-	localSegTwo := cluster.SegConfig{DbID: 4, ContentID: 2, Port: 20002, Hostname: "localhost", DataDir: "/data/gpseg2"}
-	remoteSegTwo := cluster.SegConfig{DbID: 5, ContentID: 3, Port: 20003, Hostname: "remotehost2", DataDir: "/data/gpseg3"}
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%s cluster", c.name), func(t *testing.T) {
+			// Set up the connection to return the expected rows.
+			rows := sqlmock.NewRows([]string{"contentid", "hostname", "datadir"})
+			for _, row := range c.rows {
+				rows.AddRow(row...)
+			}
 
-	BeforeEach(func() {
-		operating.System.CurrentUser = func() (*user.User, error) { return &user.User{Username: "testUser", HomeDir: "testDir"}, nil }
-		operating.System.Hostname = func() (string, error) { return "testHost", nil }
-	})
-	Describe("GetSegmentConfiguration", func() {
-		header := []string{"contentid", "hostname", "datadir"}
-		localSegOne := []driver.Value{"0", "localhost", "/data/gpseg0"}
-		localSegTwo := []driver.Value{"1", "localhost", "/data/gpseg1"}
-		remoteSegOne := []driver.Value{"2", "remotehost", "/data/gpseg2"}
+			connection, mock := testhelper.CreateAndConnectMockDB(1)
+			mock.ExpectQuery("SELECT (.*)").WillReturnRows(rows)
+			defer func() {
+				if err := mock.ExpectationsWereMet(); err != nil {
+					t.Errorf("%v", err)
+				}
+			}()
 
-		It("returns a configuration for a single-host, single-segment cluster", func() {
-			fakeResult := sqlmock.NewRows(header).AddRow(localSegOne...)
-			mock.ExpectQuery("SELECT (.*)").WillReturnRows(fakeResult)
 			results, err := cluster.GetSegmentConfiguration(connection)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(results)).To(Equal(1))
-			Expect(results[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(results[0].Hostname).To(Equal("localhost"))
+			if err != nil {
+				t.Errorf("returned error %+v", err)
+			}
+
+			if !reflect.DeepEqual(results, c.expected) {
+				t.Errorf("got configuration %+v, want %+v", results, c.expected)
+			}
 		})
-		It("returns a configuration for a single-host, multi-segment cluster", func() {
-			fakeResult := sqlmock.NewRows(header).AddRow(localSegOne...).AddRow(localSegTwo...)
-			mock.ExpectQuery("SELECT (.*)").WillReturnRows(fakeResult)
-			results, err := cluster.GetSegmentConfiguration(connection)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(results)).To(Equal(2))
-			Expect(results[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(results[0].Hostname).To(Equal("localhost"))
-			Expect(results[1].DataDir).To(Equal("/data/gpseg1"))
-			Expect(results[1].Hostname).To(Equal("localhost"))
-		})
-		It("returns a configuration for a multi-host, multi-segment cluster", func() {
-			fakeResult := sqlmock.NewRows(header).AddRow(localSegOne...).AddRow(localSegTwo...).AddRow(remoteSegOne...)
-			mock.ExpectQuery("SELECT (.*)").WillReturnRows(fakeResult)
-			results, err := cluster.GetSegmentConfiguration(connection)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(results)).To(Equal(3))
-			Expect(results[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(results[0].Hostname).To(Equal("localhost"))
-			Expect(results[1].DataDir).To(Equal("/data/gpseg1"))
-			Expect(results[1].Hostname).To(Equal("localhost"))
-			Expect(results[2].DataDir).To(Equal("/data/gpseg2"))
-			Expect(results[2].Hostname).To(Equal("remotehost"))
-		})
-	})
-	Describe("cluster setup and accessor functions", func() {
-		It("returns content dir for a single-host, single-segment cluster", func() {
-			cluster := cluster.NewCluster([]cluster.SegConfig{masterSeg, localSegOne})
-			Expect(len(cluster.GetContentList())).To(Equal(2))
-			Expect(cluster.Segments[-1].DataDir).To(Equal("/data/gpseg-1"))
-			Expect(cluster.GetHostForContent(-1)).To(Equal("localhost"))
-			Expect(cluster.Segments[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(cluster.GetHostForContent(0)).To(Equal("localhost"))
-		})
-		It("sets up the configuration for a single-host, multi-segment cluster", func() {
-			cluster := cluster.NewCluster([]cluster.SegConfig{masterSeg, localSegOne, localSegTwo})
-			Expect(len(cluster.GetContentList())).To(Equal(3))
-			Expect(cluster.Segments[-1].DataDir).To(Equal("/data/gpseg-1"))
-			Expect(cluster.GetHostForContent(-1)).To(Equal("localhost"))
-			Expect(cluster.Segments[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(cluster.GetHostForContent(0)).To(Equal("localhost"))
-			Expect(cluster.Segments[2].DataDir).To(Equal("/data/gpseg2"))
-			Expect(cluster.GetHostForContent(2)).To(Equal("localhost"))
-		})
-		It("sets up the configuration for a multi-host, multi-segment cluster", func() {
-			cluster := cluster.NewCluster([]cluster.SegConfig{masterSeg, localSegOne, remoteSegTwo})
-			Expect(len(cluster.GetContentList())).To(Equal(3))
-			Expect(cluster.Segments[-1].DataDir).To(Equal("/data/gpseg-1"))
-			Expect(cluster.GetHostForContent(-1)).To(Equal("localhost"))
-			Expect(cluster.Segments[0].DataDir).To(Equal("/data/gpseg0"))
-			Expect(cluster.GetHostForContent(0)).To(Equal("localhost"))
-			Expect(cluster.Segments[3].DataDir).To(Equal("/data/gpseg3"))
-			Expect(cluster.GetHostForContent(3)).To(Equal("remotehost2"))
-		})
-	})
-})
+	}
+}
