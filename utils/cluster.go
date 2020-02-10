@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
@@ -77,61 +76,6 @@ func (c *Cluster) PrimaryHostnames() []string {
 	}
 
 	return list
-}
-
-// serializableCluster contains all of the members of utils.Cluster that can be
-// serialized to disk.
-//
-// Ideally, utils.Cluster would be serializable itself, but unfortunately the
-// Executor member cannot be put through a JSON marshal/unmarshal round trip. We
-// exclude it here.
-type serializableCluster struct {
-	ContentIDs []int
-	Segments   map[int]cluster.SegConfig
-	BinDir     string
-	Version    dbconn.GPDBVersion
-}
-
-func newSerializableCluster(c *Cluster) *serializableCluster {
-	return &serializableCluster{
-		c.ContentIDs,
-		c.Segments,
-		c.BinDir,
-		c.Version,
-	}
-}
-
-func (s *serializableCluster) cluster() *Cluster {
-	// Members are unnamed on purpose. If the underlying types add more members,
-	// we want them to be explicitly added to the serializableCluster.
-	return &Cluster{
-		&cluster.Cluster{
-			s.ContentIDs,
-			s.Segments,
-		},
-		s.BinDir,
-		s.Version,
-	}
-}
-
-func (c *Cluster) MarshalJSON() ([]byte, error) {
-	// See notes for serializableCluster for why we override the standard
-	// marshal operation.
-	return json.Marshal(newSerializableCluster(c))
-}
-
-func (c *Cluster) UnmarshalJSON(b []byte) error {
-	// See notes for serializableCluster for why we override the standard
-	// unmarshal operation.
-	s := new(serializableCluster)
-
-	err := json.Unmarshal(b, s)
-	if err != nil {
-		return err
-	}
-
-	*c = *s.cluster()
-	return nil
 }
 
 // ErrUnknownHost can be returned by Cluster.SegmentsOn.
