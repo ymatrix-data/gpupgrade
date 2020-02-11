@@ -10,13 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
-	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/cluster"
 )
 
@@ -40,29 +38,23 @@ func init() {
 }
 
 func TestCopyMaster(t *testing.T) {
-	sourceCluster := utils.Cluster{
-		Cluster: cluster.NewCluster([]cluster.SegConfig{
-			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
-			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
-		}),
-		BinDir:  "/source/bindir",
-		Version: dbconn.GPDBVersion{},
-	}
+	sourceCluster := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1", Role: "p"},
+		{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+		{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2", Role: "p"},
+	})
+	sourceCluster.BinDir = "/source/bindir"
 
-	targetCluster := utils.Cluster{
-		Cluster: cluster.NewCluster([]cluster.SegConfig{
-			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
-			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
-		}),
-		BinDir:  "/target/bindir",
-		Version: dbconn.GPDBVersion{},
-	}
+	targetCluster := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1", Role: "p"},
+		{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+		{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2", Role: "p"},
+	})
+	targetCluster.BinDir = "/target/bindir"
 
 	conf := &Config{
-		Source:      &sourceCluster,
-		Target:      &targetCluster,
+		Source:      sourceCluster,
+		Target:      targetCluster,
 		UseLinkMode: false,
 	}
 	hub := New(conf, grpc.DialContext, ".gpupgrade")
@@ -119,17 +111,15 @@ func TestCopyMaster(t *testing.T) {
 
 	t.Run("copies the master data directory only once per host", func(t *testing.T) {
 		// Create a one-host cluster.
-		oneHostTargetCluster := utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-				{ContentID: 0, DbID: 2, Port: 25432, Hostname: "localhost", DataDir: "/data/dbfast1/seg1"},
-				{ContentID: 1, DbID: 3, Port: 25433, Hostname: "localhost", DataDir: "/data/dbfast2/seg2"},
-			}),
-			BinDir:  "/target/bindir",
-			Version: dbconn.GPDBVersion{},
-		}
-		hub.Target = &oneHostTargetCluster
-		defer func() { hub.Target = &targetCluster }()
+		oneHostTargetCluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "localhost", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "localhost", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
+		oneHostTargetCluster.BinDir = "/target/bindir"
+
+		hub.Target = oneHostTargetCluster
+		defer func() { hub.Target = targetCluster }()
 
 		// Validate the rsync call and arguments.
 		execCommand = exectest.NewCommandWithVerifier(Success, func(name string, args ...string) {

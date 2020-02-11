@@ -86,19 +86,10 @@ func init() {
 }
 
 func TestUpgradeMaster(t *testing.T) {
-	source := &utils.Cluster{
-		BinDir: "/old/bin",
-		Cluster: &cluster.Cluster{
-			ContentIDs: []int{-1},
-			Segments: map[int]cluster.SegConfig{
-				-1: cluster.SegConfig{
-					Port:    5432,
-					DataDir: "/data/old",
-					DbID:    1,
-				},
-			},
-		},
-	}
+	source := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, Port: 5432, DataDir: "/data/old", DbID: 1, Role: "p"},
+	})
+	source.BinDir = "/old/bin"
 
 	t.Run("masterSegmentFromCluster() creates a correct upgrade segment", func(t *testing.T) {
 		seg := masterSegmentFromCluster(source)
@@ -122,19 +113,10 @@ func TestUpgradeMaster(t *testing.T) {
 	// output streams are hooked up correctly, then defer to the acceptance
 	// tests for full end-to-end verification.
 
-	target := &utils.Cluster{
-		BinDir: "/new/bin",
-		Cluster: &cluster.Cluster{
-			ContentIDs: []int{-1},
-			Segments: map[int]cluster.SegConfig{
-				-1: cluster.SegConfig{
-					Port:    5433,
-					DataDir: "/data/new",
-					DbID:    2,
-				},
-			},
-		},
-	}
+	target := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, Port: 5433, DataDir: "/data/new", DbID: 2, Role: "p"},
+	})
+	target.BinDir = "/new/bin"
 
 	// We need a real temporary directory to change to. Replace MkdirAll() so
 	// that we can make sure the directory is the correct one.

@@ -35,7 +35,11 @@ func ClusterFromDB(conn *dbconn.DBConn, binDir string) (*Cluster, error) {
 		return nil, errors.Wrap(err, "couldn't retrieve segment configuration")
 	}
 
-	c.Cluster = cluster.NewCluster(segments)
+	c.Cluster, err = cluster.NewCluster(segments)
+	if err != nil {
+		return nil, err
+	}
+
 	c.BinDir = binDir
 
 	return c, nil
@@ -49,9 +53,10 @@ func (c *Cluster) MasterPort() int {
 	return c.GetPortForContent(-1)
 }
 
+// XXX This does not provide mirror hostnames yet.
 func (c *Cluster) GetHostnames() []string {
 	hostnameMap := make(map[string]bool, 0)
-	for _, seg := range c.Segments {
+	for _, seg := range c.Primaries {
 		hostnameMap[seg.Hostname] = true
 	}
 	hostnames := make([]string, 0)
@@ -63,7 +68,7 @@ func (c *Cluster) GetHostnames() []string {
 
 func (c *Cluster) PrimaryHostnames() []string {
 	hostnames := make(map[string]bool, 0)
-	for _, seg := range c.Segments {
+	for _, seg := range c.Primaries {
 		// Ignore the master.
 		if seg.ContentID >= 0 {
 			hostnames[seg.Hostname] = true
@@ -98,7 +103,7 @@ func (u UnknownHostError) Is(err error) bool {
 // for unknown hostnames.
 func (c Cluster) SegmentsOn(hostname string) ([]cluster.SegConfig, error) {
 	var segments []cluster.SegConfig
-	for _, segment := range c.Segments {
+	for _, segment := range c.Primaries {
 		if segment.Hostname == hostname && segment.ContentID != -1 {
 			segments = append(segments, segment)
 		}

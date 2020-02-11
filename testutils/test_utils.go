@@ -55,7 +55,7 @@ func Check(msg string, e error) {
 func CreateMultinodeSampleCluster(baseDir string) *cluster.Cluster {
 	return &cluster.Cluster{
 		ContentIDs: []int{-1, 0, 1},
-		Segments: map[int]cluster.SegConfig{
+		Primaries: map[int]cluster.SegConfig{
 			-1: cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: baseDir + "/seg-1"},
 			0:  cluster.SegConfig{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: baseDir + "/seg1"},
 			1:  cluster.SegConfig{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: baseDir + "/seg2"},
@@ -66,7 +66,7 @@ func CreateMultinodeSampleCluster(baseDir string) *cluster.Cluster {
 func CreateSampleCluster(contentID int, port int, hostname string, datadir string) *cluster.Cluster {
 	return &cluster.Cluster{
 		ContentIDs: []int{contentID},
-		Segments: map[int]cluster.SegConfig{
+		Primaries: map[int]cluster.SegConfig{
 			contentID: cluster.SegConfig{ContentID: contentID, Port: port, Hostname: hostname, DataDir: datadir},
 		},
 	}
@@ -81,15 +81,6 @@ func CreateMultinodeSampleClusterPair(baseDir string) (*utils.Cluster, *utils.Cl
 func CreateSampleClusterPair() (*utils.Cluster, *utils.Cluster) {
 	sourceCluster := CreateSampleCluster(-1, 25437, "hostone", "/source/datadir")
 	targetCluster := CreateSampleCluster(-1, 35437, "hosttwo", "/target/datadir")
-	return assembleClusters("/tmp", sourceCluster, targetCluster)
-}
-
-func InitClusterPairFromDB() (*utils.Cluster, *utils.Cluster) {
-	conn := dbconn.NewDBConnFromEnvironment("postgres")
-	conn.MustConnect(1)
-	segConfig := cluster.MustGetSegmentConfiguration(conn)
-	sourceCluster := cluster.NewCluster(segConfig)
-	targetCluster := cluster.NewCluster(segConfig)
 	return assembleClusters("/tmp", sourceCluster, targetCluster)
 }
 

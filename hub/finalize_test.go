@@ -36,14 +36,14 @@ func finishMock(mock sqlmock.Sqlmock, t *testing.T) {
 }
 
 func TestClonePortsFromCluster(t *testing.T) {
-	src := &cluster.Cluster{
-		ContentIDs: []int{-1, 0, 1, 2},
-		Segments: map[int]cluster.SegConfig{
-			-1: cluster.SegConfig{Port: 123},
-			0:  cluster.SegConfig{Port: 234},
-			1:  cluster.SegConfig{Port: 345},
-			2:  cluster.SegConfig{Port: 456},
-		},
+	src, err := cluster.NewCluster([]cluster.SegConfig{
+		{ContentID: -1, Port: 123, Role: "p"},
+		{ContentID: 0, Port: 234, Role: "p"},
+		{ContentID: 1, Port: 345, Role: "p"},
+		{ContentID: 2, Port: 456, Role: "p"},
+	})
+	if err != nil {
+		t.Fatalf("constructing test cluster: %+v", err)
 	}
 
 	t.Run("updates ports for every segment", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestClonePortsFromCluster(t *testing.T) {
 		// Note that ranging over a map doesn't guarantee execution order, so we
 		// range over the contents instead.
 		for _, content := range src.ContentIDs {
-			conf := src.Segments[content]
+			conf := src.Primaries[content]
 			mock.ExpectExec("UPDATE gp_segment_configuration SET port = (.+) WHERE content = (.+)").
 				WithArgs(conf.Port, content).
 				WillReturnResult(sqlmock.NewResult(0, 1))
@@ -128,7 +128,7 @@ func TestClonePortsFromCluster(t *testing.T) {
 			mock.ExpectQuery("SELECT content FROM gp_segment_configuration").
 				WillReturnRows(contents)
 			mock.ExpectExec("UPDATE gp_segment_configuration SET port = (.+) WHERE content = (.+)").
-				WithArgs(src.Segments[-1].Port, -1).
+				WithArgs(src.Primaries[-1].Port, -1).
 				WillReturnError(ErrSentinel)
 			mock.ExpectRollback()
 		},
@@ -146,7 +146,7 @@ func TestClonePortsFromCluster(t *testing.T) {
 				WillReturnRows(contents)
 
 			for _, content := range src.ContentIDs {
-				conf := src.Segments[content]
+				conf := src.Primaries[content]
 				mock.ExpectExec("UPDATE gp_segment_configuration SET port = (.+) WHERE content = (.+)").
 					WithArgs(conf.Port, content).
 					WillReturnResult(sqlmock.NewResult(0, 1))

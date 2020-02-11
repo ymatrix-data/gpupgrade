@@ -118,13 +118,11 @@ func TestWriteSegmentArray(t *testing.T) {
 	}
 
 	t.Run("correctly chooses ports when the master and segments are all on different hosts", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "sdw2", DataDir: "/data/dbfast2/seg2"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "sdw2", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
 		ports := []uint32{15433, 15434}
 
 		test(t, cluster, ports, []string{
@@ -137,13 +135,11 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("correctly chooses ports when the master is on one host and segments on another", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "sdw1", DataDir: "/data/dbfast2/seg2"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "sdw1", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
 		ports := []uint32{15433, 25432, 25433}
 
 		test(t, cluster, ports, []string{
@@ -156,13 +152,11 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("sorts and deduplicates provided port range", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
 		ports := []uint32{10, 9, 10, 9, 10, 8}
 
 		test(t, cluster, ports, []string{
@@ -175,14 +169,12 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("uses default port range when port list is empty", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2"},
-				cluster.SegConfig{ContentID: 2, DbID: 4, Hostname: "sdw1", DataDir: "/data/dbfast3/seg3"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2", Role: "p"},
+			{ContentID: 2, DbID: 4, Hostname: "sdw1", DataDir: "/data/dbfast3/seg3", Role: "p"},
+		})
 
 		test(t, cluster, []uint32{}, []string{
 			"QD_PRIMARY_ARRAY=mdw~50432~/data/qddir_upgrade/seg-1~1~-1~0",
@@ -195,11 +187,9 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("errors when old cluster contains no master segment", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+		})
 		ports := []uint32{15433}
 
 		_, _, err := WriteSegmentArray([]string{}, cluster, ports)
@@ -209,13 +199,11 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("errors when not given enough ports (single host)", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "mdw", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "mdw", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
 		ports := []uint32{15433}
 
 		_, _, err := WriteSegmentArray([]string{}, cluster, ports)
@@ -225,13 +213,11 @@ func TestWriteSegmentArray(t *testing.T) {
 	})
 
 	t.Run("errors when not given enough ports (multiple hosts)", func(t *testing.T) {
-		cluster := &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				cluster.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1"},
-				cluster.SegConfig{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1"},
-				cluster.SegConfig{ContentID: 1, DbID: 3, Hostname: "sdw1", DataDir: "/data/dbfast2/seg2"},
-			}),
-		}
+		cluster := MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p"},
+			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+			{ContentID: 1, DbID: 3, Hostname: "sdw1", DataDir: "/data/dbfast2/seg2", Role: "p"},
+		})
 		ports := []uint32{15433, 25432}
 
 		_, _, err := WriteSegmentArray([]string{}, cluster, ports)
@@ -247,13 +233,11 @@ func TestCreateSegmentDataDirectories(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	c := &utils.Cluster{
-		Cluster: cluster.NewCluster([]cluster.SegConfig{
-			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1"},
-			{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1"},
-			{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2"},
-		}),
-	}
+	c := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1", Role: "p"},
+		{ContentID: 0, DbID: 2, Port: 25432, Hostname: "host1", DataDir: "/data/dbfast1/seg1", Role: "p"},
+		{ContentID: 1, DbID: 3, Port: 25433, Hostname: "host2", DataDir: "/data/dbfast2/seg2", Role: "p"},
+	})
 
 	client := mock_idl.NewMockAgentClient(ctrl)
 	client.EXPECT().CreateSegmentDataDirectories(

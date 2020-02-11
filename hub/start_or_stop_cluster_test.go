@@ -5,8 +5,6 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/cluster"
@@ -34,13 +32,11 @@ func init() {
 func TestStartOrStopCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	var source *utils.Cluster
-	cluster := cluster.NewCluster([]cluster.SegConfig{cluster.SegConfig{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "basedir/seg-1"}})
-	source = &utils.Cluster{
-		Cluster: cluster,
-		BinDir:  "/source/bindir",
-		Version: dbconn.GPDBVersion{},
-	}
+	source := MustCreateCluster(t, []cluster.SegConfig{
+		{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "basedir/seg-1", Role: "p"},
+	})
+	source.BinDir = "/source/bindir"
+
 	utils.System.RemoveAll = func(s string) error { return nil }
 	utils.System.MkdirAll = func(s string, perm os.FileMode) error { return nil }
 

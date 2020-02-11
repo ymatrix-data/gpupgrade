@@ -1,6 +1,8 @@
 package testutils
 
 import (
+	"fmt"
+
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -14,9 +16,9 @@ import (
 // When changing this implementation, make sure you change MockCluster() to
 // match!
 func MockSegmentConfiguration() *sqlmock.Rows {
-	rows := sqlmock.NewRows([]string{"dbid", "contentid", "port", "hostname", "datadir"})
-	rows.AddRow(1, -1, 15432, "mdw", "/data/master/gpseg-1")
-	rows.AddRow(2, 0, 25432, "sdw1", "/data/primary/gpseg0")
+	rows := sqlmock.NewRows([]string{"dbid", "contentid", "port", "hostname", "datadir", "role"})
+	rows.AddRow(1, -1, 15432, "mdw", "/data/master/gpseg-1", "p")
+	rows.AddRow(2, 0, 25432, "sdw1", "/data/primary/gpseg0", "p")
 
 	return rows
 }
@@ -26,13 +28,16 @@ func MockSegmentConfiguration() *sqlmock.Rows {
 // When changing this implementation, make sure you change
 // MockSegmentConfiguration() to match!
 func MockCluster() *cluster.Cluster {
-	return &cluster.Cluster{
-		ContentIDs: []int{-1, 0},
-		Segments: map[int]cluster.SegConfig{
-			-1: {DbID: 1, ContentID: -1, Port: 15432, Hostname: "mdw", DataDir: "/data/master/gpseg-1"},
-			0:  {DbID: 2, ContentID: 0, Port: 25432, Hostname: "sdw1", DataDir: "/data/primary/gpseg0"},
-		},
+	c, err := cluster.NewCluster([]cluster.SegConfig{
+		{DbID: 1, ContentID: -1, Port: 15432, Hostname: "mdw", DataDir: "/data/master/gpseg-1", Role: "p"},
+		{DbID: 2, ContentID: 0, Port: 25432, Hostname: "sdw1", DataDir: "/data/primary/gpseg0", Role: "p"},
+	})
+
+	if err != nil {
+		panic(fmt.Sprintf("unexpected error %+v", err))
 	}
+
+	return c
 }
 
 // CreateMockDBConn is just like testhelper.CreateAndConnectMockDB(), but it

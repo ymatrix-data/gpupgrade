@@ -165,7 +165,7 @@ func WriteSegmentArray(config []string, source *utils.Cluster, ports []uint32) (
 		if content == -1 {
 			continue
 		}
-		segment := source.Segments[content]
+		segment := source.Primaries[content]
 		segmentsByHost[segment.Hostname] = append(segmentsByHost[segment.Hostname], segment)
 	}
 
@@ -205,7 +205,7 @@ func WriteSegmentArray(config []string, source *utils.Cluster, ports []uint32) (
 		}
 	}
 
-	master, ok := source.Segments[-1]
+	master, ok := source.Primaries[-1]
 	if !ok {
 		return nil, 0, errors.New("old cluster contains no master segment")
 	}

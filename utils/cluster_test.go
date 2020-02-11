@@ -56,22 +56,22 @@ var _ = Describe("Cluster", func() {
 		It("maps all hosts to segment configurations", func() {
 			segments, err := expectedCluster.SegmentsOn("host1")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(segments).To(Equal([]cluster.SegConfig{expectedCluster.Segments[0]}))
+			Expect(segments).To(Equal([]cluster.SegConfig{expectedCluster.Primaries[0]}))
 
 			segments, err = expectedCluster.SegmentsOn("host2")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(segments).To(Equal([]cluster.SegConfig{expectedCluster.Segments[1]}))
+			Expect(segments).To(Equal([]cluster.SegConfig{expectedCluster.Primaries[1]}))
 
 			segments, err = expectedCluster.SegmentsOn("localhost")
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("groups all segments by hostname", func() {
-			seg1 := expectedCluster.Segments[1]
+			seg1 := expectedCluster.Primaries[1]
 			seg1.Hostname = "host1"
-			expectedCluster.Segments[1] = seg1
+			expectedCluster.Primaries[1] = seg1
 
-			expected := []cluster.SegConfig{expectedCluster.Segments[0], expectedCluster.Segments[1]}
+			expected := []cluster.SegConfig{expectedCluster.Primaries[0], expectedCluster.Primaries[1]}
 			segments, err := expectedCluster.SegmentsOn("host1")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(segments).To(ConsistOf(expected))

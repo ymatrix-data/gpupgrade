@@ -59,7 +59,7 @@ func ClonePortsFromCluster(db *sql.DB, src *cluster.Cluster) (err error) {
 	}
 
 	for _, content := range src.ContentIDs {
-		port := src.Segments[content].Port
+		port := src.Primaries[content].Port
 		res, err := tx.Exec("UPDATE gp_segment_configuration SET port = $1 WHERE content = $2",
 			port, content)
 		if err != nil {
@@ -169,7 +169,7 @@ func sanityCheckContentIDs(tx *sql.Tx, src *cluster.Cluster) error {
 		return xerrors.Errorf("iterating over segment configuration: %w", err)
 	}
 
-	if !contentsMatch(src.Segments, contents) {
+	if !contentsMatch(src.Primaries, contents) {
 		return newContentMismatchError(src.ContentIDs, contents)
 	}
 

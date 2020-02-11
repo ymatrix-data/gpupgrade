@@ -70,8 +70,8 @@ func (s *Server) GetDataDirPairs() (map[string][]*idl.DataDirPair, error) {
 		if contentID == -1 {
 			continue
 		}
-		sourceSeg := s.Source.Segments[contentID]
-		targetSeg := s.Target.Segments[contentID]
+		sourceSeg := s.Source.Primaries[contentID]
+		targetSeg := s.Target.Primaries[contentID]
 		if sourceSeg.Hostname != targetSeg.Hostname {
 			return nil, fmt.Errorf("hostnames do not match between old and new cluster with content ID %d. Found old cluster hostname: '%s', and new cluster hostname: '%s'", contentID, sourceSeg.Hostname, targetSeg.Hostname)
 		}

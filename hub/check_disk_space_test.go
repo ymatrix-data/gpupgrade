@@ -46,11 +46,9 @@ func TestCheckDiskSpace(t *testing.T) {
 	}
 
 	t.Run("reports no failures with enough space", func(t *testing.T) {
-		c = &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				{ContentID: -1, Hostname: "mdw", DataDir: "/data/master"},
-			}),
-		}
+		c = MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, Hostname: "mdw", DataDir: "/data/master", Role: "p"},
+		})
 		req = &idl.CheckDiskSpaceRequest{Ratio: 0.25}
 		// leave agents empty
 
@@ -58,11 +56,9 @@ func TestCheckDiskSpace(t *testing.T) {
 	})
 
 	t.Run("reports disk failures for the master host", func(t *testing.T) {
-		c = &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				{ContentID: -1, Hostname: "mdw", DataDir: "/data/master"},
-			}),
-		}
+		c = MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, Hostname: "mdw", DataDir: "/data/master", Role: "p"},
+		})
 		req = &idl.CheckDiskSpaceRequest{Ratio: 0.75}
 		// leave agents empty
 
@@ -78,14 +74,12 @@ func TestCheckDiskSpace(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		c = &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				{ContentID: -1, Hostname: "mdw", DataDir: "/data/master"},
-				{ContentID: 0, Hostname: "sdw1", DataDir: "/data/primary"},
-				{ContentID: 1, Hostname: "sdw2", DataDir: "/data/primary"},
-				{ContentID: 2, Hostname: "sdw2", DataDir: "/data/primary2"},
-			}),
-		}
+		c = MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, Hostname: "mdw", DataDir: "/data/master", Role: "p"},
+			{ContentID: 0, Hostname: "sdw1", DataDir: "/data/primary", Role: "p"},
+			{ContentID: 1, Hostname: "sdw2", DataDir: "/data/primary", Role: "p"},
+			{ContentID: 2, Hostname: "sdw2", DataDir: "/data/primary2", Role: "p"},
+		})
 		req = &idl.CheckDiskSpaceRequest{Ratio: 0.25}
 
 		// The usage descriptor returned by each mock agent. All we care is that
@@ -130,12 +124,10 @@ func TestCheckDiskSpace(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		c = &utils.Cluster{
-			Cluster: cluster.NewCluster([]cluster.SegConfig{
-				{ContentID: -1, Hostname: "mdw", DataDir: "/data/master"},
-				{ContentID: 0, Hostname: "sdw1", DataDir: "/data/primary"},
-			}),
-		}
+		c = MustCreateCluster(t, []cluster.SegConfig{
+			{ContentID: -1, Hostname: "mdw", DataDir: "/data/master", Role: "p"},
+			{ContentID: 0, Hostname: "sdw1", DataDir: "/data/primary", Role: "p"},
+		})
 		d.err = errors.New("master disk check is broken")
 		// we don't care what req is for this case
 
