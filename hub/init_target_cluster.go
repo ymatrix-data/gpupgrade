@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 
@@ -21,47 +20,47 @@ import (
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
-func (s *Server) GenerateInitsystemConfig(ports []uint32) (int, error) {
+func (s *Server) GenerateInitsystemConfig() error {
 	sourceDBConn := db.NewDBConn("localhost", int(s.Source.MasterPort()), "template1")
-	return s.writeConf(sourceDBConn, ports)
+	return s.writeConf(sourceDBConn)
 }
 
 func (s *Server) initsystemConfPath() string {
 	return filepath.Join(s.StateDir, "gpinitsystem_config")
 }
 
-func (s *Server) writeConf(sourceDBConn *dbconn.DBConn, ports []uint32) (int, error) {
+func (s *Server) writeConf(sourceDBConn *dbconn.DBConn) error {
 	err := sourceDBConn.Connect(1)
 	if err != nil {
-		return 0, errors.Wrap(err, "could not connect to database")
+		return errors.Wrap(err, "could not connect to database")
 	}
 	defer sourceDBConn.Close()
 
 	gpinitsystemConfig, err := CreateInitialInitsystemConfig(s.Source.MasterDataDir())
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	gpinitsystemConfig, err = GetCheckpointSegmentsAndEncoding(gpinitsystemConfig, sourceDBConn)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	gpinitsystemConfig, masterPort, err := WriteSegmentArray(gpinitsystemConfig, s.Source, ports)
+	gpinitsystemConfig, err = WriteSegmentArray(gpinitsystemConfig, s.Source, s.TargetPorts)
 	if err != nil {
-		return 0, xerrors.Errorf("generating segment array: %w", err)
+		return xerrors.Errorf("generating segment array: %w", err)
 	}
 
-	return masterPort, WriteInitsystemFile(gpinitsystemConfig, s.initsystemConfPath())
+	return WriteInitsystemFile(gpinitsystemConfig, s.initsystemConfPath())
 }
 
-func (s *Server) CreateTargetCluster(stream step.OutStreams, masterPort int) error {
+func (s *Server) CreateTargetCluster(stream step.OutStreams) error {
 	err := s.InitTargetCluster(stream)
 	if err != nil {
 		return err
 	}
 
-	conn := db.NewDBConn("localhost", masterPort, "template1")
+	conn := db.NewDBConn("localhost", s.TargetPorts.Master, "template1")
 	defer conn.Close()
 
 	s.Target, err = utils.ClusterFromDB(conn, s.Target.BinDir)
@@ -140,79 +139,40 @@ func upgradeDataDir(path string) string {
 	return filepath.Join(parent, filepath.Base(path))
 }
 
-// sanitize sorts and deduplicates a slice of port numbers.
-func sanitize(ports []uint32) []uint32 {
-	sort.Slice(ports, func(i, j int) bool { return ports[i] < ports[j] })
-
-	dedupe := ports[:0] // point at the same backing array
-
-	var last uint32
-	for i, port := range ports {
-		if i == 0 || port != last {
-			dedupe = append(dedupe, port)
-		}
-		last = port
-	}
-
-	return dedupe
-}
-
-func WriteSegmentArray(config []string, source *utils.Cluster, ports []uint32) ([]string, int, error) {
+// TODO: This function is two-in-one -- create the correct port topology, then
+// write it to disk. Let's pull the two concerns apart and try to see if we can
+// deduplicate any of the annoying bits.
+func WriteSegmentArray(config []string, source *utils.Cluster, ports PortAssignments) ([]string, error) {
 	// Partition segments by host in order to correctly assign ports.
 	segmentsByHost := make(map[string][]utils.SegConfig)
 	for _, content := range source.ContentIDs {
 		if content == -1 {
-			continue
+			continue // already reserved
 		}
 		segment := source.Primaries[content]
 		segmentsByHost[segment.Hostname] = append(segmentsByHost[segment.Hostname], segment)
 	}
-
-	if len(ports) == 0 {
-		// Create a default port range, starting with the pg_upgrade default of
-		// 50432. Reserve enough ports to handle the host with the most
-		// segments.
-		var maxSegs int
-		for _, segments := range segmentsByHost {
-			if len(segments) > maxSegs {
-				maxSegs = len(segments)
-			}
-		}
-
-		// Add 1 for the reserved master port
-		for i := 0; i < maxSegs+1; i++ {
-			ports = append(ports, uint32(50432+i))
-		}
-	}
-
-	ports = sanitize(ports)
-	masterPort := ports[0]
-	segmentPorts := ports[1:]
 
 	// Use a copy of the source cluster's segment configs rather than modifying
 	// the source cluster. This keeps the in-memory representation of source
 	// cluster consistent with its on-disk representation.
 	copySegments := make(map[int]utils.SegConfig)
 	for _, segments := range segmentsByHost {
-		if len(segmentPorts) < len(segments) {
-			return nil, 0, errors.New("not enough ports for each segment")
-		}
-
 		for i, segment := range segments {
-			segment.Port = int(segmentPorts[i])
+			segment.Port = ports.Primaries[i]
 			copySegments[segment.ContentID] = segment
 		}
 	}
 
 	master, ok := source.Primaries[-1]
 	if !ok {
-		return nil, 0, errors.New("old cluster contains no master segment")
+		return nil, errors.New("old cluster contains no master segment")
 	}
 
 	config = append(config,
 		fmt.Sprintf("QD_PRIMARY_ARRAY=%s~%d~%s~%d~%d~0",
 			master.Hostname,
-			masterPort,
+			ports.Master,
 			upgradeDataDir(master.DataDir),
 			master.DbID,
 			master.ContentID,
@@ -238,7 +198,7 @@ func WriteSegmentArray(config []string, source *utils.Cluster, ports []uint32) (
 	}
 	config = append(config, ")")
 
-	return config, int(masterPort), nil
+	return config, nil
 }
 
 func CreateAllDataDirectories(agentConns []*Connection, source *utils.Cluster) error {

@@ -358,10 +358,19 @@ type Config struct {
 	Source *utils.Cluster
 	Target *utils.Cluster
 
-	Port             int
-	AgentPort        int
-	UseLinkMode      bool
-	TargetMasterPort int
+	// TargetPorts is the list of temporary ports to be used for the target
+	// cluster. It's assigned during initial configuration.
+	TargetPorts PortAssignments
+
+	Port        int
+	AgentPort   int
+	UseLinkMode bool
+}
+
+type PortAssignments struct {
+	Master    int
+	Standby   int
+	Primaries []int
 }
 
 func (c *Config) Load(r io.Reader) error {

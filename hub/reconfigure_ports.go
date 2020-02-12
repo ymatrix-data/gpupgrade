@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/pkg/errors"
-
-	"github.com/greenplum-db/gpupgrade/idl"
-
-	"github.com/greenplum-db/gpupgrade/utils"
-
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
+
+	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 var ErrContentMismatch = errors.New("content ids do not match")
@@ -109,7 +107,7 @@ func commitOrRollback(tx *sql.Tx, err error) error {
 	return nil
 }
 
-// clonePortsFromCluster will modify the gp_segment_configuration of the passed
+// ClonePortsFromCluster will modify the gp_segment_configuration of the passed
 // sql.DB to match the cluster port settings from the source utils.Cluster.
 //
 // As a reminder to developers, we don't have any mirrors up at this point on
@@ -131,25 +129,42 @@ func ClonePortsFromCluster(db *sql.DB, src *utils.Cluster) (err error) {
 	}
 
 	for _, content := range src.ContentIDs {
-		port := src.Primaries[content].Port
-		res, err := tx.Exec("UPDATE gp_segment_configuration SET port = $1 WHERE content = $2",
-			port, content)
+		err := updatePort(tx, src.Primaries[content])
 		if err != nil {
-			return xerrors.Errorf("updating segment configuration: %w", err)
+			return err
 		}
 
-		// We should have updated only one row. More than one implies that
-		// gp_segment_configuration has a primary and a mirror up for a single
-		// content ID, and we can't handle mirrors at this point.
-		rows, err := res.RowsAffected()
-		if err != nil {
-			// An error should only occur here if the driver does not support
-			// this call, and we know that the postgres driver does.
-			panic(fmt.Sprintf("retrieving number of rows updated: %v", err))
+		// TODO: allow all mirrors into this code. For now we only allow
+		// standbys.
+		if mirror, ok := src.Mirrors[content]; ok && content == -1 {
+			err := updatePort(tx, mirror)
+			if err != nil {
+				return err
+			}
 		}
-		if rows != 1 {
-			return xerrors.Errorf("updated %d rows for content %d, expected 1", rows, content)
-		}
+	}
+
+	return nil
+}
+
+func updatePort(tx *sql.Tx, seg utils.SegConfig) error {
+	res, err := tx.Exec("UPDATE gp_segment_configuration SET port = $1 WHERE content = $2 AND role = $3",
+		seg.Port, seg.ContentID, seg.Role)
+	if err != nil {
+		return xerrors.Errorf("updating segment configuration: %w", err)
+	}
+
+	// We should have updated only one row. More than one implies that
+	// gp_segment_configuration has a primary and a mirror up for a single
+	// content ID, and we can't handle mirrors at this point.
+	rows, err := res.RowsAffected()
+	if err != nil {
+		// An error should only occur here if the driver does not support
+		// this call, and we know that the postgres driver does.
+		panic(fmt.Sprintf("retrieving number of rows updated: %v", err))
+	}
+	if rows != 1 {
+		return xerrors.Errorf("updated %d rows for content %d, expected 1", rows, seg.ContentID)
 	}
 
 	return nil
@@ -181,7 +196,7 @@ func UpdateCatalogWithPortInformation(source, target *utils.Cluster) error {
 func UpdateMasterPostgresqlConf(source, target *utils.Cluster) error {
 	script := fmt.Sprintf(
 		"sed 's/port=%d/port=%d/' %[3]s/postgresql.conf > %[3]s/postgresql.conf.updated && "+
-			"mv %[3]s/postgresql.conf %[3]s/postgresql.conf.bak && "+
+			"mv %[3]s/postgresql.conf %[3]s/postgresql.conf.bak && "+ // XXX not atomic! failure here means we lost the .conf
 			"mv %[3]s/postgresql.conf.updated %[3]s/postgresql.conf",
 		target.MasterPort(), source.MasterPort(), target.MasterDataDir(),
 	)
