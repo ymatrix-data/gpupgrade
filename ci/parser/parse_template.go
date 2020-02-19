@@ -30,6 +30,7 @@ type Data struct {
 	SourceVersions, TargetVersions []string
 	VersionPairs                   []*VersionPair
 	LastTargetVersion              string
+	WithStandby                    []bool
 }
 
 var data Data
@@ -52,6 +53,7 @@ func init() {
 		TargetVersions:    targetVersions,
 		VersionPairs:      versionPairs,
 		LastTargetVersion: targetVersions[len(targetVersions)-1],
+		WithStandby:       []bool{true, false}, // XXX this seems silly. Any way to do it inline?
 	}
 }
 
