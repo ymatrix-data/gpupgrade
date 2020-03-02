@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
-
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
@@ -48,7 +47,7 @@ func (s *Server) Initialize(in *idl.InitializeRequest, stream idl.CliToHub_Initi
 	})
 
 	st.Run(idl.Substep_START_AGENTS, func(_ step.OutStreams) error {
-		_, err := RestartAgents(context.Background(), nil, s.Source.GetHostnames(), s.AgentPort, s.StateDir)
+		_, err := RestartAgents(context.Background(), nil, AgentHosts(s.Source), s.AgentPort, s.StateDir)
 		return err
 	})
 

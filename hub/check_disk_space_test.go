@@ -75,9 +75,11 @@ func TestCheckDiskSpace(t *testing.T) {
 
 		c = MustCreateCluster(t, []utils.SegConfig{
 			{ContentID: -1, Hostname: "mdw", DataDir: "/data/master", Role: "p"},
+			{ContentID: -1, Hostname: "smdw", DataDir: "/data/standby", Role: "m"},
 			{ContentID: 0, Hostname: "sdw1", DataDir: "/data/primary", Role: "p"},
 			{ContentID: 1, Hostname: "sdw2", DataDir: "/data/primary", Role: "p"},
 			{ContentID: 2, Hostname: "sdw2", DataDir: "/data/primary2", Role: "p"},
+			{ContentID: 2, Hostname: "sdw3", DataDir: "/data/mirror2", Role: "m"},
 		})
 		req = &idl.CheckDiskSpaceRequest{Ratio: 0.25}
 
@@ -87,6 +89,16 @@ func TestCheckDiskSpace(t *testing.T) {
 			Required:  scale(d.Size(), 0.25),
 			Available: scale(d.Size(), 0.5),
 		}
+
+		smdw := mock_idl.NewMockAgentClient(ctrl)
+		smdw.EXPECT().
+			CheckDiskSpace(ctx, &idl.CheckSegmentDiskSpaceRequest{
+				Request:  req,
+				Datadirs: []string{"/data/standby"},
+			}).
+			Return(&idl.CheckDiskSpaceReply{
+				Failed: disk.SpaceFailures{"/": usage},
+			}, nil)
 
 		sdw1 := mock_idl.NewMockAgentClient(ctrl)
 		sdw1.EXPECT().
@@ -108,14 +120,28 @@ func TestCheckDiskSpace(t *testing.T) {
 				Failed: disk.SpaceFailures{"/": usage},
 			}, nil)
 
+		sdw3 := mock_idl.NewMockAgentClient(ctrl)
+		sdw3.EXPECT().
+			CheckDiskSpace(ctx, equivalentRequest(&idl.CheckSegmentDiskSpaceRequest{
+				Request:  req,
+				Datadirs: []string{"/data/mirror2"},
+			})).
+			Return(&idl.CheckDiskSpaceReply{
+				Failed: disk.SpaceFailures{"/": usage},
+			}, nil)
+
 		agents = []*Connection{
+			{Hostname: "smdw", AgentClient: smdw},
 			{Hostname: "sdw1", AgentClient: sdw1},
 			{Hostname: "sdw2", AgentClient: sdw2},
+			{Hostname: "sdw3", AgentClient: sdw3},
 		}
 
 		check(t, disk.SpaceFailures{
+			"smdw: /": usage,
 			"sdw1: /": usage,
 			"sdw2: /": usage,
+			"sdw3: /": usage,
 		})
 	})
 
