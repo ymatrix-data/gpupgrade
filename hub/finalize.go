@@ -36,7 +36,7 @@ func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeSe
 			}
 
 			return UpgradeStandby(greenplumRunner, StandbyConfig{
-				Port:          s.TargetPorts.Standby,
+				Port:          s.TargetInitializeConfig.Standby.Port,
 				Hostname:      s.Source.StandbyHostname(),
 				DataDirectory: s.Source.StandbyDataDirectory() + "_upgrade",
 			})

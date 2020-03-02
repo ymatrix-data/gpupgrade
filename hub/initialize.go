@@ -105,7 +105,7 @@ func (s *Server) fillClusterConfigsSubStep(_ step.OutStreams, request *idl.Initi
 		ports = append(ports, int(p))
 	}
 
-	s.TargetPorts, err = assignPorts(s.Source, ports)
+	s.TargetInitializeConfig, err = AssignDatadirsAndPorts(s.Source, ports)
 	if err != nil {
 		return err
 	}
@@ -117,32 +117,73 @@ func (s *Server) fillClusterConfigsSubStep(_ step.OutStreams, request *idl.Initi
 	return nil
 }
 
-func assignPorts(source *utils.Cluster, ports []int) (PortAssignments, error) {
+func AssignDatadirsAndPorts(source *utils.Cluster, ports []int) (InitializeConfig, error) {
 	if len(ports) == 0 {
-		return defaultTargetPorts(source), nil
+		return assignDatadirsAndDefaultPorts(source), nil
 	}
 
 	ports = sanitize(ports)
-	if err := checkTargetPorts(source, ports); err != nil {
-		return PortAssignments{}, err
+
+	return assignDatadirsAndCustomPorts(source, ports)
+}
+
+// can return an error if we run out of ports to use
+func assignDatadirsAndCustomPorts(source *utils.Cluster, ports []int) (InitializeConfig, error) {
+	targetInitializeConfig := InitializeConfig{}
+
+	nextPortIndex := 0
+
+	if master, ok := source.Primaries[-1]; ok {
+		// Reserve a port for the master.
+		if nextPortIndex > len(ports)-1 {
+			return InitializeConfig{}, errors.New("not enough ports")
+		}
+		master.Port = ports[nextPortIndex]
+		master.DataDir = upgradeDataDir(master.DataDir)
+		targetInitializeConfig.Master = master
+		nextPortIndex++
 	}
 
-	// Pop the first port off for master.
-	masterPort := ports[0]
-	ports = ports[1:]
-
-	var standbyPort int
-	if _, ok := source.Mirrors[-1]; ok {
-		// Pop the next port off for standby.
-		standbyPort = ports[0]
-		ports = ports[1:]
+	if standby, ok := source.Mirrors[-1]; ok {
+		// Reserve a port for the standby.
+		if nextPortIndex > len(ports)-1 {
+			return InitializeConfig{}, errors.New("not enough ports")
+		}
+		standby.Port = ports[nextPortIndex]
+		standby.DataDir = upgradeDataDir(standby.DataDir)
+		targetInitializeConfig.Standby = standby
+		nextPortIndex++
 	}
 
-	return PortAssignments{
-		Master:    masterPort,
-		Standby:   standbyPort,
-		Primaries: ports,
-	}, nil
+	portIndexByHost := make(map[string]int)
+
+	for _, content := range source.ContentIDs {
+		// Skip the master segment
+		if content == -1 {
+			continue
+		}
+
+		segment := source.Primaries[content]
+
+		if portIndex, ok := portIndexByHost[segment.Hostname]; ok {
+			if portIndex > len(ports)-1 {
+				return InitializeConfig{}, errors.New("not enough ports")
+			}
+			segment.Port = ports[portIndex]
+			portIndexByHost[segment.Hostname]++
+		} else {
+			if nextPortIndex > len(ports)-1 {
+				return InitializeConfig{}, errors.New("not enough ports")
+			}
+			segment.Port = ports[nextPortIndex]
+			portIndexByHost[segment.Hostname] = nextPortIndex + 1
+		}
+		segment.DataDir = upgradeDataDir(segment.DataDir)
+
+		targetInitializeConfig.Primaries = append(targetInitializeConfig.Primaries, segment)
+	}
+
+	return targetInitializeConfig, nil
 }
 
 // sanitize sorts and deduplicates a slice of port numbers.
@@ -165,85 +206,50 @@ func sanitize(ports []int) []int {
 // defaultPorts generates the minimum temporary port range necessary to handle a
 // cluster of the given topology. The first port in the list is meant to be used
 // for the master.
-func defaultTargetPorts(source *utils.Cluster) PortAssignments {
-	// Partition segments by host in order to correctly assign ports.
-	segmentsByHost := make(map[string][]utils.SegConfig)
+func assignDatadirsAndDefaultPorts(source *utils.Cluster) InitializeConfig {
+	targetInitializeConfig := InitializeConfig{}
 
-	for content, segment := range source.Primaries {
-		// Exclude the master for now. We want to give it its own reserved port,
-		// which does not overlap with the other segments, so we'll add it back
-		// later.
-		if content == -1 {
-			continue
-		}
-		segmentsByHost[segment.Hostname] = append(segmentsByHost[segment.Hostname], segment)
-	}
+	nextPort := 50432
 
-	const masterPort = 50432
-	nextPort := masterPort + 1
-
-	var standbyPort int
-	if _, ok := source.Mirrors[-1]; ok {
-		// Reserve another port for the standby.
-		standbyPort = nextPort
+	if master, ok := source.Primaries[-1]; ok {
+		// Reserve a port for the master.
+		master.Port = nextPort
+		master.DataDir = upgradeDataDir(master.DataDir)
+		targetInitializeConfig.Master = master
 		nextPort++
 	}
 
-	// Reserve enough ports to handle the host with the most segments.
-	var maxSegs int
-	for _, segments := range segmentsByHost {
-		if len(segments) > maxSegs {
-			maxSegs = len(segments)
-		}
-	}
-
-	var primaryPorts []int
-	for i := 0; i < maxSegs; i++ {
-		primaryPorts = append(primaryPorts, nextPort)
+	if standby, ok := source.Mirrors[-1]; ok {
+		// Reserve a port for the standby.
+		standby.Port = nextPort
+		standby.DataDir = upgradeDataDir(standby.DataDir)
+		targetInitializeConfig.Standby = standby
 		nextPort++
 	}
 
-	return PortAssignments{
-		Master:    masterPort,
-		Standby:   standbyPort,
-		Primaries: primaryPorts,
-	}
-}
+	portByHost := make(map[string]int)
 
-// checkTargetPorts ensures that the temporary port range passed by the user has
-// enough ports to cover a cluster of the given topology. This function assumes
-// the port list has at least one port.
-func checkTargetPorts(source *utils.Cluster, desiredPorts []int) error {
-	if len(desiredPorts) == 0 {
-		// failed precondition
-		panic("checkTargetPorts() must be called with at least one port")
-	}
-
-	segmentsByHost := make(map[string][]utils.SegConfig)
-
-	numAvailablePorts := len(desiredPorts)
-	numAvailablePorts-- // master always takes one
-
-	for content, segment := range source.Primaries {
-		// Exclude the master; it's taken care of with the first port.
+	for _, content := range source.ContentIDs {
+		// Skip the master segment
 		if content == -1 {
 			continue
 		}
-		segmentsByHost[segment.Hostname] = append(segmentsByHost[segment.Hostname], segment)
-	}
 
-	if _, ok := source.Mirrors[-1]; ok {
-		// The standby will take a port from the pool.
-		numAvailablePorts--
-	}
+		segment := source.Primaries[content]
 
-	for _, segments := range segmentsByHost {
-		if numAvailablePorts < len(segments) {
-			return errors.New("not enough ports for each segment")
+		if port, ok := portByHost[segment.Hostname]; ok {
+			segment.Port = port
+			portByHost[segment.Hostname]++
+		} else {
+			segment.Port = nextPort
+			portByHost[segment.Hostname] = nextPort + 1
 		}
+		segment.DataDir = upgradeDataDir(segment.DataDir)
+
+		targetInitializeConfig.Primaries = append(targetInitializeConfig.Primaries, segment)
 	}
 
-	return nil
+	return targetInitializeConfig
 }
 
 func getAgentPath() (string, error) {

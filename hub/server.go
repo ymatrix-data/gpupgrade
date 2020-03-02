@@ -352,6 +352,12 @@ func (s *Server) closeAgentConns() {
 	}
 }
 
+type InitializeConfig struct {
+	Standby    utils.SegConfig
+	Master	   utils.SegConfig
+	Primaries  []utils.SegConfig
+}
+
 // Config contains all the information that will be persisted to/loaded from
 // from disk during calls to Save() and Load().
 type Config struct {
@@ -360,17 +366,11 @@ type Config struct {
 
 	// TargetPorts is the list of temporary ports to be used for the target
 	// cluster. It's assigned during initial configuration.
-	TargetPorts PortAssignments
+	TargetInitializeConfig InitializeConfig
 
 	Port        int
 	AgentPort   int
 	UseLinkMode bool
-}
-
-type PortAssignments struct {
-	Master    int
-	Standby   int
-	Primaries []int
 }
 
 func (c *Config) Load(r io.Reader) error {

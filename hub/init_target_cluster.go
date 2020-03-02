@@ -46,7 +46,7 @@ func (s *Server) writeConf(sourceDBConn *dbconn.DBConn) error {
 		return err
 	}
 
-	gpinitsystemConfig, err = WriteSegmentArray(gpinitsystemConfig, s.Source, s.TargetPorts)
+	gpinitsystemConfig, err = WriteSegmentArray(gpinitsystemConfig, s.TargetInitializeConfig)
 	if err != nil {
 		return xerrors.Errorf("generating segment array: %w", err)
 	}
@@ -60,7 +60,7 @@ func (s *Server) CreateTargetCluster(stream step.OutStreams) error {
 		return err
 	}
 
-	conn := db.NewDBConn("localhost", s.TargetPorts.Master, "template1")
+	conn := db.NewDBConn("localhost", s.TargetInitializeConfig.Master.Port, "template1")
 	defer conn.Close()
 
 	s.Target, err = utils.ClusterFromDB(conn, s.Target.BinDir)
@@ -139,58 +139,30 @@ func upgradeDataDir(path string) string {
 	return filepath.Join(parent, filepath.Base(path))
 }
 
-// TODO: This function is two-in-one -- create the correct port topology, then
-// write it to disk. Let's pull the two concerns apart and try to see if we can
-// deduplicate any of the annoying bits.
-func WriteSegmentArray(config []string, source *utils.Cluster, ports PortAssignments) ([]string, error) {
-	// Partition segments by host in order to correctly assign ports.
-	segmentsByHost := make(map[string][]utils.SegConfig)
-	for _, content := range source.ContentIDs {
-		if content == -1 {
-			continue // already reserved
-		}
-		segment := source.Primaries[content]
-		segmentsByHost[segment.Hostname] = append(segmentsByHost[segment.Hostname], segment)
-	}
-
-	// Use a copy of the source cluster's segment configs rather than modifying
-	// the source cluster. This keeps the in-memory representation of source
-	// cluster consistent with its on-disk representation.
-	copySegments := make(map[int]utils.SegConfig)
-	for _, segments := range segmentsByHost {
-		for i, segment := range segments {
-			segment.Port = ports.Primaries[i]
-			copySegments[segment.ContentID] = segment
-		}
-	}
-
-	master, ok := source.Primaries[-1]
-	if !ok {
+func WriteSegmentArray(config []string, targetInitializeConfig InitializeConfig) ([]string, error) {
+	//Partition segments by host in order to correctly assign ports.
+	if targetInitializeConfig.Master == (utils.SegConfig{}) {
 		return nil, errors.New("old cluster contains no master segment")
 	}
 
+	master := targetInitializeConfig.Master
 	config = append(config,
 		fmt.Sprintf("QD_PRIMARY_ARRAY=%s~%d~%s~%d~%d~0",
 			master.Hostname,
-			ports.Master,
-			upgradeDataDir(master.DataDir),
+			master.Port,
+			master.DataDir,
 			master.DbID,
 			master.ContentID,
 		),
 	)
 
 	config = append(config, "declare -a PRIMARY_ARRAY=(")
-	for _, content := range source.ContentIDs {
-		if content == -1 {
-			continue
-		}
-
-		segment := copySegments[content]
+	for _, segment := range targetInitializeConfig.Primaries {
 		config = append(config,
 			fmt.Sprintf("\t%s~%d~%s~%d~%d~0",
 				segment.Hostname,
 				segment.Port,
-				upgradeDataDir(segment.DataDir),
+				segment.DataDir,
 				segment.DbID,
 				segment.ContentID,
 			),

@@ -82,10 +82,10 @@ func TestGetCheckpointSegmentsAndEncoding(t *testing.T) {
 }
 
 func TestWriteSegmentArray(t *testing.T) {
-	test := func(t *testing.T, cluster *utils.Cluster, ports PortAssignments, expected []string) {
+	test := func(t *testing.T, initializeConfig InitializeConfig, expected []string) {
 		t.Helper()
 
-		actual, err := WriteSegmentArray([]string{}, cluster, ports)
+		actual, err := WriteSegmentArray([]string{}, initializeConfig)
 		if err != nil {
 			t.Errorf("got %#v", err)
 		}
@@ -107,15 +107,16 @@ func TestWriteSegmentArray(t *testing.T) {
 		}
 	}
 
-	t.Run("correctly chooses ports when the master and segments are all on different hosts", func(t *testing.T) {
-		cluster := MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p", PreferredRole: "p"},
-			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p", PreferredRole: "p"},
-			{ContentID: 1, DbID: 3, Hostname: "sdw2", DataDir: "/data/dbfast2/seg2", Role: "p", PreferredRole: "p"},
-		})
-		ports := PortAssignments{15433, 0, []int{15434}}
+	t.Run("renders the config file as expected", func(t *testing.T) {
+		config := InitializeConfig{
+			Master: utils.SegConfig{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir_upgrade/seg-1", Role: "p", Port: 15433},
+			Primaries: []utils.SegConfig{
+				{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1_upgrade/seg1", Role: "p", PreferredRole: "p", Port: 15434},
+				{ContentID: 1, DbID: 3, Hostname: "sdw2", DataDir: "/data/dbfast2_upgrade/seg2", Role: "p", PreferredRole: "p", Port: 15434},
+			},
+		}
 
-		test(t, cluster, ports, []string{
+		test(t, config, []string{
 			"QD_PRIMARY_ARRAY=mdw~15433~/data/qddir_upgrade/seg-1~1~-1~0",
 			"declare -a PRIMARY_ARRAY=(",
 			"\tsdw1~15434~/data/dbfast1_upgrade/seg1~2~0~0",
@@ -124,30 +125,9 @@ func TestWriteSegmentArray(t *testing.T) {
 		})
 	})
 
-	t.Run("correctly chooses ports when the master is on one host and segments on another", func(t *testing.T) {
-		cluster := MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, DbID: 1, Hostname: "mdw", DataDir: "/data/qddir/seg-1", Role: "p", PreferredRole: "p"},
-			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p", PreferredRole: "p"},
-			{ContentID: 1, DbID: 3, Hostname: "sdw1", DataDir: "/data/dbfast2/seg2", Role: "p", PreferredRole: "p"},
-		})
-		ports := PortAssignments{15433, 0, []int{25432, 25433}}
-
-		test(t, cluster, ports, []string{
-			"QD_PRIMARY_ARRAY=mdw~15433~/data/qddir_upgrade/seg-1~1~-1~0",
-			"declare -a PRIMARY_ARRAY=(",
-			"\tsdw1~25432~/data/dbfast1_upgrade/seg1~2~0~0",
-			"\tsdw1~25433~/data/dbfast2_upgrade/seg2~3~1~0",
-			")",
-		})
-	})
-
 	t.Run("errors when old cluster contains no master segment", func(t *testing.T) {
-		cluster := MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: 0, DbID: 2, Hostname: "sdw1", DataDir: "/data/dbfast1/seg1", Role: "p", PreferredRole: "p"},
-		})
-		ports := PortAssignments{15433, 0, []int{15434}}
+		_, err := WriteSegmentArray([]string{}, InitializeConfig{})
 
-		_, err := WriteSegmentArray([]string{}, cluster, ports)
 		if err == nil {
 			t.Errorf("expected error got nil")
 		}
