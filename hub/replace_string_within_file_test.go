@@ -3,6 +3,7 @@ package hub_test
 import (
 	"io/ioutil"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -44,9 +45,9 @@ func TestReplaceStringWithinFile(t *testing.T) {
 
 		bytes, err := ioutil.ReadFile(filePath)
 
-		actualString := string(bytes)
-		if actualString != "goodbye\n" {
-			t.Errorf("got %q, expected %q", actualString, "goodbye\n")
+		actualString := strings.TrimSpace(string(bytes))
+		if actualString != "goodbye" {
+			t.Errorf("got %q, expected %q", actualString, "goodbye")
 		}
 	})
 }
