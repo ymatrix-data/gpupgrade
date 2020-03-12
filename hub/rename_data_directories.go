@@ -21,7 +21,10 @@ func (s *Server) RenameDataDirectories() error {
 		return xerrors.Errorf("renaming source cluster master data directory: %w", err)
 	}
 
-	if err := RenameSegmentDataDirs(s.agentConns, s.Source, OldSuffix, false); err != nil {
+	// Include mirror and standby directories in the _old archiving.
+	// TODO: in --link mode, shouldn't we be _removing_ the mirror and standby
+	// directories?
+	if err := RenameSegmentDataDirs(s.agentConns, s.Source, "", OldSuffix, false); err != nil {
 		return xerrors.Errorf("renaming source cluster segment data directories: %w", err)
 	}
 
@@ -29,7 +32,9 @@ func (s *Server) RenameDataDirectories() error {
 		return xerrors.Errorf("renaming target cluster master data directory: %w", err)
 	}
 
-	if err := RenameSegmentDataDirs(s.agentConns, s.Target, UpgradeSuffix, true); err != nil {
+	// Do not include mirrors and standby when moving _upgrade directories,
+	// since they don't exist yet.
+	if err := RenameSegmentDataDirs(s.agentConns, s.Target, UpgradeSuffix, "", true); err != nil {
 		return xerrors.Errorf("renaming target cluster segment data directories: %w", err)
 	}
 
@@ -57,28 +62,38 @@ func RenameMasterDataDir(masterDataDir string, isSource bool) error {
 // e.g. for target /data/dbfast1_upgrade/demoDataDir0 becomes datadirs/dbfast1/demoDataDir0
 func RenameSegmentDataDirs(agentConns []*Connection,
 	cluster *utils.Cluster,
-	suffix string,
-	addSuffixToSrc bool) error {
+	oldSuffix, newSuffix string,
+	primariesOnly bool) error {
 
 	wg := sync.WaitGroup{}
 	errs := make(chan error, len(agentConns))
 
 	for _, conn := range agentConns {
 		conn := conn
-		excludingMaster := func(seg *utils.SegConfig) bool {
-			return seg.Hostname == conn.Hostname &&
-				!(seg.ContentID == -1 && seg.Role == "p")
+
+		selector := func(seg *utils.SegConfig) bool {
+			if seg.Hostname != conn.Hostname || seg.IsMaster() {
+				return false
+			}
+
+			if primariesOnly {
+				return seg.Role == "p"
+			}
+
+			// Otherwise include mirrors and standby. (Master's excluded above.)
+			return true
+		}
+
+		segments := cluster.SelectSegments(selector)
+		if len(segments) == 0 {
+			// we can have mirror-only and standby-only hosts, which we don't
+			// care about here (they are added later)
+			continue
 		}
 
 		wg.Add(1)
-		go func(c *Connection) {
+		go func() {
 			defer wg.Done()
-
-			segments := cluster.SelectSegments(excludingMaster)
-			if len(segments) == 0 {
-				errs <- utils.UnknownHostError{conn.Hostname}
-				return
-			}
 
 			// When there are multiple segments under a parent data directory
 			// only call rename once on the parent directory.
@@ -108,23 +123,18 @@ func RenameSegmentDataDirs(agentConns []*Connection,
 
 			req := new(idl.RenameDirectoriesRequest)
 			for _, dir := range parentDirs {
-				dst := dir
-				src := dir
-				if addSuffixToSrc {
-					src = dir + suffix
-				} else {
-					dst = dir + suffix
-				}
+				src := dir + oldSuffix
+				dst := dir + newSuffix
 
 				req.Pairs = append(req.Pairs, &idl.RenamePair{Src: src, Dst: dst})
 			}
 
-			_, err := c.AgentClient.RenameDirectories(context.Background(), req)
+			_, err := conn.AgentClient.RenameDirectories(context.Background(), req)
 			if err != nil {
-				gplog.Error("renaming segment data directories on host %s: %s", c.Hostname, err.Error())
+				gplog.Error("renaming segment data directories on host %s: %s", conn.Hostname, err.Error())
 				errs <- err
 			}
-		}(conn)
+		}()
 	}
 
 	wg.Wait()

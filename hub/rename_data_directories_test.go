@@ -87,7 +87,7 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 
 	testhelper.SetupTestLogger() // initialize gplog
 
-	t.Run("adds suffix to source path including standby", func(t *testing.T) {
+	t.Run("removes suffix from directory excluding mirrors/standby", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -98,9 +98,6 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 				Pairs: []*idl.RenamePair{{
 					Src: "/data/dbfast1_upgrade",
 					Dst: "/data/dbfast1",
-				}, {
-					Src: "/data/dbfast_mirror1_upgrade",
-					Dst: "/data/dbfast_mirror1",
 				}},
 			},
 		).Return(&idl.RenameDirectoriesReply{}, nil)
@@ -112,23 +109,12 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 				Pairs: []*idl.RenamePair{{
 					Src: "/data/dbfast2_upgrade",
 					Dst: "/data/dbfast2",
-				}, {
-					Src: "/data/dbfast_mirror2_upgrade",
-					Dst: "/data/dbfast_mirror2",
 				}},
 			},
 		).Return(&idl.RenameDirectoriesReply{}, nil)
 
 		client3 := mock_idl.NewMockAgentClient(ctrl)
-		client3.EXPECT().RenameDirectories(
-			gomock.Any(),
-			&idl.RenameDirectoriesRequest{
-				Pairs: []*idl.RenamePair{{
-					Src: "/data/standby_upgrade",
-					Dst: "/data/standby",
-				}},
-			},
-		).Return(&idl.RenameDirectoriesReply{}, nil)
+		// NOTE: we expect no call to the standby
 
 		agentConns := []*hub.Connection{
 			{nil, client1, "sdw1", nil},
@@ -136,13 +122,13 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 			{nil, client3, "standby", nil},
 		}
 
-		err := hub.RenameSegmentDataDirs(agentConns, c, hub.UpgradeSuffix, true)
+		err := hub.RenameSegmentDataDirs(agentConns, c, hub.UpgradeSuffix, "", true)
 		if err != nil {
 			t.Errorf("unexpected err %#v", err)
 		}
 	})
 
-	t.Run("add suffix to destination path including standby", func(t *testing.T) {
+	t.Run("adds suffix to directory including mirrors/standby", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -191,7 +177,7 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 			{nil, client3, "standby", nil},
 		}
 
-		err := hub.RenameSegmentDataDirs(agentConns, c, hub.OldSuffix, false)
+		err := hub.RenameSegmentDataDirs(agentConns, c, "", hub.OldSuffix, false)
 		if err != nil {
 			t.Errorf("unexpected err %#v", err)
 		}
@@ -219,7 +205,7 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 			{nil, failedClient, "sdw2", nil},
 		}
 
-		err := hub.RenameSegmentDataDirs(agentConns, c, hub.UpgradeSuffix, false)
+		err := hub.RenameSegmentDataDirs(agentConns, c, hub.UpgradeSuffix, "", true)
 
 		var multiErr *multierror.Error
 		if !xerrors.As(err, &multiErr) {
@@ -233,37 +219,6 @@ func TestRenameSegmentDataDirs(t *testing.T) {
 		for _, err := range multiErr.Errors {
 			if !xerrors.Is(err, expected) {
 				t.Errorf("got error %#v, want %#v", expected, err)
-			}
-		}
-	})
-
-	t.Run("returns error when failing to get segments for host", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		c := hub.MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, DbID: 1, Port: 15432, Hostname: "localhost", DataDir: "/data/qddir/seg-1", Role: utils.PrimaryRole},
-		})
-
-		agentConns := []*hub.Connection{
-			{nil, mock_idl.NewMockAgentClient(ctrl), "localhost", nil},
-		}
-
-		err := hub.RenameSegmentDataDirs(agentConns, c, hub.UpgradeSuffix, false)
-
-		var multiErr *multierror.Error
-		if !xerrors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		expected := utils.UnknownHostError{Hostname: "localhost"}
-		for _, err := range multiErr.Errors {
-			if !xerrors.Is(err, expected) {
-				t.Errorf("got error %#v, want %#v", err, expected)
 			}
 		}
 	})

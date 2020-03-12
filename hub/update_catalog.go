@@ -108,7 +108,7 @@ func contentsMatch(src map[int]utils.SegConfig, dst map[int]bool) bool {
 	return true
 }
 
-// TODO: add standby check here too
+// TODO: add standby/mirrors check here too
 func sanityCheckContentIDs(tx *sql.Tx, src *utils.Cluster) error {
 	rows, err := tx.Query("SELECT content FROM gp_segment_configuration")
 	if err != nil {
@@ -181,6 +181,8 @@ func (s *Server) UpdateGpSegmentConfiguration(db *sql.DB) (err error) {
 				return
 			}
 
+			// TODO: this is out of sync now, as the standby/mirrors are added later.
+			//   replace with one without standby/mirrors
 			s.Target = origConf.Source
 			s.Target.BinDir = origConf.Target.BinDir
 			s.Target.Version = origConf.Target.Version
@@ -201,13 +203,6 @@ func (s *Server) UpdateGpSegmentConfiguration(db *sql.DB) (err error) {
 		err := updateConfiguration(tx, s.Source.Primaries[content])
 		if err != nil {
 			return err
-		}
-
-		if mirror, ok := s.Source.Mirrors[content]; ok {
-			err := updateConfiguration(tx, mirror)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
