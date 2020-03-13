@@ -46,8 +46,8 @@ func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeSe
 		return s.RenameDataDirectories()
 	})
 
-	st.Run(idl.Substep_FINALIZE_UPDATE_TARGET_CONF_FILES, func(_ step.OutStreams) error {
-		return s.UpdateConfFiles()
+	st.Run(idl.Substep_FINALIZE_UPDATE_TARGET_CONF_FILES, func(streams step.OutStreams) error {
+		return s.UpdateConfFiles(streams)
 	})
 
 	st.Run(idl.Substep_FINALIZE_START_TARGET_CLUSTER, func(streams step.OutStreams) error {

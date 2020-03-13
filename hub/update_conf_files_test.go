@@ -18,8 +18,6 @@ func TestUpdateConfFiles(t *testing.T) {
 	hub.SetExecCommand(exec.Command)
 	defer hub.ResetExecCommand()
 
-	hub.ResetReplaceStringWithinFile()
-
 	// This will be our "master data directory".
 	dir, err := ioutil.TempDir("", "gpupgrade-unit-")
 	if err != nil {
@@ -42,7 +40,7 @@ other_log_location = /some/directory
 `)
 
 		// Perform the replacement.
-		err = hub.UpdateGpperfmonConf(dir)
+		err = hub.UpdateGpperfmonConf(hub.DevNull, dir)
 		if err != nil {
 			t.Errorf("UpdateGpperfmonConf() returned error %+v", err)
 		}
@@ -86,7 +84,7 @@ port=50000
 		})
 
 		// Perform the replacement.
-		err = hub.UpdatePostgresqlConf(5000, target, source)
+		err = hub.UpdatePostgresqlConf(hub.DevNull, 5000, target, source)
 		if err != nil {
 			t.Errorf("UpdatePostgresqlConf() returned error %+v", err)
 		}
