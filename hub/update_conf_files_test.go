@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/greenplum-db/gpupgrade/hub"
-	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 // TODO: this is an integration test; move it
@@ -72,19 +71,8 @@ port=50000
 #port=5000
 `)
 
-		// NOTE: we set the source and target cluster ports equal to enforce that
-		// it's the oldTargetPort, and not target.MasterPort(), that matters.
-		//
-		// XXX That distinction seems unhelpful.
-		source := hub.MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, Role: "p", DataDir: "/does/not/exist", Port: 6000},
-		})
-		target := hub.MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, Role: "p", DataDir: dir, Port: 6000},
-		})
-
 		// Perform the replacement.
-		err = hub.UpdatePostgresqlConf(hub.DevNull, 5000, target, source)
+		err = hub.UpdatePostgresqlConf(hub.DevNull, dir, 5000, 6000)
 		if err != nil {
 			t.Errorf("UpdatePostgresqlConf() returned error %+v", err)
 		}

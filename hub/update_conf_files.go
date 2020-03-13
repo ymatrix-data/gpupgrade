@@ -5,15 +5,14 @@ import (
 	"path/filepath"
 
 	"github.com/greenplum-db/gpupgrade/step"
-	"github.com/greenplum-db/gpupgrade/utils"
 )
 
-func (s *Server) UpdateConfFiles(streams step.OutStreams) error {
-	if err := UpdateGpperfmonConf(streams, s.Target.MasterDataDir()); err != nil {
+func UpdateConfFiles(streams step.OutStreams, masterDataDir string, oldPort, newPort int) error {
+	if err := UpdateGpperfmonConf(streams, masterDataDir); err != nil {
 		return err
 	}
 
-	if err := UpdatePostgresqlConf(streams, s.TargetInitializeConfig.Master.Port, s.Target, s.Source); err != nil {
+	if err := UpdatePostgresqlConf(streams, masterDataDir, oldPort, newPort); err != nil {
 		return err
 	}
 
@@ -38,17 +37,13 @@ func UpdateGpperfmonConf(streams step.OutStreams, masterDataDir string) error {
 	return cmd.Run()
 }
 
-// oldTargetPort is the old port on which the target cluster was initialized.
-// This is used to search the postgresql.conf rather than target.MasterPort()
-// which has been changed to match the source cluster after updating the
-// catalog in a previous substep.
-func UpdatePostgresqlConf(streams step.OutStreams, oldTargetPort int, target *utils.Cluster, source *utils.Cluster) error {
+func UpdatePostgresqlConf(streams step.OutStreams, dataDir string, oldPort, newPort int) error {
 	// NOTE: any additions of forward slashes (/) here require an update to the
 	// sed script below
-	pattern := fmt.Sprintf(`(^port[ \t]*=[ \t]*)%d([^0-9]|$)`, oldTargetPort)
-	replacement := fmt.Sprintf(`\1%d\2`, source.MasterPort())
+	pattern := fmt.Sprintf(`(^port[ \t]*=[ \t]*)%d([^0-9]|$)`, oldPort)
+	replacement := fmt.Sprintf(`\1%d\2`, newPort)
 
-	path := filepath.Join(target.MasterDataDir(), "postgresql.conf")
+	path := filepath.Join(dataDir, "postgresql.conf")
 
 	cmd := execCommand(
 		"sed",

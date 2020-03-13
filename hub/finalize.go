@@ -47,7 +47,11 @@ func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeSe
 	})
 
 	st.Run(idl.Substep_FINALIZE_UPDATE_TARGET_CONF_FILES, func(streams step.OutStreams) error {
-		return s.UpdateConfFiles(streams)
+		return UpdateConfFiles(streams,
+			s.Target.MasterDataDir(),
+			s.TargetInitializeConfig.Master.Port,
+			s.Source.MasterPort(),
+		)
 	})
 
 	st.Run(idl.Substep_FINALIZE_START_TARGET_CLUSTER, func(streams step.OutStreams) error {
