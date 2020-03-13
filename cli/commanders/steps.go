@@ -42,7 +42,6 @@ var SubstepDescriptions = map[idl.Substep]substepText{
 	idl.Substep_FINALIZE_UPDATE_TARGET_CATALOG_AND_CLUSTER_CONFIG: substepText{"Updating target master catalog...", "Update target master catalog"},
 	idl.Substep_FINALIZE_RENAME_DATA_DIRECTORIES:                  substepText{"Renaming data directories...", "Rename data directories"},
 	idl.Substep_FINALIZE_UPDATE_TARGET_CONF_FILES:                 substepText{"Updating target master configuration files...", "Update target master configuration files"},
-	idl.Substep_FINALIZE_UPDATE_RECOVERY_CONFS:                    substepText{"Updating recovery.conf files on mirrors...", "Update recovery.conf files on mirrors"},
 	idl.Substep_FINALIZE_START_TARGET_CLUSTER:                     substepText{"Starting target cluster...", "Start target cluster"},
 }
 
