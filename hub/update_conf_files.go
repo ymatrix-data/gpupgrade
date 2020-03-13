@@ -2,6 +2,7 @@ package hub
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/greenplum-db/gpupgrade/utils"
 )
@@ -19,8 +20,9 @@ func (s *Server) UpdateConfFiles() error {
 }
 
 func UpdateGpperfmonConf(masterDataDir string) error {
-	configFile := fmt.Sprintf("%[1]s/gpperfmon/conf/gpperfmon.conf", masterDataDir)
-	replacement := fmt.Sprintf("log_location = %[1]s/gpperfmon/logs", masterDataDir)
+	configFile := filepath.Join(masterDataDir, "gpperfmon", "conf", "gpperfmon.conf")
+	logDir := filepath.Join(masterDataDir, "gpperfmon", "logs")
+	replacement := fmt.Sprintf("log_location = %s", logDir)
 
 	return ReplaceStringWithinFile("log_location = .*$",
 		replacement,
@@ -35,6 +37,6 @@ func UpdatePostgresqlConf(oldTargetPort int, target *utils.Cluster, source *util
 	return ReplaceStringWithinFile(
 		fmt.Sprintf("port=%d", oldTargetPort),
 		fmt.Sprintf("port=%d", source.MasterPort()),
-		fmt.Sprintf("%[1]s/postgresql.conf", target.MasterDataDir()),
+		filepath.Join(target.MasterDataDir(), "postgresql.conf"),
 	)
 }
