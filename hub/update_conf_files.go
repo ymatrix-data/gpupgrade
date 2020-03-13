@@ -24,9 +24,12 @@ func UpdateGpperfmonConf(masterDataDir string) error {
 	logDir := filepath.Join(masterDataDir, "gpperfmon", "logs")
 	replacement := fmt.Sprintf("log_location = %s", logDir)
 
-	return ReplaceStringWithinFile("log_location = .*$",
+	// TODO: allow arbitrary whitespace around the = sign?
+	return ReplaceStringWithinFile(
+		"^log_location = .*$",
 		replacement,
-		configFile)
+		configFile,
+	)
 }
 
 // oldTargetPort is the old port on which the target cluster was initialized.
