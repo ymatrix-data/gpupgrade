@@ -1,7 +1,10 @@
 package hub_test
 
 import (
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -44,44 +47,78 @@ func TestUpdateGpperfmonConf(t *testing.T) {
 	})
 }
 
+// TODO: this is an integration test; move it
 func TestUpdatePostgresqlConf(t *testing.T) {
-	testhelper.SetupTestLogger()
-
+	// Make execCommand "live" again
 	hub.SetExecCommand(exec.Command)
-	defer func() { hub.SetExecCommand(nil) }()
+	defer hub.ResetExecCommand()
 
-	t.Run("it updates the port within the target's postgresql.conf to be the source port ", func(t *testing.T) {
-		var usedPattern string
-		var usedReplacement string
-		var usedFile string
+	hub.ResetReplaceStringWithinFile()
 
-		hub.SetReplaceStringWithinFile(func(pattern string, replacement string, file string) error {
-			usedPattern = pattern
-			usedReplacement = replacement
-			usedFile = file
-			return nil
-		})
-
-		source = hub.MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, DataDir: "/some/source/master/data/dir", Port: 8888, Role: "p"},
-		})
-
-		target = hub.MustCreateCluster(t, []utils.SegConfig{
-			{ContentID: -1, DataDir: "/some/target/master/data/dir", Port: 7777, Role: "p"},
-		})
-
-		hub.UpdatePostgresqlConf(9999, target, source)
-
-		if usedPattern != "port=9999" {
-			t.Errorf("got %q, expected %q", usedPattern, "port=9999")
+	// This will be our "master data directory".
+	dir, err := ioutil.TempDir("", "gpupgrade-unit-")
+	if err != nil {
+		t.Fatalf("creating temporary directory: %+v", err)
+	}
+	defer func() {
+		if err := os.RemoveAll(dir); err != nil {
+			t.Fatalf("removing temporary directory: %+v", err)
 		}
+	}()
 
-		if usedReplacement != "port=8888" {
-			t.Errorf("got %q, expected %q", usedReplacement, "port=8888")
-		}
+	// Set up an example postgresql.conf.
+	path := filepath.Join(dir, "postgresql.conf")
+	original := `
+port=5000
+port=5000 # comment
+port = 5000 # make sure we can handle spaces
 
-		if usedFile != "/some/target/master/data/dir/postgresql.conf" {
-			t.Errorf("got %q, expected %q", usedFile, "/some/target/master/data/dir/postgresql.conf")
-		}
+# should not be replaced
+gpperfmon_port=5000
+port=50000
+#port=5000
+`
+
+	if err := ioutil.WriteFile(path, []byte(original), 0640); err != nil {
+		t.Fatalf("writing file contents: %+v", err)
+	}
+
+	// NOTE: we set the source and target cluster ports equal to enforce that
+	// it's the oldTargetPort, and not target.MasterPort(), that matters.
+	//
+	// XXX That distinction seems unhelpful.
+	source := hub.MustCreateCluster(t, []utils.SegConfig{
+		{ContentID: -1, Role: "p", DataDir: "/does/not/exist", Port: 6000},
 	})
+	target := hub.MustCreateCluster(t, []utils.SegConfig{
+		{ContentID: -1, Role: "p", DataDir: dir, Port: 6000},
+	})
+
+	// Perform the replacement.
+	err = hub.UpdatePostgresqlConf(5000, target, source)
+	if err != nil {
+		t.Errorf("UpdatePostgresqlConf() returned error %+v", err)
+	}
+
+	// Check the contents.
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading final contents: %+v", err)
+	}
+
+	actual := string(contents)
+	expected := `
+port=6000
+port=6000 # comment
+port = 6000 # make sure we can handle spaces
+
+# should not be replaced
+gpperfmon_port=5000
+port=50000
+#port=5000
+`
+
+	if actual != expected {
+		t.Errorf("replaced contents: %s\nwant: %s", actual, expected)
+	}
 }

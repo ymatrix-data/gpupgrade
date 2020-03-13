@@ -25,7 +25,13 @@ func replaceStringWithinFile(pattern string, replacement string, pathToFile stri
 	// XXX this isn't safe if the pattern or replacement contains @-signs
 	substitutionString := fmt.Sprintf("s@%s@%s@", pattern, replacement)
 
-	cmd := execCommand("sed", "-i.bak", substitutionString, pathToFile)
+	cmd := execCommand(
+		"sed",
+		"-E",     // use POSIX extended regexes
+		"-i.bak", // in-place substitution with .bak backup extension
+		substitutionString,
+		pathToFile,
+	)
 
 	// TODO: stream back output through the connection
 	_, err := cmd.Output()

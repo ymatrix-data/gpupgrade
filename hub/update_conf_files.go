@@ -35,8 +35,8 @@ func UpdateGpperfmonConf(masterDataDir string) error {
 // catalog in a previous substep.
 func UpdatePostgresqlConf(oldTargetPort int, target *utils.Cluster, source *utils.Cluster) error {
 	return ReplaceStringWithinFile(
-		fmt.Sprintf("port=%d", oldTargetPort),
-		fmt.Sprintf("port=%d", source.MasterPort()),
+		fmt.Sprintf(`(^port[ \t]*=[ \t]*)%d([^0-9]|$)`, oldTargetPort),
+		fmt.Sprintf(`\1%d\2`, source.MasterPort()),
 		filepath.Join(target.MasterDataDir(), "postgresql.conf"),
 	)
 }
