@@ -3,7 +3,6 @@ package hub
 import (
 	"fmt"
 
-	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"golang.org/x/xerrors"
 )
 
@@ -23,15 +22,12 @@ func ReplaceStringWithinFile(pattern string, replacement string, file string) er
 }
 
 func replaceStringWithinFile(pattern string, replacement string, pathToFile string) error {
-	script := fmt.Sprintf(
-		"sed 's@%[1]s@%[2]s@' %[3]s > %[3]s.updated && "+
-			"mv %[3]s %[3]s.bak && "+
-			"mv %[3]s.updated %[3]s",
-		pattern, replacement, pathToFile)
+	// XXX this isn't safe if the pattern or replacement contains @-signs
+	substitutionString := fmt.Sprintf("s@%s@%s@", pattern, replacement)
 
-	gplog.Debug("executing command: %+v", script) // TODO: Move this debug log into ExecuteLocalCommand()
+	cmd := execCommand("sed", "-i.bak", substitutionString, pathToFile)
 
-	cmd := execCommand("bash", "-c", script)
+	// TODO: stream back output through the connection
 	_, err := cmd.Output()
 	if err != nil {
 		return xerrors.Errorf("updating %s: %w", pathToFile, err)
