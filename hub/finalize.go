@@ -57,7 +57,8 @@ func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeSe
 			// XXX this probably indicates a bad abstraction
 			targetRunner.streams = streams
 
-			return UpgradeMirrors(s.StateDir, s.Target.MasterPort(), &s.TargetInitializeConfig, targetRunner)
+			return UpgradeMirrors(s.StateDir, s.Target.MasterPort(),
+				s.TargetInitializeConfig.Mirrors, targetRunner)
 		})
 	}
 
