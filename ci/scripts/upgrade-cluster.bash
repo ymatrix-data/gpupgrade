@@ -120,13 +120,12 @@ if ! compare_dumps /tmp/old.sql /tmp/new.sql; then
     exit 1
 fi
 
-# Test that mirrors actually work
-mirrorless=$(contents_without_mirror "${GPHOME_NEW}" mdw $MASTER_PORT)
-if [ -n "$mirrorless" ]; then
-    echo "skipping validate_mirrors_and_standby since these content ids do not have mirrors: ${mirrorless}"
-else
+# Test that mirrors and standby actually work
+if [[ "${MIRRORS}" = "1" && "${STANDBY}" = "1" ]]; then
     echo 'Doing failover tests of mirrors and standby...'
     validate_mirrors_and_standby "${GPHOME_NEW}" mdw $MASTER_PORT
+else
+    echo "skipping validate_mirrors_and_standby since the cluster does not have mirrors and a standby"
 fi
 
 echo 'Upgrade successful.'

@@ -23,27 +23,38 @@ import (
 var sourceVersions = []string{"5"}
 var targetVersions = []string{"6.1.0"}
 
-type VersionPair struct {
+type UpgradeJobs struct {
 	Source, Target string
+	PrimariesOnly  bool
+	NoStandby      bool
 }
+
 type Data struct {
 	SourceVersions, TargetVersions []string
-	VersionPairs                   []*VersionPair
+	UpgradeJobs                    []*UpgradeJobs
 	LastTargetVersion              string
-	WithStandby                    []bool
+	PrimariesOnly                  []bool
 }
 
 var data Data
 
 func init() {
-	// This function is used to ensure that the gcs-resource concourse plugin regex matches the version
-	// correctly. As an example if we didn't do this, 60100 would match version 6.1.0
-	var versionPairs []*VersionPair
+	var upgradeJobs []*UpgradeJobs
 	for _, sourceVersion := range sourceVersions {
 		for _, targetVersion := range targetVersions {
-			versionPairs = append(versionPairs, &VersionPair{
-				Source: sourceVersion,
-				Target: targetVersion,
+			upgradeJobs = append(upgradeJobs, &UpgradeJobs{
+				Source:        sourceVersion,
+				Target:        targetVersion,
+			})
+			upgradeJobs = append(upgradeJobs, &UpgradeJobs{
+				Source:        sourceVersion,
+				Target:        targetVersion,
+				PrimariesOnly: true,
+			})
+			upgradeJobs = append(upgradeJobs, &UpgradeJobs{
+				Source:        sourceVersion,
+				Target:        targetVersion,
+				NoStandby: true,
 			})
 		}
 	}
@@ -51,9 +62,8 @@ func init() {
 	data = Data{
 		SourceVersions:    sourceVersions,
 		TargetVersions:    targetVersions,
-		VersionPairs:      versionPairs,
+		UpgradeJobs:       upgradeJobs,
 		LastTargetVersion: targetVersions[len(targetVersions)-1],
-		WithStandby:       []bool{true, false}, // XXX this seems silly. Any way to do it inline?
 	}
 }
 
