@@ -63,9 +63,6 @@ MASTER_PORT=5432
 # Cache our list of hosts to loop over below.
 mapfile -t hosts < cluster_env_files/hostfile_all
 
-# Copy over the SQL dump we pulled from master.
-scp sqldump/dump.sql.xz gpadmin@mdw:/tmp/
-
 # Figure out where GPHOMEs are.
 export GPHOME_OLD=$(rpm_gphome ${OLD_PACKAGE})
 export GPHOME_NEW=$(rpm_gphome ${NEW_PACKAGE})
@@ -83,15 +80,6 @@ for host in "${hosts[@]}"; do
     scp gpupgrade "gpadmin@$host:/tmp"
     ssh centos@$host "sudo mv /tmp/gpupgrade /usr/local/bin"
 done
-
-echo 'Loading SQL dump into source cluster...'
-time ssh mdw bash <<EOF
-    set -eux -o pipefail
-
-    source ${GPHOME_OLD}/greenplum_path.sh
-    export PGOPTIONS='--client-min-messages=warning'
-    unxz < /tmp/dump.sql.xz | psql -f - postgres
-EOF
 
 # Dump the old cluster for later comparison.
 dump_sql $MASTER_PORT /tmp/old.sql

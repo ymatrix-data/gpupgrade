@@ -244,6 +244,10 @@ jobs:
       gpdb_rpm: rpm_gpdb6
   - task: gpinitsystem_old_cluster
     file: ccp_src/ci/tasks/gpinitsystem.yml
+  - task: load_dump
+    file: gpupgrade_src/ci/tasks/load-dump.yml
+    params:
+      OLD_PACKAGE: greenplum-db-6
   - task: upgrade_cluster
     file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
     params:
@@ -335,6 +339,10 @@ jobs:
                   scp rpm_gpdb_new/*.rpm "${host}:/tmp/bin_gpdb_new.rpm"
                   ssh -ttn centos@"$host" sudo yum install -y /tmp/bin_gpdb_new.rpm
               done
+    - task: load_dump
+      file: gpupgrade_src/ci/tasks/load-dump.yml
+      params:
+        OLD_PACKAGE: greenplum-db-5
     - task: upgrade_cluster
       file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
       params:
