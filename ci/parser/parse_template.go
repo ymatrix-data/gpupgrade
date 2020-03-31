@@ -18,6 +18,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"text/template"
 
 	"github.com/blang/semver"
@@ -35,6 +36,7 @@ type UpgradeJob struct {
 
 type Data struct {
 	SourceVersions, TargetVersions []string
+	AllVersions                    []string // combination of Source/Target
 	UpgradeJobs                    []*UpgradeJob
 	LastTargetVersion              string
 	PrimariesOnly                  []bool
@@ -67,13 +69,37 @@ func init() {
 			})
 		}
 	}
+
 	// Duplicate version data here in order to simplify template logic
 	data = Data{
 		SourceVersions:    sourceVersions,
 		TargetVersions:    targetVersions,
+		AllVersions:       deduplicate(sourceVersions, targetVersions),
 		UpgradeJobs:       upgradeJobs,
 		LastTargetVersion: targetVersions[len(targetVersions)-1],
 	}
+}
+
+// deduplicate combines, sorts, and deduplicates two string slices.
+func deduplicate(a, b []string) []string {
+	var all []string
+
+	all = append(all, a...)
+	all = append(all, b...)
+	sort.Strings(all)
+
+	// Deduplicate by compacting runs of identical strings.
+	cur := 0
+	for next := 1; next < len(all); next++ {
+		if all[cur] == all[next] {
+			continue
+		}
+
+		cur++
+		all[cur] = all[next]
+	}
+
+	return all[:cur+1]
 }
 
 func main() {

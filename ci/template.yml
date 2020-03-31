@@ -30,8 +30,9 @@ resources:
     uri: https://github.com/greenplum-db/gpdb
     branch: 6X_STABLE
 
-{{range .SourceVersions}}
+{{range .AllVersions}}
 - name: bin_gpdb{{.}}_centos6
+  {{- if eq (majorVersion .) "5" }}
   type: s3
   source:
     access_key_id: ((bucket-access-key-id))
@@ -39,15 +40,13 @@ resources:
     region_name: ((aws-region))
     secret_access_key: ((bucket-secret-access-key))
     versioned_file: release_candidates/bin_gpdb_centos6/gpdb{{.}}/bin_gpdb.tar.gz
-{{end}}
-
-{{range .TargetVersions}}
-- name: bin_gpdb{{.}}_centos6
+  {{- else}}
   type: gcs
   source:
     bucket: ((gcs-bucket))
     json_key: ((concourse-gcs-resources-service-account-key))
     regexp: server/published/gpdb6/server-rc-({{escapeVersion .}}.*)-rhel6_x86_64.debug.tar.gz
+  {{- end}}
 {{end}}
 
 - name: bats

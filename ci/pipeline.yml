@@ -41,8 +41,6 @@ resources:
     secret_access_key: ((bucket-secret-access-key))
     versioned_file: release_candidates/bin_gpdb_centos6/gpdb5/bin_gpdb.tar.gz
 
-
-
 - name: bin_gpdb6.1.0_centos6
   type: gcs
   source:
