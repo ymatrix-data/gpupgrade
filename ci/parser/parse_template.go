@@ -24,7 +24,7 @@ import (
 	"github.com/blang/semver"
 )
 
-var sourceVersions = []string{"5"}
+var sourceVersions = []string{"6.1.0", "5"}
 var targetVersions = []string{"6.1.0"}
 
 type UpgradeJob struct {
@@ -52,22 +52,22 @@ func init() {
 				Source: sourceVersion,
 				Target: targetVersion,
 			})
-			upgradeJobs = append(upgradeJobs, &UpgradeJob{
-				Source:      sourceVersion,
-				Target:      targetVersion,
-				UseLinkMode: true,
-			})
-			upgradeJobs = append(upgradeJobs, &UpgradeJob{
-				Source:        sourceVersion,
-				Target:        targetVersion,
-				PrimariesOnly: true,
-			})
-			upgradeJobs = append(upgradeJobs, &UpgradeJob{
-				Source:    sourceVersion,
-				Target:    targetVersion,
-				NoStandby: true,
-			})
 		}
+	}
+
+	// Special cases for 5->6. (These are special-cased to avoid exploding the
+	// test matrix too much.)
+	special := []*UpgradeJob{
+		{UseLinkMode: true},
+		{PrimariesOnly: true},
+		{NoStandby: true},
+	}
+
+	for _, job := range special {
+		job.Source = "5"
+		job.Target = "6.1.0"
+
+		upgradeJobs = append(upgradeJobs, job)
 	}
 
 	// Duplicate version data here in order to simplify template logic
