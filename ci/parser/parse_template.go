@@ -12,6 +12,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -40,6 +41,7 @@ type Data struct {
 	UpgradeJobs                    []*UpgradeJob
 	LastTargetVersion              string
 	PrimariesOnly                  []bool
+	ProdTarget                     bool
 }
 
 var data Data
@@ -103,7 +105,11 @@ func deduplicate(a, b []string) []string {
 }
 
 func main() {
-	templateFilepath, pipelineFilepath := os.Args[1], os.Args[2]
+	flag.BoolVar(&data.ProdTarget, "prod", false, "generate a production pipeline")
+	flag.Parse()
+
+	templateFilepath, pipelineFilepath := flag.Arg(0), flag.Arg(1)
+
 	templateFuncs := template.FuncMap{
 		// The escapeVersion function is used to ensure that the gcs-resource
 		// concourse plugin regex matches the version correctly. As an example

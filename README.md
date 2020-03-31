@@ -190,13 +190,17 @@ NEWBINDIR, OLDBINDIR, NEWDATADIR and OLDDATADIR.
 
 ### Running tests in a pipeline
 
-The gpupgrade/ci directory contains a pipeline.yml file, which references task
+The gpupgrade/ci/generated directory contains two pipeline files, which reference task
 files in gpupgrade/ci/tasks, and some secrets in a private repository. To set a
 pipeline, run:
 
 ```
 make set-pipeline FLY_TARGET=<CONCOURSE_INSTANCE> GIT_URI=https://github.com/<GITHUB_USERNAME>/gpupgrade.git
 ```
+
+Note: When making pipeline changes, change only the template.yml and run
+`go generate ./ci` (this will automatically run as part of `make set-pipeline`).
+Then check in the dev-pipeline.yml and prod-pipeline.yml files.
 
 If you want to use the defaults and have access to the continuous-integration
 secrets, there is a convenience recipe:
