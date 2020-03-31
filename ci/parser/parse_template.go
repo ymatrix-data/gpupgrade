@@ -12,12 +12,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"text/template"
+
+	"github.com/blang/semver"
 )
 
 var sourceVersions = []string{"5"}
@@ -75,12 +78,25 @@ func init() {
 
 func main() {
 	templateFilepath, pipelineFilepath := os.Args[1], os.Args[2]
-	// The escapeVersion function is used to ensure that the gcs-resource concourse
-	// plugin regex matches the version correctly.
-	// As an example if we didn't do this, 60100 would match version 6.1.0
-	templateFuncs := template.FuncMap{"escapeVersion": func(version string) string {
-		return regexp.QuoteMeta(version)
-	}}
+	templateFuncs := template.FuncMap{
+		// The escapeVersion function is used to ensure that the gcs-resource
+		// concourse plugin regex matches the version correctly. As an example
+		// if we didn't do this, 60100 would match version 6.1.0
+		"escapeVersion": func(version string) string {
+			return regexp.QuoteMeta(version)
+		},
+
+		// majorVersion parses its string as a semver and returns the major
+		// component. E.g. "4.15.3" -> "4"
+		"majorVersion": func(version string) string {
+			v, err := semver.ParseTolerant(version)
+			if err != nil {
+				panic(err) // the template engine deals with panics nicely
+			}
+
+			return fmt.Sprintf("%d", v.Major)
+		},
+	}
 
 	yamlTemplate, err := template.New("Pipeline Template").Funcs(templateFuncs).ParseFiles(templateFilepath)
 	if err != nil {

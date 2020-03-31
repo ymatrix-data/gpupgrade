@@ -247,12 +247,12 @@ jobs:
   - task: load_dump
     file: gpupgrade_src/ci/tasks/load-dump.yml
     params:
-      OLD_PACKAGE: greenplum-db-6
+      OLD_PACKAGE: greenplum-db-{{majorVersion $version}}
   - task: upgrade_cluster
     file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
     params:
-      OLD_PACKAGE: greenplum-db-6
-      NEW_PACKAGE: greenplum-db-6
+      OLD_PACKAGE: greenplum-db-{{majorVersion $version}}
+      NEW_PACKAGE: greenplum-db-{{majorVersion $version}}
   ensure:
     <<: *set_failed
   on_success:
@@ -342,13 +342,13 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
       params:
-        OLD_PACKAGE: greenplum-db-5
+        OLD_PACKAGE: greenplum-db-{{majorVersion .Source}}
     - task: upgrade_cluster
       file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
       params:
         FILTER_DIFF: 1
-        OLD_PACKAGE: greenplum-db-5
-        NEW_PACKAGE: greenplum-db-6
+        OLD_PACKAGE: greenplum-db-{{majorVersion .Source}}
+        NEW_PACKAGE: greenplum-db-{{majorVersion .Target}}
         {{- if .NoStandby}}
         STANDBY: 0
         {{- end}}
