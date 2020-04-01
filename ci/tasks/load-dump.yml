@@ -10,5 +10,3 @@ inputs:
   - name: cluster_env_files
 run:
   path: gpupgrade_src/ci/scripts/load-dump.sh
-params:
-  OLD_PACKAGE:

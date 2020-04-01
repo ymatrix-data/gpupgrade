@@ -40,14 +40,6 @@ compare_dumps() {
     "
 }
 
-# Retrieves the installed GPHOME for a given GPDB RPM.
-rpm_gphome() {
-    local package_name=$1
-
-    local version=$(ssh -n gpadmin@mdw rpm -q --qf '%{version}' "$package_name")
-    echo /usr/local/greenplum-db-$version
-}
-
 #
 # MAIN
 #
@@ -61,9 +53,8 @@ MASTER_PORT=5432
 # Cache our list of hosts to loop over below.
 mapfile -t hosts < cluster_env_files/hostfile_all
 
-# Figure out where GPHOMEs are.
-export GPHOME_OLD=$(rpm_gphome ${OLD_PACKAGE})
-export GPHOME_NEW=$(rpm_gphome ${NEW_PACKAGE})
+export GPHOME_OLD=/usr/local/greenplum-db-old
+export GPHOME_NEW=/usr/local/greenplum-db-new
 
 # Build gpupgrade.
 export GOPATH=$PWD/go

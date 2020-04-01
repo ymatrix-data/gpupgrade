@@ -268,7 +268,6 @@ jobs:
         gpdb_rpm: rpm_gpdb_old
     - task: gpinitsystem_old_cluster
       file: ccp_src/ci/tasks/gpinitsystem.yml
-    {{- if ne .Source .Target }}
     - task: prepare_old_and_new_installations
       config:
         platform: linux
@@ -278,32 +277,21 @@ jobs:
             repository: alpine
             tag: latest
         inputs:
-          - name: rpm_gpdb_new
+          - name: gpupgrade_src
           - name: cluster_env_files
+          {{- if ne .Source .Target }}
+          - name: rpm_gpdb_new
+          {{- end }}
         run:
-          path: sh
+          path: gpupgrade_src/ci/scripts/prepare-old-and-new-installations.sh
           args:
-            - -exc
-            - |
-              apk add --no-progress openssh-client
-
-              cp -R cluster_env_files/.ssh /root/.ssh
-
-              # Install the new binary.
-              for host in $(cat cluster_env_files/hostfile_all); do
-                  scp rpm_gpdb_new/*.rpm "${host}:/tmp/bin_gpdb_new.rpm"
-                  ssh -ttn centos@"$host" sudo yum install -y /tmp/bin_gpdb_new.rpm
-              done
-    {{- end }}
+            - greenplum-db-{{majorVersion .Source}}
+            - greenplum-db-{{majorVersion .Target}}
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
-      params:
-        OLD_PACKAGE: greenplum-db-{{majorVersion .Source}}
     - task: upgrade_cluster
       file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
       params:
-        OLD_PACKAGE: greenplum-db-{{majorVersion .Source}}
-        NEW_PACKAGE: greenplum-db-{{majorVersion .Target}}
         {{- if ne .Source .Target }}
         FILTER_DIFF: 1
         {{- end }}
@@ -325,8 +313,6 @@ jobs:
           - name: cluster_env_files
         run:
           path: gpupgrade_src/ci/scripts/validate-mirrors-and-standby.bash
-      params:
-        NEW_PACKAGE: greenplum-db-{{majorVersion .Target}}
     {{- end -}}
     {{- end }}
   ensure:

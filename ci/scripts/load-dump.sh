@@ -11,9 +11,7 @@ echo 'Loading SQL dump into source cluster...'
 time ssh -n gpadmin@mdw "
     set -eux -o pipefail
 
-    version=\$(rpm -q --qf '%{version}' '$OLD_PACKAGE')
-
-    source /usr/local/greenplum-db-\${version}/greenplum_path.sh
+    source /usr/local/greenplum-db-old/greenplum_path.sh
     export PGOPTIONS='--client-min-messages=warning'
     unxz < /tmp/dump.sql.xz | psql -f - postgres
 "
