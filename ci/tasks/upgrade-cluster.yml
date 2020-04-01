@@ -18,8 +18,6 @@ run:
 
 params:
   FILTER_DIFF: 0
-  MIRRORS: 1
-  STANDBY: 1
   USE_LINK_MODE: 0
   OLD_PACKAGE:
   NEW_PACKAGE:

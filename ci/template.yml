@@ -307,16 +307,28 @@ jobs:
         {{- if ne .Source .Target }}
         FILTER_DIFF: 1
         {{- end }}
-        {{- if .NoStandby}}
-        STANDBY: 0
-        {{- end}}
-        {{- if .PrimariesOnly}}
-        MIRRORS: 0
-        STANDBY: 0
-        {{- end}}
         {{- if .UseLinkMode}}
         USE_LINK_MODE: 1
         {{- end}}
+    {{- if not .NoStandby -}}
+    {{- if not .PrimariesOnly }}
+    - task: validate_mirrors_and_standby
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+          - name: gpupgrade_src
+          - name: cluster_env_files
+        run:
+          path: gpupgrade_src/ci/scripts/validate-mirrors-and-standby.bash
+      params:
+        NEW_PACKAGE: greenplum-db-{{majorVersion .Target}}
+    {{- end -}}
+    {{- end }}
   ensure:
     <<: *set_failed
   on_success:

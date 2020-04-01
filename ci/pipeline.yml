@@ -253,6 +253,21 @@ jobs:
       params:
         OLD_PACKAGE: greenplum-db-6
         NEW_PACKAGE: greenplum-db-6
+    - task: validate_mirrors_and_standby
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+          - name: gpupgrade_src
+          - name: cluster_env_files
+        run:
+          path: gpupgrade_src/ci/scripts/validate-mirrors-and-standby.bash
+      params:
+        NEW_PACKAGE: greenplum-db-6
   ensure:
     <<: *set_failed
   on_success:
@@ -343,6 +358,21 @@ jobs:
         OLD_PACKAGE: greenplum-db-5
         NEW_PACKAGE: greenplum-db-6
         FILTER_DIFF: 1
+    - task: validate_mirrors_and_standby
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+          - name: gpupgrade_src
+          - name: cluster_env_files
+        run:
+          path: gpupgrade_src/ci/scripts/validate-mirrors-and-standby.bash
+      params:
+        NEW_PACKAGE: greenplum-db-6
   ensure:
     <<: *set_failed
   on_success:
@@ -434,6 +464,21 @@ jobs:
         NEW_PACKAGE: greenplum-db-6
         FILTER_DIFF: 1
         USE_LINK_MODE: 1
+    - task: validate_mirrors_and_standby
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+          - name: gpupgrade_src
+          - name: cluster_env_files
+        run:
+          path: gpupgrade_src/ci/scripts/validate-mirrors-and-standby.bash
+      params:
+        NEW_PACKAGE: greenplum-db-6
   ensure:
     <<: *set_failed
   on_success:
@@ -524,8 +569,6 @@ jobs:
         OLD_PACKAGE: greenplum-db-5
         NEW_PACKAGE: greenplum-db-6
         FILTER_DIFF: 1
-        MIRRORS: 0
-        STANDBY: 0
   ensure:
     <<: *set_failed
   on_success:
@@ -615,7 +658,6 @@ jobs:
         OLD_PACKAGE: greenplum-db-5
         NEW_PACKAGE: greenplum-db-6
         FILTER_DIFF: 1
-        STANDBY: 0
   ensure:
     <<: *set_failed
   on_success:

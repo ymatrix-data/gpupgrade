@@ -1,8 +1,6 @@
 #!/bin/bash
 
 set -eux -o pipefail
-dirpath=$(dirname "${0}")
-source "${dirpath}/../../test/finalize_checks.bash"
 
 dump_sql() {
     local port=$1
@@ -112,14 +110,6 @@ dump_sql $MASTER_PORT /tmp/new.sql
 if ! compare_dumps /tmp/old.sql /tmp/new.sql; then
     echo 'error: before and after dumps differ'
     exit 1
-fi
-
-# Test that mirrors and standby actually work
-if [[ "${MIRRORS}" = "1" && "${STANDBY}" = "1" ]]; then
-    echo 'Doing failover tests of mirrors and standby...'
-    validate_mirrors_and_standby "${GPHOME_NEW}" mdw $MASTER_PORT
-else
-    echo "skipping validate_mirrors_and_standby since the cluster does not have mirrors and a standby"
 fi
 
 echo 'Upgrade successful.'
