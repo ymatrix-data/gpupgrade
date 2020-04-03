@@ -11,7 +11,7 @@ any feedback you have!
 
 ### Prerequisites
 
-- Golang. We currently develop against latest stable Golang, which was v1.10 as of May 2018.
+- Golang. We currently develop against latest stable Golang, which was v1.14 as of April 2020.
 - protoc. This is the compiler for the [gRPC protobuffer](https://grpc.io/) system.
 On macOS, one way to install this is via `brew install protobuf`
 
