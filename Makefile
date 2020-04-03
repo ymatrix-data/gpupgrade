@@ -18,12 +18,22 @@ MAC_ENV := env GOOS=darwin GOARCH=amd64
 LINUX_EXTENSION := .linux.$(BRANCH)
 MAC_EXTENSION := .darwin.$(BRANCH)
 
+# depend-dev will install the necessary Go dependencies for running `go
+# generate`. (This recipe does not have to be run in order to build the
+# project; only to rebuild generated files.) Note that developers must still
+# install the protoc compiler themselves; there is no way to version it from
+# within the Go module system.
+#
+# Though it's a little counter-intuitive, run this recipe AFTER running make for
+# the first time, so that Go will have already fetched the packages that are
+# pinned in tools.go.
 .PHONY: depend-dev
-
+depend-dev: export GOBIN := $(CURDIR)/dev-bin
+depend-dev: export GOFLAGS := -mod=readonly # do not update dependencies during installation
 depend-dev:
-		go install ./vendor/github.com/golang/protobuf/protoc-gen-go
-		go install ./vendor/github.com/golang/mock/mockgen
-		go get golang.org/x/tools/cmd/goimports
+	mkdir -p $(GOBIN)
+	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang/mock/mockgen
 
 # NOTE: goimports subsumes the standard formatting rules of gofmt, but gofmt is
 #       more flexible(custom rules) so we leave it in for this reason.
