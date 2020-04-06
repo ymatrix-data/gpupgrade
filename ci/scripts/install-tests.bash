@@ -24,6 +24,8 @@ su gpadmin -c '
     source gpdb_src/gpAux/gpdemo/gpdemo-env.sh
 
     cd $GOPATH/src/github.com/greenplum-db/gpupgrade
+    export GOFLAGS="-mod=readonly" # do not update dependencies during build
+
     make
     make check --keep-going
 

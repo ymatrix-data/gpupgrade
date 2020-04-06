@@ -22,5 +22,7 @@ run:
     ./bats/install.sh /usr/local
 
     cd $GOPATH/src/github.com/greenplum-db/gpupgrade
+    export GOFLAGS="-mod=readonly" # do not update dependencies during build
+
     make
     make check --keep-going

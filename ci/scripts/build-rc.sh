@@ -4,6 +4,7 @@ set -ex
 
 export GOPATH=$PWD/go
 export PATH=$GOPATH/bin:$PATH
+export GOFLAGS="-mod=readonly" # do not update dependencies during build
 
 cd $GOPATH/src/github.com/greenplum-db/gpupgrade
     make

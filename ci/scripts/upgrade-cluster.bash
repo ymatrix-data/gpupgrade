@@ -61,6 +61,8 @@ export GOPATH=$PWD/go
 export PATH=$GOPATH/bin:$PATH
 
 cd $GOPATH/src/github.com/greenplum-db/gpupgrade
+export GOFLAGS="-mod=readonly" # do not update dependencies during build
+
 make
 
 # Install gpupgrade binary onto the cluster machines.
