@@ -21,8 +21,6 @@ this will install test and developer dependencies.
 ### Build and test the upgrade tool
 
 ```
-make depend  # run this before the first build; it installs required Go utilities
-
 make
 make check   # runs tests
 make install # installs into $GOBIN
@@ -36,27 +34,6 @@ golang code in a canonical format.
 ```
 make format  # formats code in canonical way
 ```
-
-### Dependency vendoring
-
-gpupgrade uses go dep to vendor its dependencies.
-
-To view the state of dependencies in the project, use the command
-```
-dep status
-```
-
-To add add new dependencies, use the command
-```
-dep ensure -add [package import string]
-```
-
-To update existing dependencies, use the command
-```
-dep ensure -update
-```
-
-For additional information please refer to the [dep documentation](https://golang.github.io/dep/docs/daily-dep.html)
 
 ### Build details
 

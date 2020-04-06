@@ -18,6 +18,4 @@ run:
     set -ex
 
     cd $GOPATH/src/github.com/greenplum-db/gpupgrade
-    make depend # to pull in dependencies for analysis
-
     make lint

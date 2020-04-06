@@ -5,9 +5,6 @@ set -ex
 # Install BATS
 ./bats/install.sh /usr/local
 
-# make depend fails if run as gpadmin with a dep ensure git-remote-https signal 11 failure
-GOPATH="$PWD/go" PATH="$PWD/go/bin:$PATH" make -C go/src/github.com/greenplum-db/gpupgrade depend
-
 source gpdb_src/concourse/scripts/common.bash
 mkdir -p /usr/local/greenplum-db-devel
 tar -xzf bin_gpdb/*.tar.gz -C /usr/local/greenplum-db-devel

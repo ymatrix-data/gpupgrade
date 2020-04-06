@@ -22,6 +22,5 @@ run:
     ./bats/install.sh /usr/local
 
     cd $GOPATH/src/github.com/greenplum-db/gpupgrade
-    make depend
     make
     make check --keep-going

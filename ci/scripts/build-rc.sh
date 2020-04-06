@@ -6,7 +6,6 @@ export GOPATH=$PWD/go
 export PATH=$GOPATH/bin:$PATH
 
 cd $GOPATH/src/github.com/greenplum-db/gpupgrade
-    make depend
     make
 
     # todo: is there a cleaner way to get this format?

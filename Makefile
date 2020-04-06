@@ -18,12 +18,9 @@ MAC_ENV := env GOOS=darwin GOARCH=amd64
 LINUX_EXTENSION := .linux.$(BRANCH)
 MAC_EXTENSION := .darwin.$(BRANCH)
 
-.PHONY: depend depend-dev
-depend:
-		go get github.com/golang/dep/cmd/dep
-		dep ensure
+.PHONY: depend-dev
 
-depend-dev: depend
+depend-dev:
 		go install ./vendor/github.com/golang/protobuf/protoc-gen-go
 		go install ./vendor/github.com/golang/mock/mockgen
 		go get golang.org/x/tools/cmd/goimports
@@ -74,7 +71,7 @@ EXTENSION = $($(OS)_EXTENSION)
 
 .PHONY: build build_linux build_mac
 
-build: .Gopkg.updated
+build:
 	$(BUILD_ENV) go build -o gpupgrade$(EXTENSION) $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/gpupgrade
 	go generate ./cli/bash
 
@@ -85,7 +82,7 @@ build_linux build_mac: build
 BUILD_FLAGS = -gcflags="all=-N -l"
 override BUILD_FLAGS += -ldflags $(VERSION_LD_STR)
 
-install: .Gopkg.updated
+install:
 	go install $(BUILD_FLAGS) github.com/greenplum-db/gpupgrade/cmd/gpupgrade
 
 # We intentionally do not depend on install here -- the point of installcheck is
@@ -119,14 +116,6 @@ clean:
 		# Code coverage files
 		rm -rf /tmp/cover*
 		rm -rf /tmp/unit*
-
-# This is a manual marker file to track the last time we ran `dep ensure`
-# locally, compared to the timestamps of the Gopkg.* metafiles. Define a
-# dependency on this marker to run a `dep ensure` (if necessary) before your
-# recipe is run.
-.Gopkg.updated: Gopkg.lock Gopkg.toml
-	dep ensure
-	touch $@
 
 # You can override these from the command line.
 GIT_URI := $(shell git ls-remote --get-url)
