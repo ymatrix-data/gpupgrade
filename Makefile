@@ -20,7 +20,6 @@ MAC_EXTENSION := .darwin.$(BRANCH)
 
 .PHONY: depend depend-dev
 depend:
-		go get github.com/onsi/ginkgo/ginkgo
 		go get github.com/golang/dep/cmd/dep
 		dep ensure
 
@@ -36,25 +35,30 @@ format:
 		gofmt -l -w agent/ cli/ db/ hub/ integrations/ testutils/ utils/
 
 
-.PHONY: check check-ginkgo check-bats unit integration test
+.PHONY: check check-go check-bats unit integration test
 
 # check runs all tests against the locally built gpupgrade binaries. Use -k to
 # continue after failures.
-check: check-ginkgo check-bats
-check-ginkgo check-bats: export PATH := $(CURDIR):$(PATH)
+check: check-go check-bats
+check-go check-bats: export PATH := $(CURDIR):$(PATH)
 
-GINKGO_ARGS := -keepGoing -randomizeSuites -randomizeAllSpecs
-check-ginkgo:
-	ginkgo -r $(GINKGO_ARGS)
+TEST_PACKAGES := ./...
+
+# FIXME go test currently caches integration tests incorrectly, because we do
+# not register any dependency on the gpupgrade binary that we rely on for
+# testing. For now, disable test caching for the Make recipes with -count=1;
+# anyone who would like caching back can always use `go test` directly.
+check-go:
+	go test -count=1 $(TEST_PACKAGES)
 
 check-bats:
 	bats -r ./test
 
-unit: GINKGO_ARGS += --skipPackage=integrations
-unit: check-ginkgo
+unit: TEST_PACKAGES := $(shell go list ./... | grep -v integrations$$ )
+unit: check-go
 
-integration: GINKGO_ARGS += integrations
-integration: check-ginkgo
+integration: TEST_PACKAGES := ./integrations
+integration: check-go
 
 test: unit integration
 
@@ -112,7 +116,6 @@ clean:
 		# Test artifacts
 		rm -rf /tmp/go-build*
 		rm -rf /tmp/gexec_artifacts*
-		rm -rf /tmp/ginkgo*
 		# Code coverage files
 		rm -rf /tmp/cover*
 		rm -rf /tmp/unit*
