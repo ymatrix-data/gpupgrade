@@ -35,6 +35,21 @@ type UpgradeJob struct {
 	UseLinkMode    bool
 }
 
+func (j *UpgradeJob) Name() string {
+	var suffix string
+
+	switch {
+	case j.PrimariesOnly:
+		suffix = "-primaries-only"
+	case j.NoStandby:
+		suffix = "-no-standby"
+	case j.UseLinkMode:
+		suffix = "-link-mode"
+	}
+
+	return fmt.Sprintf("%s-to-%s%s", j.Source, j.Target, suffix)
+}
+
 type Data struct {
 	SourceVersions, TargetVersions []string
 	AllVersions                    []string // combination of Source/Target

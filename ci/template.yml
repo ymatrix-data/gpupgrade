@@ -233,10 +233,7 @@ jobs:
     <<: *slack_alert
 
 {{range .UpgradeJobs}}
-- name: {{.Source}}-to-{{.Target}}
-        {{- if .UseLinkMode }}-link-mode{{end}}
-        {{- if .PrimariesOnly }}-primaries-only{{end}}
-        {{- if .NoStandby }}-no-standby{{end}}
+- name: {{ .Name }}
   plan:
     - in_parallel:
         - get: bin_gpupgrade
@@ -379,20 +376,14 @@ jobs:
           - noinstall-tests
           - install-tests
           {{- range .UpgradeJobs}}
-          - {{.Source}}-to-{{.Target}}
-            {{- if .UseLinkMode }}-link-mode{{end -}}
-            {{- if .PrimariesOnly }}-primaries-only{{end -}}
-            {{- if .NoStandby }}-no-standby{{end -}}
-          {{end}}
+          - {{ .Name }}
+          {{- end}}
       - get: bin_gpupgrade
         passed:
           - build
           {{- range .UpgradeJobs}}
-          - {{.Source}}-to-{{.Target}}
-            {{- if .UseLinkMode }}-link-mode{{end -}}
-            {{- if .PrimariesOnly }}-primaries-only{{end -}}
-            {{- if .NoStandby }}-no-standby{{end -}}
-          {{end}}
+          - {{ .Name }}
+          {{- end}}
     - task: version-rc
       config:
         platform: linux
