@@ -49,6 +49,13 @@ resources:
     regexp: server/published/gpdb6/server-rc-(6.*)-rhel6_x86_64.debug.tar.gz
 
 
+- name: bin_gpupgrade
+  type: gcs
+  source:
+    bucket: ((cm-intermediates-bucket))
+    json_key: ((cm-gcs-service-account-key))
+    versioned_file: gpupgrade
+
 - name: bats
   type: git
   source:
@@ -174,6 +181,9 @@ jobs:
     trigger: true
   - task: build
     file: gpupgrade_src/ci/tasks/build.yml
+  - put: bin_gpupgrade
+    params:
+      file: build_artifacts/gpupgrade
   on_failure:
     <<: *slack_alert
 
@@ -217,8 +227,11 @@ jobs:
 - name: 6-to-6
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb6_centos6
           trigger: true
@@ -284,9 +297,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
     - task: validate_mirrors_and_standby
       config:
@@ -311,8 +324,11 @@ jobs:
 - name: 5-to-6
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb5_centos6
           trigger: true
@@ -388,9 +404,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
     - task: validate_mirrors_and_standby
@@ -416,8 +432,11 @@ jobs:
 - name: 5-to-6-link-mode
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb5_centos6
           trigger: true
@@ -493,9 +512,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
         USE_LINK_MODE: 1
@@ -522,8 +541,11 @@ jobs:
 - name: 5-to-6-primaries-only
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb5_centos6
           trigger: true
@@ -599,9 +621,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
   ensure:
@@ -614,8 +636,11 @@ jobs:
 - name: 5-to-6-no-standby
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb5_centos6
           trigger: true
@@ -690,9 +715,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
   ensure:

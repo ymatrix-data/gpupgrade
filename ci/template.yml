@@ -49,6 +49,13 @@ resources:
   {{- end}}
 {{end}}
 
+- name: bin_gpupgrade
+  type: gcs
+  source:
+    bucket: ((cm-intermediates-bucket))
+    json_key: ((cm-gcs-service-account-key))
+    versioned_file: gpupgrade
+
 {{- if .ProdTarget }}
 - name: bin_gpupgrade_rc
   type: gcs
@@ -183,6 +190,9 @@ jobs:
     trigger: true
   - task: build
     file: gpupgrade_src/ci/tasks/build.yml
+  - put: bin_gpupgrade
+    params:
+      file: build_artifacts/gpupgrade
   on_failure:
     <<: *slack_alert
 
@@ -229,8 +239,11 @@ jobs:
         {{- if .NoStandby }}-no-standby{{end}}
   plan:
     - in_parallel:
-        - get: gpupgrade_src
+        - get: bin_gpupgrade
           trigger: true
+          passed: [ build ]
+        - get: gpupgrade_src
+          passed: [ build ]
         - get: bin_gpdb_old
           resource: bin_gpdb{{.Source}}_centos6
           trigger: true
@@ -320,9 +333,9 @@ jobs:
         - name: ccp_src
         - name: cluster_env_files
         - name: gpupgrade_src
-          path: go/src/github.com/greenplum-db/gpupgrade
+        - name: bin_gpupgrade
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
+          path: gpupgrade_src/ci/scripts/upgrade-cluster.bash
       params:
         {{- if ne .Source .Target }}
         FILTER_DIFF: 1
@@ -356,25 +369,31 @@ jobs:
 {{end -}}
 
 {{- if .ProdTarget }}
-# todo: In the future, we want to build gpupgrade first, and input that
-# binary to each job that needs it.
-# Then, this job can also receive the binary as an input and then will
-# upload it to the rc bucket.
 - name: publish-release-candidate
   plan:
-    - get: gpupgrade_src
-      trigger: true
-      passed:
-        - build
-        - noinstall-tests
-        - install-tests
-        {{- range .UpgradeJobs}}
-        - {{.Source}}-to-{{.Target}}
-          {{- if .UseLinkMode }}-link-mode{{end -}}
-          {{- if .PrimariesOnly }}-primaries-only{{end -}}
-          {{- if .NoStandby }}-no-standby{{end -}}
-        {{end}}
-    - task: build-rc
+    - in_parallel:
+      - get: gpupgrade_src
+        trigger: true
+        passed:
+          - build
+          - noinstall-tests
+          - install-tests
+          {{- range .UpgradeJobs}}
+          - {{.Source}}-to-{{.Target}}
+            {{- if .UseLinkMode }}-link-mode{{end -}}
+            {{- if .PrimariesOnly }}-primaries-only{{end -}}
+            {{- if .NoStandby }}-no-standby{{end -}}
+          {{end}}
+      - get: bin_gpupgrade
+        passed:
+          - build
+          {{- range .UpgradeJobs}}
+          - {{.Source}}-to-{{.Target}}
+            {{- if .UseLinkMode }}-link-mode{{end -}}
+            {{- if .PrimariesOnly }}-primaries-only{{end -}}
+            {{- if .NoStandby }}-no-standby{{end -}}
+          {{end}}
+    - task: version-rc
       config:
         platform: linux
         image_resource:
@@ -384,11 +403,11 @@ jobs:
             tag: '1.14'
         inputs:
           - name: gpupgrade_src
-            path: go/src/github.com/greenplum-db/gpupgrade
+          - name: bin_gpupgrade
         outputs:
           - name: gpupgrade_bin_path
         run:
-          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/build-rc.sh
+          path: gpupgrade_src/ci/scripts/version-rc.sh
     - put: bin_gpupgrade_rc
       params:
         file: gpupgrade_bin_path/gpupgrade-rc-*-linux_x86_64

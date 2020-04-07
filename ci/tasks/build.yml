@@ -8,7 +8,9 @@ image_resource:
 
 inputs:
 - name: gpupgrade_src
-  path: ../../../go/src/github.com/greenplum-db/gpupgrade
+
+outputs:
+- name: build_artifacts
 
 run:
   path: bash
@@ -17,7 +19,8 @@ run:
   - |
     set -ex
 
-    cd $GOPATH/src/github.com/greenplum-db/gpupgrade
+    cd gpupgrade_src
     export GOFLAGS="-mod=readonly" # do not update dependencies during build
 
     make
+    GOBIN=$(realpath ../build_artifacts) make install

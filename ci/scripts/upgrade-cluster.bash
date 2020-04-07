@@ -20,20 +20,22 @@ compare_dumps() {
 
     echo "Comparing dumps at ${old_dump} and ${new_dump}..."
 
-    # 5 to 6 requires some massaging of the diff due to expected changes.
-    if (( $FILTER_DIFF )); then
-        go build ./ci/scripts/filter
-        scp ./filter mdw:/tmp/filter
+    pushd gpupgrade_src
+        # 5 to 6 requires some massaging of the diff due to expected changes.
+        if (( $FILTER_DIFF )); then
+            go build ./ci/scripts/filter
+            scp ./filter mdw:/tmp/filter
 
-        # First filter out any algorithmically-fixable differences, then
-        # patch out the remaining expected diffs explicitly.
-        ssh mdw "
-            /tmp/filter < '$new_dump' > '$new_dump.filtered'
-            patch -R '$new_dump.filtered'
-        " < ./ci/scripts/filter/acceptable_diff
+            # First filter out any algorithmically-fixable differences, then
+            # patch out the remaining expected diffs explicitly.
+            ssh mdw "
+                /tmp/filter < '$new_dump' > '$new_dump.filtered'
+                patch -R '$new_dump.filtered'
+            " < ./ci/scripts/filter/acceptable_diff
 
-        new_dump="$new_dump.filtered"
-    fi
+            new_dump="$new_dump.filtered"
+        fi
+    popd
 
     ssh -n mdw "
         diff -U3 --speed-large-files --ignore-space-change --ignore-blank-lines '$old_dump' '$new_dump'
@@ -43,6 +45,10 @@ compare_dumps() {
 #
 # MAIN
 #
+
+# Global parameters (default to off)
+USE_LINK_MODE=${USE_LINK_MODE:-0}
+FILTER_DIFF=${FILTER_DIFF:-0}
 
 # This port is selected by our CI pipeline
 MASTER_PORT=5432
@@ -56,18 +62,10 @@ mapfile -t hosts < cluster_env_files/hostfile_all
 export GPHOME_OLD=/usr/local/greenplum-db-old
 export GPHOME_NEW=/usr/local/greenplum-db-new
 
-# Build gpupgrade.
-export GOPATH=$PWD/go
-export PATH=$GOPATH/bin:$PATH
-
-cd $GOPATH/src/github.com/greenplum-db/gpupgrade
-export GOFLAGS="-mod=readonly" # do not update dependencies during build
-
-make
-
 # Install gpupgrade binary onto the cluster machines.
+chmod +x bin_gpupgrade/gpupgrade
 for host in "${hosts[@]}"; do
-    scp gpupgrade "gpadmin@$host:/tmp"
+    scp bin_gpupgrade/gpupgrade "gpadmin@$host:/tmp"
     ssh centos@$host "sudo mv /tmp/gpupgrade /usr/local/bin"
 done
 
