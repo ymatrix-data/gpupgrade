@@ -272,7 +272,21 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
     - task: upgrade_cluster
-      file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+        - name: terraform
+        - name: ccp_src
+        - name: cluster_env_files
+        - name: gpupgrade_src
+          path: go/src/github.com/greenplum-db/gpupgrade
+        run:
+          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
       params:
     - task: validate_mirrors_and_standby
       config:
@@ -362,7 +376,21 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
     - task: upgrade_cluster
-      file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+        - name: terraform
+        - name: ccp_src
+        - name: cluster_env_files
+        - name: gpupgrade_src
+          path: go/src/github.com/greenplum-db/gpupgrade
+        run:
+          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
     - task: validate_mirrors_and_standby
@@ -453,7 +481,21 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
     - task: upgrade_cluster
-      file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+        - name: terraform
+        - name: ccp_src
+        - name: cluster_env_files
+        - name: gpupgrade_src
+          path: go/src/github.com/greenplum-db/gpupgrade
+        run:
+          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
         USE_LINK_MODE: 1
@@ -545,7 +587,21 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
     - task: upgrade_cluster
-      file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+        - name: terraform
+        - name: ccp_src
+        - name: cluster_env_files
+        - name: gpupgrade_src
+          path: go/src/github.com/greenplum-db/gpupgrade
+        run:
+          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
   ensure:
@@ -622,7 +678,21 @@ jobs:
     - task: load_dump
       file: gpupgrade_src/ci/tasks/load-dump.yml
     - task: upgrade_cluster
-      file: gpupgrade_src/ci/tasks/upgrade-cluster.yml
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: pivotaldata/centos-gpdb-dev
+            tag: "6-gcc6.2-llvm3.7"
+        inputs:
+        - name: terraform
+        - name: ccp_src
+        - name: cluster_env_files
+        - name: gpupgrade_src
+          path: go/src/github.com/greenplum-db/gpupgrade
+        run:
+          path: go/src/github.com/greenplum-db/gpupgrade/ci/scripts/upgrade-cluster.bash
       params:
         FILTER_DIFF: 1
   ensure:
