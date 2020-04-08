@@ -55,13 +55,13 @@ resources:
     bucket: ((cm-intermediates-bucket))
     json_key: ((cm-gcs-service-account-key))
     versioned_file: gpupgrade
+
 - name: bin_gpupgrade_rc
   type: gcs
   source:
     bucket: ((cm-artifacts-bucket))
     json_key: ((cm-gcs-service-account-key))
     regexp: release-candidates/gpupgrade-rc-(.*)-linux_x86_64
-
 
 - name: bats
   type: git
@@ -733,7 +733,6 @@ jobs:
     <<: *ccp_destroy
   on_failure:
     <<: *slack_alert
-
 - name: publish-release-candidate
   plan:
     - in_parallel:
