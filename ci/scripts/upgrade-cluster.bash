@@ -87,7 +87,10 @@ time ssh mdw bash <<EOF
               $LINK_MODE \
               --target-bindir ${GPHOME_NEW}/bin \
               --source-bindir ${GPHOME_OLD}/bin \
-              --source-master-port $MASTER_PORT
+              --source-master-port $MASTER_PORT \
+              --temp-port-range 6020-6040
+    # TODO: rather than setting a temp port range, consider carving out an
+    # ip_local_reserved_ports range during/after CCP provisioning.
 
     gpupgrade execute
     gpupgrade finalize
