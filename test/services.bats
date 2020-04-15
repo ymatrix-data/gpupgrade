@@ -25,10 +25,6 @@ teardown() {
     rm -r "$STATE_DIR"
 }
 
-process_is_running() {
-    ps -ef | grep -wGc "$1"
-}
-
 @test "kill-services actually stops hub and agents" {
     # check that hub and agent are up
     process_is_running "[g]pupgrade hub"

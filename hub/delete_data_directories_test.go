@@ -13,7 +13,6 @@ import (
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
-
 )
 
 func TestDeleteSegmentDataDirs(t *testing.T) {
@@ -30,83 +29,126 @@ func TestDeleteSegmentDataDirs(t *testing.T) {
 		{ContentID: 3, DbID: 9, Port: 35435, Hostname: "sdw2", DataDir: "/data/dbfast_mirror2/seg4", Role: greenplum.MirrorRole},
 	})
 
-	testhelper.SetupTestLogger() // initialize gplog
+	testhelper.SetupTestLogger()
 
-	t.Run("deletes standby and mirror data directories", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+	t.Run("DeleteMirrorAndStandbyDataDirectories", func(t *testing.T) {
+		t.Run("deletes standby and mirror data directories", func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-		sdw1Client := mock_idl.NewMockAgentClient(ctrl)
-		sdw1Client.EXPECT().DeleteDirectories(
-			gomock.Any(),
-			&idl.DeleteDirectoriesRequest{Datadirs: []string{"/data/dbfast_mirror1/seg1", "/data/dbfast_mirror1/seg3"}},
-		).Return(&idl.DeleteDirectoriesReply{}, nil)
+			sdw1Client := mock_idl.NewMockAgentClient(ctrl)
+			sdw1Client.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				&idl.DeleteDataDirectoriesRequest{Datadirs: []string{
+					"/data/dbfast_mirror1/seg1",
+					"/data/dbfast_mirror1/seg3",
+				}},
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 
-		sdw2Client := mock_idl.NewMockAgentClient(ctrl)
-		sdw2Client.EXPECT().DeleteDirectories(
-			gomock.Any(),
-			&idl.DeleteDirectoriesRequest{Datadirs: []string{"/data/dbfast_mirror2/seg2", "/data/dbfast_mirror2/seg4"}},
-		).Return(&idl.DeleteDirectoriesReply{}, nil)
+			sdw2Client := mock_idl.NewMockAgentClient(ctrl)
+			sdw2Client.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				&idl.DeleteDataDirectoriesRequest{Datadirs: []string{
+					"/data/dbfast_mirror2/seg2",
+					"/data/dbfast_mirror2/seg4",
+				}},
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 
-		standbyClient := mock_idl.NewMockAgentClient(ctrl)
-		standbyClient.EXPECT().DeleteDirectories(
-			gomock.Any(),
-			&idl.DeleteDirectoriesRequest{Datadirs: []string{"/data/standby"}},
-		).Return(&idl.DeleteDirectoriesReply{}, nil)
+			standbyClient := mock_idl.NewMockAgentClient(ctrl)
+			standbyClient.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				&idl.DeleteDataDirectoriesRequest{Datadirs: []string{"/data/standby"}},
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 
-		masterClient := mock_idl.NewMockAgentClient(ctrl)
-		// NOTE: we expect no call to the master
+			agentConns := []*hub.Connection{
+				{nil, sdw1Client, "sdw1", nil},
+				{nil, sdw2Client, "sdw2", nil},
+				{nil, standbyClient, "standby", nil},
+			}
 
-		agentConns := []*hub.Connection{
-			{nil, sdw1Client, "sdw1", nil},
-			{nil, sdw2Client, "sdw2", nil},
-			{nil, standbyClient, "standby", nil},
-			{nil, masterClient, "master", nil},
-		}
-
-		err := hub.DeleteMirrorAndStandbyDirectories(agentConns, c)
-		if err != nil {
-			t.Errorf("unexpected err %#v", err)
-		}
+			err := hub.DeleteMirrorAndStandbyDataDirectories(agentConns, c)
+			if err != nil {
+				t.Errorf("unexpected err %#v", err)
+			}
+		})
 	})
 
-	t.Run("returns error on failure", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+	t.Run("DeletePrimaryDataDirectories", func(t *testing.T) {
+		t.Run("deletes primary data directories", func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-		sdw1Client := mock_idl.NewMockAgentClient(ctrl)
-		sdw1Client.EXPECT().DeleteDirectories(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(&idl.DeleteDirectoriesReply{}, nil)
+			sdw1Client := mock_idl.NewMockAgentClient(ctrl)
+			sdw1Client.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				&idl.DeleteDataDirectoriesRequest{Datadirs: []string{
+					"/data/dbfast1/seg1",
+					"/data/dbfast1/seg3",
+				}},
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 
-		expected := errors.New("permission denied")
-		sdw2ClientFailed := mock_idl.NewMockAgentClient(ctrl)
-		sdw2ClientFailed.EXPECT().DeleteDirectories(
-			gomock.Any(),
-			gomock.Any(),
-		).Return(nil, expected)
+			sdw2Client := mock_idl.NewMockAgentClient(ctrl)
+			sdw2Client.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				&idl.DeleteDataDirectoriesRequest{Datadirs: []string{
+					"/data/dbfast2/seg2",
+					"/data/dbfast2/seg4",
+				}},
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 
-		agentConns := []*hub.Connection{
-			{nil, sdw1Client, "sdw1", nil},
-			{nil, sdw2ClientFailed, "sdw2", nil},
-		}
+			standbyClient := mock_idl.NewMockAgentClient(ctrl)
+			// NOTE: we expect no call to the standby
 
-		err := hub.DeleteMirrorAndStandbyDirectories(agentConns, c)
-
-		var multiErr *multierror.Error
-		if !xerrors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !xerrors.Is(err, expected) {
-				t.Errorf("got error %#v, want %#v", expected, err)
+			agentConns := []*hub.Connection{
+				{nil, sdw1Client, "sdw1", nil},
+				{nil, sdw2Client, "sdw2", nil},
+				{nil, standbyClient, "standby", nil},
 			}
-		}
+
+			err := hub.DeletePrimaryDataDirectories(agentConns, c)
+			if err != nil {
+				t.Errorf("unexpected err %#v", err)
+			}
+		})
+
+		t.Run("returns error on failure", func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			sdw1Client := mock_idl.NewMockAgentClient(ctrl)
+			sdw1Client.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				gomock.Any(),
+			).Return(&idl.DeleteDataDirectoriesReply{}, nil)
+
+			expected := errors.New("permission denied")
+			sdw2ClientFailed := mock_idl.NewMockAgentClient(ctrl)
+			sdw2ClientFailed.EXPECT().DeleteDataDirectories(
+				gomock.Any(),
+				gomock.Any(),
+			).Return(nil, expected)
+
+			agentConns := []*hub.Connection{
+				{nil, sdw1Client, "sdw1", nil},
+				{nil, sdw2ClientFailed, "sdw2", nil},
+			}
+
+			err := hub.DeletePrimaryDataDirectories(agentConns, c)
+
+			var multiErr *multierror.Error
+			if !xerrors.As(err, &multiErr) {
+				t.Fatalf("got error %#v, want type %T", err, multiErr)
+			}
+
+			if len(multiErr.Errors) != 1 {
+				t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
+			}
+
+			for _, err := range multiErr.Errors {
+				if !xerrors.Is(err, expected) {
+					t.Errorf("got error %#v, want %#v", expected, err)
+				}
+			}
+		})
 	})
 }

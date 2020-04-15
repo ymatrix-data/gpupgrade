@@ -480,6 +480,23 @@ _gpupgrade_restart-services()
     noun_aliases=()
 }
 
+_gpupgrade_revert()
+{
+    last_command="gpupgrade_revert"
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _gpupgrade_version()
 {
     last_command="gpupgrade_version"
@@ -508,6 +525,7 @@ _gpupgrade()
     commands+=("initialize")
     commands+=("kill-services")
     commands+=("restart-services")
+    commands+=("revert")
     commands+=("version")
 
     flags=()

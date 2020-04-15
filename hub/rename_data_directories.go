@@ -29,7 +29,7 @@ func UpdateDataDirectories(conf *Config, agentConns []*Connection) error {
 	// in --link mode, remove the source mirror and standby data directories; otherwise we create a second copy
 	//  of them for the target cluster. That might take too much disk space.
 	if conf.UseLinkMode {
-		if err := DeleteMirrorAndStandbyDirectories(agentConns, conf.Source); err != nil {
+		if err := DeleteMirrorAndStandbyDataDirectories(agentConns, conf.Source); err != nil {
 			return xerrors.Errorf("removing source cluster standby and mirror segment data directories: %w", err)
 		}
 	}

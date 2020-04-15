@@ -9,10 +9,15 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"golang.org/x/xerrors"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 const OldSuffix = "_old"
+
+var PostgresFiles = []string{"postgresql.conf", "PG_VERSION"}
+var StateDirectoryFiles = []string{"config.json", "status.json"}
 
 // pgUpgradeDirectory returns a path to a directory underneath the state
 // directory that is to be used for storing pg_upgrade state. It does not ensure
@@ -101,4 +106,33 @@ func alreadyRenamed(archive, target string) bool {
 func PathExists(path string) bool {
 	_, err := utils.System.Stat(path)
 	return err == nil
+}
+
+// Each directory in 'directories' is deleted only if every path in 'requiredPaths' exists
+// in that directory.
+func DeleteDirectories(directories []string, requiredPaths []string) error {
+	var mErr *multierror.Error
+	for _, directory := range directories {
+		statError := false
+
+		for _, requiredPath := range requiredPaths {
+			filePath := filepath.Join(directory, requiredPath)
+			_, err := utils.System.Stat(filePath)
+			if err != nil {
+				mErr = multierror.Append(mErr, err)
+				statError = true
+			}
+		}
+
+		if statError {
+			continue
+		}
+
+		err := utils.System.RemoveAll(directory)
+		if err != nil {
+			mErr = multierror.Append(mErr, err)
+		}
+	}
+
+	return mErr.ErrorOrNil()
 }

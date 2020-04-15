@@ -19,7 +19,7 @@ type MockAgentServer struct {
 	mu         sync.Mutex
 
 	UpgradeConvertPrimarySegmentsRequest *idl.UpgradePrimariesRequest
-	DeleteDirectoriesRequest             *idl.DeleteDirectoriesRequest
+	DeleteDataDirectoriesRequest         *idl.DeleteDataDirectoriesRequest
 
 	Err chan error
 }
@@ -85,9 +85,14 @@ func (m *MockAgentServer) RenameDirectories(context.Context, *idl.RenameDirector
 	return &idl.RenameDirectoriesReply{}, nil
 }
 
-func (m *MockAgentServer) DeleteDirectories(context.Context, *idl.DeleteDirectoriesRequest) (*idl.DeleteDirectoriesReply, error) {
+func (m *MockAgentServer) DeleteDataDirectories(context.Context, *idl.DeleteDataDirectoriesRequest) (*idl.DeleteDataDirectoriesReply, error) {
 	m.increaseCalls()
-	return &idl.DeleteDirectoriesReply{}, nil
+	return &idl.DeleteDataDirectoriesReply{}, nil
+}
+
+func (m *MockAgentServer) DeleteStateDirectory(context.Context, *idl.DeleteStateDirectoryRequest) (*idl.DeleteStateDirectoryReply, error) {
+	m.increaseCalls()
+	return &idl.DeleteStateDirectoryReply{}, nil
 }
 
 func (m *MockAgentServer) StopAgent(ctx context.Context, in *idl.StopAgentRequest) (*idl.StopAgentReply, error) {

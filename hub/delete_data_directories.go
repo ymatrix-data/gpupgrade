@@ -11,21 +11,35 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl"
 )
 
-func DeleteMirrorAndStandbyDirectories(agentConns []*Connection, cluster *greenplum.Cluster) error {
+func DeleteMirrorAndStandbyDataDirectories(agentConns []*Connection, cluster *greenplum.Cluster) error {
+	return deleteDataDirectories(agentConns, cluster, false)
+}
+
+func DeletePrimaryDataDirectories(agentConns []*Connection, cluster *greenplum.Cluster) error {
+	return deleteDataDirectories(agentConns, cluster, true)
+}
+
+func deleteDataDirectories(agentConns []*Connection, cluster *greenplum.Cluster, primaries bool) error {
 	wg := sync.WaitGroup{}
 	errChan := make(chan error, len(agentConns))
 
 	for _, conn := range agentConns {
 		conn := conn
 
-		mirrorsIncludingStandby := func(seg *greenplum.SegConfig) bool {
-			return seg.Hostname == conn.Hostname &&
-				(seg.Role == greenplum.MirrorRole)
+		filterFunc := func(seg *greenplum.SegConfig) bool {
+			if seg.Hostname != conn.Hostname {
+				return false
+			}
+
+			if primaries {
+				return seg.IsPrimary()
+			}
+			return seg.Role == greenplum.MirrorRole
 		}
 
-		segments := cluster.SelectSegments(mirrorsIncludingStandby)
+		segments := cluster.SelectSegments(filterFunc)
 		if len(segments) == 0 {
-			// This can happen if there are no mirrors or standby on a host
+			// This can happen if there are no segments matching the filter on a host
 			continue
 		}
 
@@ -33,15 +47,15 @@ func DeleteMirrorAndStandbyDirectories(agentConns []*Connection, cluster *greenp
 		go func(c *Connection) {
 			defer wg.Done()
 
-			req := new(idl.DeleteDirectoriesRequest)
+			req := new(idl.DeleteDataDirectoriesRequest)
 			for _, seg := range segments {
 				datadir := seg.DataDir
 				req.Datadirs = append(req.Datadirs, datadir)
 			}
 
-			_, err := c.AgentClient.DeleteDirectories(context.Background(), req)
+			_, err := c.AgentClient.DeleteDataDirectories(context.Background(), req)
 			if err != nil {
-				gplog.Error("Error deleting segment data directories on host %s: %s",
+				gplog.Error("Error deleting data directories on host %s: %s",
 					c.Hostname, err.Error())
 				errChan <- err
 			}

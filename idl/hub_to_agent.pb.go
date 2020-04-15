@@ -221,75 +221,137 @@ func (m *UpgradePrimariesReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpgradePrimariesReply proto.InternalMessageInfo
 
-type DeleteDirectoriesRequest struct {
+type DeleteDataDirectoriesRequest struct {
 	Datadirs             []string `protobuf:"bytes,1,rep,name=datadirs,proto3" json:"datadirs,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteDirectoriesRequest) Reset()         { *m = DeleteDirectoriesRequest{} }
-func (m *DeleteDirectoriesRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteDirectoriesRequest) ProtoMessage()    {}
-func (*DeleteDirectoriesRequest) Descriptor() ([]byte, []int) {
+func (m *DeleteDataDirectoriesRequest) Reset()         { *m = DeleteDataDirectoriesRequest{} }
+func (m *DeleteDataDirectoriesRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteDataDirectoriesRequest) ProtoMessage()    {}
+func (*DeleteDataDirectoriesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e73bb06acc917d8, []int{3}
 }
 
-func (m *DeleteDirectoriesRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteDirectoriesRequest.Unmarshal(m, b)
+func (m *DeleteDataDirectoriesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteDataDirectoriesRequest.Unmarshal(m, b)
 }
-func (m *DeleteDirectoriesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteDirectoriesRequest.Marshal(b, m, deterministic)
+func (m *DeleteDataDirectoriesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteDataDirectoriesRequest.Marshal(b, m, deterministic)
 }
-func (m *DeleteDirectoriesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteDirectoriesRequest.Merge(m, src)
+func (m *DeleteDataDirectoriesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteDataDirectoriesRequest.Merge(m, src)
 }
-func (m *DeleteDirectoriesRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteDirectoriesRequest.Size(m)
+func (m *DeleteDataDirectoriesRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteDataDirectoriesRequest.Size(m)
 }
-func (m *DeleteDirectoriesRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteDirectoriesRequest.DiscardUnknown(m)
+func (m *DeleteDataDirectoriesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteDataDirectoriesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteDirectoriesRequest proto.InternalMessageInfo
+var xxx_messageInfo_DeleteDataDirectoriesRequest proto.InternalMessageInfo
 
-func (m *DeleteDirectoriesRequest) GetDatadirs() []string {
+func (m *DeleteDataDirectoriesRequest) GetDatadirs() []string {
 	if m != nil {
 		return m.Datadirs
 	}
 	return nil
 }
 
-type DeleteDirectoriesReply struct {
+type DeleteDataDirectoriesReply struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteDirectoriesReply) Reset()         { *m = DeleteDirectoriesReply{} }
-func (m *DeleteDirectoriesReply) String() string { return proto.CompactTextString(m) }
-func (*DeleteDirectoriesReply) ProtoMessage()    {}
-func (*DeleteDirectoriesReply) Descriptor() ([]byte, []int) {
+func (m *DeleteDataDirectoriesReply) Reset()         { *m = DeleteDataDirectoriesReply{} }
+func (m *DeleteDataDirectoriesReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteDataDirectoriesReply) ProtoMessage()    {}
+func (*DeleteDataDirectoriesReply) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e73bb06acc917d8, []int{4}
 }
 
-func (m *DeleteDirectoriesReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteDirectoriesReply.Unmarshal(m, b)
+func (m *DeleteDataDirectoriesReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteDataDirectoriesReply.Unmarshal(m, b)
 }
-func (m *DeleteDirectoriesReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteDirectoriesReply.Marshal(b, m, deterministic)
+func (m *DeleteDataDirectoriesReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteDataDirectoriesReply.Marshal(b, m, deterministic)
 }
-func (m *DeleteDirectoriesReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteDirectoriesReply.Merge(m, src)
+func (m *DeleteDataDirectoriesReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteDataDirectoriesReply.Merge(m, src)
 }
-func (m *DeleteDirectoriesReply) XXX_Size() int {
-	return xxx_messageInfo_DeleteDirectoriesReply.Size(m)
+func (m *DeleteDataDirectoriesReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteDataDirectoriesReply.Size(m)
 }
-func (m *DeleteDirectoriesReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteDirectoriesReply.DiscardUnknown(m)
+func (m *DeleteDataDirectoriesReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteDataDirectoriesReply.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteDirectoriesReply proto.InternalMessageInfo
+var xxx_messageInfo_DeleteDataDirectoriesReply proto.InternalMessageInfo
+
+type DeleteStateDirectoryRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteStateDirectoryRequest) Reset()         { *m = DeleteStateDirectoryRequest{} }
+func (m *DeleteStateDirectoryRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteStateDirectoryRequest) ProtoMessage()    {}
+func (*DeleteStateDirectoryRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e73bb06acc917d8, []int{5}
+}
+
+func (m *DeleteStateDirectoryRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteStateDirectoryRequest.Unmarshal(m, b)
+}
+func (m *DeleteStateDirectoryRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteStateDirectoryRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteStateDirectoryRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteStateDirectoryRequest.Merge(m, src)
+}
+func (m *DeleteStateDirectoryRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteStateDirectoryRequest.Size(m)
+}
+func (m *DeleteStateDirectoryRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteStateDirectoryRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteStateDirectoryRequest proto.InternalMessageInfo
+
+type DeleteStateDirectoryReply struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteStateDirectoryReply) Reset()         { *m = DeleteStateDirectoryReply{} }
+func (m *DeleteStateDirectoryReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteStateDirectoryReply) ProtoMessage()    {}
+func (*DeleteStateDirectoryReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9e73bb06acc917d8, []int{6}
+}
+
+func (m *DeleteStateDirectoryReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteStateDirectoryReply.Unmarshal(m, b)
+}
+func (m *DeleteStateDirectoryReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteStateDirectoryReply.Marshal(b, m, deterministic)
+}
+func (m *DeleteStateDirectoryReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteStateDirectoryReply.Merge(m, src)
+}
+func (m *DeleteStateDirectoryReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteStateDirectoryReply.Size(m)
+}
+func (m *DeleteStateDirectoryReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteStateDirectoryReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteStateDirectoryReply proto.InternalMessageInfo
 
 type RenameDirectories struct {
 	Source               string   `protobuf:"bytes,1,opt,name=Source,proto3" json:"Source,omitempty"`
@@ -305,7 +367,7 @@ func (m *RenameDirectories) Reset()         { *m = RenameDirectories{} }
 func (m *RenameDirectories) String() string { return proto.CompactTextString(m) }
 func (*RenameDirectories) ProtoMessage()    {}
 func (*RenameDirectories) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{5}
+	return fileDescriptor_9e73bb06acc917d8, []int{7}
 }
 
 func (m *RenameDirectories) XXX_Unmarshal(b []byte) error {
@@ -365,7 +427,7 @@ func (m *RenameDirectoriesRequest) Reset()         { *m = RenameDirectoriesReque
 func (m *RenameDirectoriesRequest) String() string { return proto.CompactTextString(m) }
 func (*RenameDirectoriesRequest) ProtoMessage()    {}
 func (*RenameDirectoriesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{6}
+	return fileDescriptor_9e73bb06acc917d8, []int{8}
 }
 
 func (m *RenameDirectoriesRequest) XXX_Unmarshal(b []byte) error {
@@ -403,7 +465,7 @@ func (m *RenameDirectoriesReply) Reset()         { *m = RenameDirectoriesReply{}
 func (m *RenameDirectoriesReply) String() string { return proto.CompactTextString(m) }
 func (*RenameDirectoriesReply) ProtoMessage()    {}
 func (*RenameDirectoriesReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{7}
+	return fileDescriptor_9e73bb06acc917d8, []int{9}
 }
 
 func (m *RenameDirectoriesReply) XXX_Unmarshal(b []byte) error {
@@ -434,7 +496,7 @@ func (m *StopAgentRequest) Reset()         { *m = StopAgentRequest{} }
 func (m *StopAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*StopAgentRequest) ProtoMessage()    {}
 func (*StopAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{8}
+	return fileDescriptor_9e73bb06acc917d8, []int{10}
 }
 
 func (m *StopAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -465,7 +527,7 @@ func (m *StopAgentReply) Reset()         { *m = StopAgentReply{} }
 func (m *StopAgentReply) String() string { return proto.CompactTextString(m) }
 func (*StopAgentReply) ProtoMessage()    {}
 func (*StopAgentReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{9}
+	return fileDescriptor_9e73bb06acc917d8, []int{11}
 }
 
 func (m *StopAgentReply) XXX_Unmarshal(b []byte) error {
@@ -498,7 +560,7 @@ func (m *CheckSegmentDiskSpaceRequest) Reset()         { *m = CheckSegmentDiskSp
 func (m *CheckSegmentDiskSpaceRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckSegmentDiskSpaceRequest) ProtoMessage()    {}
 func (*CheckSegmentDiskSpaceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9e73bb06acc917d8, []int{10}
+	return fileDescriptor_9e73bb06acc917d8, []int{12}
 }
 
 func (m *CheckSegmentDiskSpaceRequest) XXX_Unmarshal(b []byte) error {
@@ -537,8 +599,10 @@ func init() {
 	proto.RegisterType((*UpgradePrimariesRequest)(nil), "idl.UpgradePrimariesRequest")
 	proto.RegisterType((*DataDirPair)(nil), "idl.DataDirPair")
 	proto.RegisterType((*UpgradePrimariesReply)(nil), "idl.UpgradePrimariesReply")
-	proto.RegisterType((*DeleteDirectoriesRequest)(nil), "idl.DeleteDirectoriesRequest")
-	proto.RegisterType((*DeleteDirectoriesReply)(nil), "idl.DeleteDirectoriesReply")
+	proto.RegisterType((*DeleteDataDirectoriesRequest)(nil), "idl.DeleteDataDirectoriesRequest")
+	proto.RegisterType((*DeleteDataDirectoriesReply)(nil), "idl.DeleteDataDirectoriesReply")
+	proto.RegisterType((*DeleteStateDirectoryRequest)(nil), "idl.DeleteStateDirectoryRequest")
+	proto.RegisterType((*DeleteStateDirectoryReply)(nil), "idl.DeleteStateDirectoryReply")
 	proto.RegisterType((*RenameDirectories)(nil), "idl.RenameDirectories")
 	proto.RegisterType((*RenameDirectoriesRequest)(nil), "idl.RenameDirectoriesRequest")
 	proto.RegisterType((*RenameDirectoriesReply)(nil), "idl.RenameDirectoriesReply")
@@ -550,44 +614,47 @@ func init() {
 func init() { proto.RegisterFile("hub_to_agent.proto", fileDescriptor_9e73bb06acc917d8) }
 
 var fileDescriptor_9e73bb06acc917d8 = []byte{
-	// 590 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x54, 0xcd, 0x6e, 0xd3, 0x5c,
-	0x10, 0xad, 0xf3, 0xd3, 0x34, 0x93, 0x7e, 0xfd, 0xc2, 0x45, 0x4d, 0x2d, 0x13, 0x50, 0xb0, 0x58,
-	0x44, 0x2c, 0xb2, 0x08, 0x15, 0x12, 0xcb, 0xa6, 0x16, 0x12, 0x12, 0xa5, 0xc1, 0xa1, 0x6c, 0xab,
-	0x1b, 0x7b, 0x94, 0x5c, 0xc5, 0xb1, 0xcd, 0xf5, 0x0d, 0x52, 0x97, 0x2c, 0x79, 0x12, 0x1e, 0x85,
-	0xd7, 0x42, 0xf7, 0xc7, 0x89, 0x9d, 0xc4, 0x3b, 0xcf, 0x39, 0x67, 0xc6, 0x73, 0x66, 0xc6, 0x06,
-	0xb2, 0xdc, 0xcc, 0x1f, 0x45, 0xf2, 0x48, 0x17, 0x18, 0x8b, 0x51, 0xca, 0x13, 0x91, 0x90, 0x3a,
-	0x0b, 0x23, 0xa7, 0x1b, 0x44, 0x4c, 0x12, 0xcb, 0xcd, 0x5c, 0xc3, 0xee, 0x9f, 0x1a, 0x5c, 0x3d,
-	0xa4, 0x0b, 0x4e, 0x43, 0x9c, 0x72, 0xb6, 0xa6, 0x9c, 0x61, 0xe6, 0xe3, 0x8f, 0x0d, 0x66, 0x82,
-	0xb8, 0x70, 0x3e, 0x4b, 0x36, 0x3c, 0xc0, 0x09, 0x8b, 0x3d, 0xc6, 0x6d, 0x6b, 0x60, 0x0d, 0xdb,
-	0x7e, 0x09, 0x93, 0x9a, 0x6f, 0x94, 0x2f, 0x50, 0x18, 0x4d, 0x4d, 0x6b, 0x8a, 0x18, 0x79, 0x03,
-	0xff, 0xe9, 0xf8, 0x3b, 0xf2, 0x8c, 0x25, 0xb1, 0x5d, 0x57, 0xa2, 0x32, 0x48, 0xae, 0xe1, 0xdc,
-	0xa3, 0x82, 0x7a, 0x8c, 0x4f, 0x29, 0xe3, 0x99, 0xdd, 0x18, 0xd4, 0x87, 0x9d, 0x71, 0x77, 0xc4,
-	0xc2, 0x68, 0x54, 0x20, 0xfc, 0x92, 0x8a, 0xf4, 0xa1, 0x7d, 0xbb, 0xc4, 0x60, 0x75, 0x1f, 0x47,
-	0x4f, 0x76, 0x73, 0x60, 0x0d, 0xcf, 0xfc, 0x1d, 0x40, 0x06, 0xd0, 0x79, 0xc8, 0xf0, 0x33, 0x8b,
-	0x57, 0x77, 0x49, 0x88, 0xf6, 0xa9, 0xe2, 0x8b, 0x10, 0x19, 0xc2, 0xff, 0x77, 0x34, 0x13, 0xc8,
-	0x27, 0x34, 0x58, 0x6d, 0x52, 0x69, 0xa1, 0xa5, 0xba, 0xdb, 0x87, 0xdd, 0xbf, 0x16, 0x74, 0x0a,
-	0xaf, 0x96, 0xae, 0xf4, 0x24, 0x0c, 0x68, 0xc6, 0x53, 0x06, 0x77, 0xde, 0x73, 0x55, 0xad, 0xe8,
-	0x3d, 0x57, 0xbd, 0x02, 0xd0, 0x69, 0xd3, 0x84, 0x0b, 0x35, 0x9e, 0xa6, 0x5f, 0x40, 0x24, 0xaf,
-	0x13, 0x14, 0xdf, 0xd0, 0xfc, 0x0e, 0x21, 0x36, 0xb4, 0x6e, 0x93, 0x58, 0x60, 0x2c, 0xd4, 0x0c,
-	0x9a, 0x7e, 0x1e, 0x12, 0x02, 0x0d, 0x6f, 0xf2, 0xc9, 0x53, 0xd6, 0x9b, 0xbe, 0x7a, 0x76, 0xaf,
-	0xe0, 0xf2, 0x70, 0xe5, 0x69, 0xf4, 0xe4, 0xbe, 0x07, 0xdb, 0xc3, 0x08, 0x05, 0x7a, 0x8c, 0x63,
-	0x20, 0x92, 0xe2, 0x31, 0x38, 0x70, 0x16, 0x52, 0x41, 0x43, 0xb9, 0x1a, 0x6b, 0x50, 0x1f, 0xb6,
-	0xfd, 0x6d, 0xec, 0xda, 0xd0, 0x3b, 0x92, 0x27, 0x2b, 0xfe, 0xb2, 0xe0, 0x99, 0x8f, 0x31, 0x5d,
-	0x17, 0x29, 0xd2, 0x83, 0x53, 0x6d, 0xce, 0xcc, 0xcc, 0x44, 0xd2, 0xc6, 0x0d, 0x0f, 0x96, 0xec,
-	0x27, 0x9a, 0x31, 0xe5, 0xa1, 0xcc, 0xd0, 0x76, 0xcd, 0xed, 0x98, 0x48, 0x9e, 0x9f, 0x2e, 0x6f,
-	0xd8, 0x86, 0xda, 0x70, 0x09, 0x73, 0x3f, 0x82, 0x7d, 0xd0, 0x42, 0xee, 0xea, 0x2d, 0x34, 0xbc,
-	0xdc, 0x51, 0x67, 0xdc, 0x53, 0xc7, 0x76, 0x28, 0x56, 0x1a, 0xe9, 0xf2, 0x48, 0x1d, 0xe9, 0x92,
-	0x40, 0x77, 0x26, 0x92, 0xf4, 0x46, 0x7e, 0x6e, 0xa6, 0xb2, 0xdb, 0x85, 0x8b, 0x02, 0x26, 0x55,
-	0x29, 0xf4, 0xd5, 0x65, 0xce, 0x70, 0xb1, 0xc6, 0x58, 0x78, 0x2c, 0x5b, 0xcd, 0x52, 0x1a, 0x60,
-	0xde, 0xcb, 0x35, 0xb4, 0xb8, 0x7e, 0x54, 0x63, 0xe9, 0x8c, 0x1d, 0xd5, 0x8e, 0xca, 0xd9, 0x17,
-	0xfb, 0xb9, 0xb4, 0xb4, 0x97, 0x5a, 0x79, 0x2f, 0xe3, 0xdf, 0x75, 0x68, 0xaa, 0x06, 0xc8, 0x3d,
-	0x5c, 0x94, 0xeb, 0x90, 0xd7, 0xbb, 0xe2, 0x15, 0x0d, 0x39, 0xf6, 0xd1, 0xf7, 0x4b, 0x2b, 0x27,
-	0xe4, 0x0b, 0x74, 0xf7, 0x6f, 0x88, 0xf4, 0x95, 0xbe, 0xe2, 0x6f, 0xe2, 0x38, 0x15, 0xac, 0xae,
-	0xf7, 0xf5, 0xd8, 0x9d, 0xbc, 0xac, 0xd8, 0x87, 0xa9, 0xf8, 0xa2, 0x8a, 0xd6, 0x25, 0x3f, 0x40,
-	0x7b, 0xbb, 0x01, 0x72, 0xa9, 0xb4, 0xfb, 0x5b, 0x72, 0x9e, 0xef, 0xc3, 0xdb, 0x6e, 0x0e, 0x0e,
-	0xda, 0x74, 0x53, 0xf5, 0x81, 0x98, 0x6e, 0x2a, 0xbe, 0x83, 0x93, 0xf9, 0xa9, 0xfa, 0xdf, 0xbe,
-	0xfb, 0x17, 0x00, 0x00, 0xff, 0xff, 0x66, 0xbb, 0x3c, 0x9d, 0x9c, 0x05, 0x00, 0x00,
+	// 633 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x55, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0xf9, 0x69, 0x9b, 0x49, 0x29, 0x61, 0xa1, 0xad, 0x71, 0xd3, 0x62, 0x2c, 0x0e, 0x11,
+	0x87, 0x1c, 0x42, 0x2f, 0x70, 0x6b, 0x6a, 0x21, 0x21, 0x51, 0x1a, 0x1c, 0xca, 0x01, 0x09, 0x55,
+	0x1b, 0x7b, 0x95, 0xac, 0xe2, 0xd8, 0x66, 0xbd, 0x41, 0xca, 0x91, 0xa7, 0xe1, 0x51, 0x78, 0x1e,
+	0xde, 0x00, 0xed, 0x8f, 0x1b, 0x3b, 0xb1, 0x73, 0xcb, 0x7c, 0xf3, 0xcd, 0xe7, 0x99, 0x6f, 0x66,
+	0x5b, 0x40, 0xb3, 0xe5, 0xe4, 0x9e, 0xc7, 0xf7, 0x78, 0x4a, 0x22, 0xde, 0x4f, 0x58, 0xcc, 0x63,
+	0x54, 0xa7, 0x41, 0x68, 0x75, 0xfc, 0x90, 0x8a, 0xc4, 0x6c, 0x39, 0x51, 0xb0, 0xf3, 0xa7, 0x06,
+	0xa7, 0x77, 0xc9, 0x94, 0xe1, 0x80, 0x8c, 0x18, 0x5d, 0x60, 0x46, 0x49, 0xea, 0x91, 0x9f, 0x4b,
+	0x92, 0x72, 0xe4, 0xc0, 0xe1, 0x38, 0x5e, 0x32, 0x9f, 0x0c, 0x69, 0xe4, 0x52, 0x66, 0x1a, 0xb6,
+	0xd1, 0x6b, 0x79, 0x05, 0x4c, 0x70, 0xbe, 0x62, 0x36, 0x25, 0x5c, 0x73, 0x6a, 0x8a, 0x93, 0xc7,
+	0xd0, 0x6b, 0x78, 0xac, 0xe2, 0x6f, 0x84, 0xa5, 0x34, 0x8e, 0xcc, 0xba, 0x24, 0x15, 0x41, 0x74,
+	0x09, 0x87, 0x2e, 0xe6, 0xd8, 0xa5, 0x6c, 0x84, 0x29, 0x4b, 0xcd, 0x86, 0x5d, 0xef, 0xb5, 0x07,
+	0x9d, 0x3e, 0x0d, 0xc2, 0x7e, 0x2e, 0xe1, 0x15, 0x58, 0xa8, 0x0b, 0xad, 0xeb, 0x19, 0xf1, 0xe7,
+	0xb7, 0x51, 0xb8, 0x32, 0x9b, 0xb6, 0xd1, 0x3b, 0xf0, 0xd6, 0x00, 0xb2, 0xa1, 0x7d, 0x97, 0x92,
+	0x4f, 0x34, 0x9a, 0xdf, 0xc4, 0x01, 0x31, 0xf7, 0x64, 0x3e, 0x0f, 0xa1, 0x1e, 0x3c, 0xb9, 0xc1,
+	0x29, 0x27, 0x6c, 0x88, 0xfd, 0xf9, 0x32, 0x11, 0x23, 0xec, 0xcb, 0xee, 0x36, 0x61, 0xe7, 0xaf,
+	0x01, 0xed, 0xdc, 0xa7, 0xc5, 0x54, 0xca, 0x09, 0x0d, 0x6a, 0x7b, 0x8a, 0xe0, 0x7a, 0xf6, 0x8c,
+	0x55, 0xcb, 0xcf, 0x9e, 0xb1, 0x2e, 0x00, 0x54, 0xd9, 0x28, 0x66, 0x5c, 0xda, 0xd3, 0xf4, 0x72,
+	0x88, 0xc8, 0xab, 0x02, 0x99, 0x6f, 0xa8, 0xfc, 0x1a, 0x41, 0x26, 0xec, 0x5f, 0xc7, 0x11, 0x27,
+	0x11, 0x97, 0x1e, 0x34, 0xbd, 0x2c, 0x44, 0x08, 0x1a, 0xee, 0xf0, 0xa3, 0x2b, 0x47, 0x6f, 0x7a,
+	0xf2, 0xb7, 0x73, 0x0a, 0xc7, 0xdb, 0x2b, 0x4f, 0xc2, 0x95, 0xf3, 0x1e, 0xba, 0x2e, 0x09, 0x09,
+	0xcf, 0xba, 0x27, 0x3e, 0x8f, 0xf3, 0x07, 0x61, 0xc1, 0x41, 0x80, 0x39, 0x0e, 0xc4, 0x7a, 0x0c,
+	0xbb, 0xde, 0x6b, 0x79, 0x0f, 0xb1, 0xd3, 0x05, 0xab, 0xa2, 0x56, 0x28, 0x9f, 0xc3, 0x99, 0xca,
+	0x8e, 0x39, 0xe6, 0x24, 0x4b, 0xaf, 0xb4, 0xb0, 0x73, 0x06, 0x2f, 0xca, 0xd3, 0xa2, 0xf6, 0xb7,
+	0x01, 0x4f, 0x3d, 0x12, 0xe1, 0x05, 0xc9, 0xc9, 0xa2, 0x13, 0xd8, 0x53, 0x06, 0x69, 0xdf, 0x75,
+	0x24, 0xac, 0xb8, 0x62, 0xfe, 0x8c, 0xfe, 0x22, 0xda, 0xea, 0x2c, 0x14, 0x15, 0xca, 0x32, 0x7d,
+	0x7f, 0x3a, 0x12, 0x27, 0xac, 0xe4, 0x75, 0xb6, 0x21, 0xaf, 0xa4, 0x80, 0x39, 0x1f, 0xc0, 0xdc,
+	0x6a, 0x21, 0x73, 0xe5, 0x0d, 0x34, 0xdc, 0xcc, 0x91, 0xf6, 0xe0, 0x44, 0x1e, 0xec, 0x36, 0x59,
+	0x72, 0x1c, 0x13, 0x4e, 0x4a, 0x74, 0xc4, 0x94, 0x08, 0x3a, 0x63, 0x1e, 0x27, 0x57, 0xe2, 0xc9,
+	0x66, 0xb6, 0x74, 0xe0, 0x28, 0x87, 0x09, 0x56, 0x02, 0x5d, 0x79, 0xdd, 0x63, 0x32, 0x5d, 0x90,
+	0x88, 0xbb, 0x34, 0x9d, 0x8f, 0x13, 0xec, 0x93, 0xac, 0x97, 0x4b, 0xd8, 0x67, 0xea, 0xa7, 0xb4,
+	0xa5, 0x3d, 0xb0, 0x64, 0x3b, 0xb2, 0x66, 0x93, 0xec, 0x65, 0xd4, 0xc2, 0x5e, 0x6b, 0xc5, 0xbd,
+	0x0e, 0xfe, 0xd5, 0xa1, 0x29, 0x1b, 0x40, 0xb7, 0x70, 0x54, 0xd4, 0x41, 0xaf, 0xd6, 0xe2, 0x15,
+	0x0d, 0x59, 0x66, 0xe9, 0xf7, 0xc5, 0x28, 0x8f, 0xd0, 0x67, 0xe8, 0x6c, 0xde, 0x21, 0xea, 0x4a,
+	0x7e, 0xc5, 0x5f, 0x24, 0xcb, 0xaa, 0xc8, 0x2a, 0xbd, 0x2f, 0x65, 0x77, 0x72, 0x5e, 0xb1, 0x0f,
+	0xad, 0x78, 0x56, 0x95, 0x56, 0x92, 0xef, 0xa0, 0xf5, 0xb0, 0x01, 0x74, 0x2c, 0xb9, 0x9b, 0x5b,
+	0xb2, 0x9e, 0x6d, 0xc2, 0xaa, 0xf4, 0x07, 0x1c, 0x97, 0x3e, 0x08, 0xed, 0xda, 0xae, 0x87, 0x66,
+	0xbd, 0xdc, 0x45, 0x51, 0xf2, 0xdf, 0xe1, 0x79, 0xd9, 0x93, 0x41, 0x76, 0xae, 0xb4, 0xf4, 0xb1,
+	0x59, 0x17, 0x3b, 0x18, 0x52, 0x7b, 0xb2, 0x27, 0xff, 0x37, 0xbc, 0xfd, 0x1f, 0x00, 0x00, 0xff,
+	0xff, 0x1d, 0x2b, 0x15, 0x29, 0x48, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -606,7 +673,8 @@ type AgentClient interface {
 	UpgradePrimaries(ctx context.Context, in *UpgradePrimariesRequest, opts ...grpc.CallOption) (*UpgradePrimariesReply, error)
 	RenameDirectories(ctx context.Context, in *RenameDirectoriesRequest, opts ...grpc.CallOption) (*RenameDirectoriesReply, error)
 	StopAgent(ctx context.Context, in *StopAgentRequest, opts ...grpc.CallOption) (*StopAgentReply, error)
-	DeleteDirectories(ctx context.Context, in *DeleteDirectoriesRequest, opts ...grpc.CallOption) (*DeleteDirectoriesReply, error)
+	DeleteDataDirectories(ctx context.Context, in *DeleteDataDirectoriesRequest, opts ...grpc.CallOption) (*DeleteDataDirectoriesReply, error)
+	DeleteStateDirectory(ctx context.Context, in *DeleteStateDirectoryRequest, opts ...grpc.CallOption) (*DeleteStateDirectoryReply, error)
 }
 
 type agentClient struct {
@@ -653,9 +721,18 @@ func (c *agentClient) StopAgent(ctx context.Context, in *StopAgentRequest, opts 
 	return out, nil
 }
 
-func (c *agentClient) DeleteDirectories(ctx context.Context, in *DeleteDirectoriesRequest, opts ...grpc.CallOption) (*DeleteDirectoriesReply, error) {
-	out := new(DeleteDirectoriesReply)
-	err := c.cc.Invoke(ctx, "/idl.Agent/DeleteDirectories", in, out, opts...)
+func (c *agentClient) DeleteDataDirectories(ctx context.Context, in *DeleteDataDirectoriesRequest, opts ...grpc.CallOption) (*DeleteDataDirectoriesReply, error) {
+	out := new(DeleteDataDirectoriesReply)
+	err := c.cc.Invoke(ctx, "/idl.Agent/DeleteDataDirectories", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) DeleteStateDirectory(ctx context.Context, in *DeleteStateDirectoryRequest, opts ...grpc.CallOption) (*DeleteStateDirectoryReply, error) {
+	out := new(DeleteStateDirectoryReply)
+	err := c.cc.Invoke(ctx, "/idl.Agent/DeleteStateDirectory", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -668,7 +745,8 @@ type AgentServer interface {
 	UpgradePrimaries(context.Context, *UpgradePrimariesRequest) (*UpgradePrimariesReply, error)
 	RenameDirectories(context.Context, *RenameDirectoriesRequest) (*RenameDirectoriesReply, error)
 	StopAgent(context.Context, *StopAgentRequest) (*StopAgentReply, error)
-	DeleteDirectories(context.Context, *DeleteDirectoriesRequest) (*DeleteDirectoriesReply, error)
+	DeleteDataDirectories(context.Context, *DeleteDataDirectoriesRequest) (*DeleteDataDirectoriesReply, error)
+	DeleteStateDirectory(context.Context, *DeleteStateDirectoryRequest) (*DeleteStateDirectoryReply, error)
 }
 
 // UnimplementedAgentServer can be embedded to have forward compatible implementations.
@@ -687,8 +765,11 @@ func (*UnimplementedAgentServer) RenameDirectories(ctx context.Context, req *Ren
 func (*UnimplementedAgentServer) StopAgent(ctx context.Context, req *StopAgentRequest) (*StopAgentReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopAgent not implemented")
 }
-func (*UnimplementedAgentServer) DeleteDirectories(ctx context.Context, req *DeleteDirectoriesRequest) (*DeleteDirectoriesReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteDirectories not implemented")
+func (*UnimplementedAgentServer) DeleteDataDirectories(ctx context.Context, req *DeleteDataDirectoriesRequest) (*DeleteDataDirectoriesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDataDirectories not implemented")
+}
+func (*UnimplementedAgentServer) DeleteStateDirectory(ctx context.Context, req *DeleteStateDirectoryRequest) (*DeleteStateDirectoryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteStateDirectory not implemented")
 }
 
 func RegisterAgentServer(s *grpc.Server, srv AgentServer) {
@@ -767,20 +848,38 @@ func _Agent_StopAgent_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Agent_DeleteDirectories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteDirectoriesRequest)
+func _Agent_DeleteDataDirectories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDataDirectoriesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServer).DeleteDirectories(ctx, in)
+		return srv.(AgentServer).DeleteDataDirectories(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/idl.Agent/DeleteDirectories",
+		FullMethod: "/idl.Agent/DeleteDataDirectories",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).DeleteDirectories(ctx, req.(*DeleteDirectoriesRequest))
+		return srv.(AgentServer).DeleteDataDirectories(ctx, req.(*DeleteDataDirectoriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_DeleteStateDirectory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteStateDirectoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).DeleteStateDirectory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.Agent/DeleteStateDirectory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).DeleteStateDirectory(ctx, req.(*DeleteStateDirectoryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -806,8 +905,12 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Agent_StopAgent_Handler,
 		},
 		{
-			MethodName: "DeleteDirectories",
-			Handler:    _Agent_DeleteDirectories_Handler,
+			MethodName: "DeleteDataDirectories",
+			Handler:    _Agent_DeleteDataDirectories_Handler,
+		},
+		{
+			MethodName: "DeleteStateDirectory",
+			Handler:    _Agent_DeleteStateDirectory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

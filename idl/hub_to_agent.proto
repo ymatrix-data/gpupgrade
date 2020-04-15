@@ -9,7 +9,8 @@ service Agent {
   rpc UpgradePrimaries (UpgradePrimariesRequest) returns (UpgradePrimariesReply) {}
   rpc RenameDirectories (RenameDirectoriesRequest) returns (RenameDirectoriesReply) {}
   rpc StopAgent (StopAgentRequest) returns (StopAgentReply) {}
-  rpc DeleteDirectories (DeleteDirectoriesRequest) returns (DeleteDirectoriesReply) {}
+  rpc DeleteDataDirectories (DeleteDataDirectoriesRequest) returns (DeleteDataDirectoriesReply) {}
+  rpc DeleteStateDirectory (DeleteStateDirectoryRequest) returns (DeleteStateDirectoryReply) {}
 }
 
 message UpgradePrimariesRequest {
@@ -33,11 +34,13 @@ message DataDirPair {
 
 message UpgradePrimariesReply {}
 
-message DeleteDirectoriesRequest {
+message DeleteDataDirectoriesRequest {
   repeated string datadirs = 1;
 }
+message DeleteDataDirectoriesReply {}
 
-message DeleteDirectoriesReply {}
+message DeleteStateDirectoryRequest {}
+message DeleteStateDirectoryReply {}
 
 message RenameDirectories {
   string Source = 1;

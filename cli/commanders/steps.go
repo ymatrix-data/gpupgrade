@@ -144,7 +144,6 @@ func Finalize(client idl.CliToHubClient, verbose bool) error {
 	}
 
 	port, datadir, err := extractTargetClusterInfo(dataMap)
-
 	if err != nil {
 		return xerrors.Errorf("Finalize: %w", err)
 	}
@@ -153,6 +152,30 @@ func Finalize(client idl.CliToHubClient, verbose bool) error {
 	fmt.Println("Finalize completed successfully.")
 	fmt.Println("")
 	fmt.Printf("The target cluster is now upgraded and is ready to be used. The PGPORT is %s and the MASTER_DATA_DIRECTORY is %s.\n", port, datadir)
+
+	return nil
+}
+
+func Revert(client idl.CliToHubClient) error {
+	fmt.Println()
+	fmt.Println("Revert in progress.")
+	fmt.Println()
+
+	stream, err := client.Revert(context.Background(), &idl.RevertRequest{})
+	if err != nil {
+		gplog.Error(err.Error())
+		return err
+	}
+
+	// TODO: add verbose option
+	_, err = UILoop(stream, false)
+	if err != nil {
+		return xerrors.Errorf("Revert: %w", err)
+	}
+
+	fmt.Println()
+	// TODO: add more info to this message
+	fmt.Printf("The source cluster is now restored to its original state.\n")
 
 	return nil
 }

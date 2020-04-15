@@ -176,6 +176,26 @@ func (mr *MockCliToHubClientMockRecorder) RestartAgents(arg0, arg1 interface{}, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestartAgents", reflect.TypeOf((*MockCliToHubClient)(nil).RestartAgents), varargs...)
 }
 
+// Revert mocks base method
+func (m *MockCliToHubClient) Revert(arg0 context.Context, arg1 *idl.RevertRequest, arg2 ...grpc.CallOption) (idl.CliToHub_RevertClient, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Revert", varargs...)
+	ret0, _ := ret[0].(idl.CliToHub_RevertClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Revert indicates an expected call of Revert
+func (mr *MockCliToHubClientMockRecorder) Revert(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revert", reflect.TypeOf((*MockCliToHubClient)(nil).Revert), varargs...)
+}
+
 // SetConfig mocks base method
 func (m *MockCliToHubClient) SetConfig(arg0 context.Context, arg1 *idl.SetConfigRequest, arg2 ...grpc.CallOption) (*idl.SetConfigReply, error) {
 	m.ctrl.T.Helper()
@@ -338,6 +358,20 @@ func (m *MockCliToHubServer) RestartAgents(arg0 context.Context, arg1 *idl.Resta
 func (mr *MockCliToHubServerMockRecorder) RestartAgents(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestartAgents", reflect.TypeOf((*MockCliToHubServer)(nil).RestartAgents), arg0, arg1)
+}
+
+// Revert mocks base method
+func (m *MockCliToHubServer) Revert(arg0 *idl.RevertRequest, arg1 idl.CliToHub_RevertServer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Revert", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Revert indicates an expected call of Revert
+func (mr *MockCliToHubServerMockRecorder) Revert(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revert", reflect.TypeOf((*MockCliToHubServer)(nil).Revert), arg0, arg1)
 }
 
 // SetConfig mocks base method

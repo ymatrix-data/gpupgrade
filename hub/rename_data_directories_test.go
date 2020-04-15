@@ -316,8 +316,8 @@ func expectRenames(client *mock_idl.MockAgentClient, pairs []*idl.RenameDirector
 // expectDeletes is syntactic sugar for setting up an expectation on
 // AgentClient.DeleteDirectories().
 func expectDeletes(client *mock_idl.MockAgentClient, datadirs []string) {
-	client.EXPECT().DeleteDirectories(
+	client.EXPECT().DeleteDataDirectories(
 		gomock.Any(),
-		&idl.DeleteDirectoriesRequest{Datadirs: datadirs},
-	).Return(&idl.DeleteDirectoriesReply{}, nil)
+		&idl.DeleteDataDirectoriesRequest{Datadirs: datadirs},
+	).Return(&idl.DeleteDataDirectoriesReply{}, nil)
 }

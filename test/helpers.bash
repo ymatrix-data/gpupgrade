@@ -109,3 +109,7 @@ require_gnu_stat() {
     local version=$($STAT --version || true)
     [[ $version = *"GNU coreutils"* ]] || skip "GNU stat is required for this test"
 }
+
+process_is_running() {
+    ps -ef | grep -wGc "$1"
+}

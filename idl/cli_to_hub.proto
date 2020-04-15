@@ -8,6 +8,7 @@ service CliToHub {
     rpc InitializeCreateCluster(InitializeCreateClusterRequest) returns (stream Message) {}
     rpc Execute(ExecuteRequest) returns (stream Message) {}
     rpc Finalize(FinalizeRequest) returns (stream Message) {}
+    rpc Revert(RevertRequest) returns (stream Message) {}
     rpc SetConfig (SetConfigRequest) returns (SetConfigReply) {}
     rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
     rpc RestartAgents(RestartAgentsRequest) returns (RestartAgentsReply) {}
@@ -24,6 +25,8 @@ message InitializeRequest {
 message InitializeCreateClusterRequest {}
 message ExecuteRequest {}
 message FinalizeRequest {}
+
+message RevertRequest {}
 
 message RestartAgentsRequest {}
 message RestartAgentsReply {

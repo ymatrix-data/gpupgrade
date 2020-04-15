@@ -46,6 +46,8 @@ import (
 
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils"
 )
 
 var (
@@ -109,6 +111,7 @@ func BuildRootCommand() *cobra.Command {
 	root.AddCommand(initialize())
 	root.AddCommand(execute())
 	root.AddCommand(finalize())
+	root.AddCommand(revert())
 	root.AddCommand(restartServices)
 	root.AddCommand(killServices)
 	root.AddCommand(Agent())
@@ -447,6 +450,40 @@ func finalize() *cobra.Command {
 	return addHelpToCommand(cmd, FinalizeHelp)
 }
 
+func revert() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "revert",
+		Short: "reverts the upgrade and returns the cluster to its original state",
+		Long:  "reverts the upgrade and returns the cluster to its original state",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client := connectToHub()
+			err := commanders.Revert(client)
+			if err != nil {
+				gplog.Error(err.Error())
+				return err
+			}
+
+			err = stopHubAndAgents()
+			if err != nil {
+				return err
+			}
+
+			err = upgrade.DeleteDirectories([]string{utils.GetStateDir()}, upgrade.StateDirectoryFiles)
+			if err != nil {
+				gplog.Error(err.Error())
+				return err
+			}
+
+			fmt.Println("Revert completed successfully.")
+			fmt.Println()
+
+			return nil
+		},
+	}
+
+	return cmd
+}
+
 func parsePorts(val string) ([]uint32, error) {
 	var ports []uint32
 
@@ -542,20 +579,22 @@ var killServices = &cobra.Command{
 			return nil
 		}
 
-		_, err = connectToHub().StopServices(context.Background(), &idl.StopServicesRequest{})
-		if err != nil {
-			errCode := grpcStatus.Code(err)
-			errMsg := grpcStatus.Convert(err).Message()
-			// XXX: "transport is closing" is not documented but is needed to uniquely interpret codes.Unavailable
-			// https://github.com/grpc/grpc/blob/v1.24.0/doc/statuscodes.md
-			if errCode != codes.Unavailable || errMsg != "transport is closing" {
-				return err
-			}
-			return nil
-		}
-
-		return nil
+		return stopHubAndAgents()
 	},
+}
+
+func stopHubAndAgents() error {
+	_, err := connectToHub().StopServices(context.Background(), &idl.StopServicesRequest{})
+	if err != nil {
+		errCode := grpcStatus.Code(err)
+		errMsg := grpcStatus.Convert(err).Message()
+		// XXX: "transport is closing" is not documented but is needed to uniquely interpret codes.Unavailable
+		// https://github.com/grpc/grpc/blob/v1.24.0/doc/statuscodes.md
+		if errCode != codes.Unavailable || errMsg != "transport is closing" {
+			return err
+		}
+	}
+	return nil
 }
 
 const (

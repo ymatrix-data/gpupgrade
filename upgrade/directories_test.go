@@ -10,6 +10,11 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"golang.org/x/xerrors"
 
+	"io/ioutil"
+	"path/filepath"
+
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -315,4 +320,131 @@ func verifyRename(t *testing.T, source, archive, target string) {
 	if upgrade.PathExists(target) {
 		t.Errorf("expected target %q to not exist", target)
 	}
+}
+
+func setup(t *testing.T) (teardown func(), directories []string, requiredPaths []string) {
+	requiredPaths = []string{"pg_file1", "pg_file2"}
+	var dataDirectories = []string{"/data/dbfast_mirror1/seg1", "/data/dbfast_mirror2/seg2"}
+	rootDir, directories := setupDirs(t, dataDirectories, requiredPaths)
+	teardown = func() {
+		err := os.RemoveAll(rootDir)
+		if err != nil {
+			t.Fatalf("error %#v when deleting directory %#v", err, rootDir)
+		}
+	}
+
+	return teardown, directories, requiredPaths
+}
+
+func TestDeleteDirectories(t *testing.T) {
+	testhelper.SetupTestLogger()
+
+	t.Run("successfully deletes the directories if all required paths exist in that directory", func(t *testing.T) {
+		teardown, directories, requiredPaths := setup(t)
+		defer teardown()
+
+		err := upgrade.DeleteDirectories(directories, requiredPaths)
+
+		if err != nil {
+			t.Errorf("unexpected error got %+v", err)
+		}
+
+		for _, dataDir := range directories {
+			if _, err := os.Stat(dataDir); err == nil {
+				t.Errorf("dataDir %s exists", dataDir)
+			}
+		}
+	})
+
+	t.Run("fails when the required paths are not in the directories", func(t *testing.T) {
+		teardown, directories, _ := setup(t)
+		defer teardown()
+
+		err := upgrade.DeleteDirectories(directories, []string{"a", "b"})
+
+		var multiErr *multierror.Error
+		if !xerrors.As(err, &multiErr) {
+			t.Fatalf("got error %#v, want type %T", err, multiErr)
+		}
+
+		if len(multiErr.Errors) != 4 {
+			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 4)
+		}
+
+		for _, err := range multiErr.Errors {
+			if !xerrors.Is(err, os.ErrNotExist) {
+				t.Errorf("got error %#v, want %#v", err, os.ErrNotExist)
+			}
+		}
+	})
+
+	t.Run("fails to remove one segment data directory", func(t *testing.T) {
+		teardown, directories, requiredPaths := setup(t)
+		defer teardown()
+
+		fileToRemove := filepath.Join(directories[0], requiredPaths[0])
+		if err := os.Remove(fileToRemove); err != nil {
+			t.Errorf("unexpected error %+v", err)
+		}
+
+		err2 := upgrade.DeleteDirectories(directories, requiredPaths)
+
+		var multiErr *multierror.Error
+		if !xerrors.As(err2, &multiErr) {
+			t.Fatalf("got error %#v, want type %T", err2, multiErr)
+		}
+
+		if len(multiErr.Errors) != 1 {
+			t.Errorf("got %d errors, want %d", len(multiErr.Errors), 1)
+		}
+
+		var actualErr *os.PathError
+
+		for _, err := range multiErr.Errors {
+			if !xerrors.As(err, &actualErr) {
+				t.Errorf("got error %#v, want %#v", err, "PathError")
+			}
+		}
+
+		if _, err := os.Stat(directories[0]); err != nil {
+			t.Errorf("dataDir should exist, stat error %+v", err)
+		}
+
+		if _, err := os.Stat(directories[1]); err == nil {
+			t.Errorf("dataDir %s exists", directories[1])
+		}
+	})
+}
+
+func setupDirs(t *testing.T, subdirectories []string, requiredPaths []string) (tmpDir string, createdDirectories []string) {
+	var err error
+	tmpDir, err = ioutil.TempDir("", "")
+	if err != nil {
+		t.Fatalf("error creating temporary directory: %v", err)
+	}
+
+	for _, dir := range subdirectories {
+		createdDirectories = append(createdDirectories, createDataDir(t, dir, tmpDir, requiredPaths))
+	}
+
+	return tmpDir, createdDirectories
+}
+
+func createDataDir(t *testing.T, name, tmpDir string, requiredPaths []string) (dirPath string) {
+	dirPath = filepath.Join(tmpDir, name)
+
+	err := os.MkdirAll(dirPath, 0700)
+	if err != nil {
+		t.Errorf("error creating path: %v", err)
+	}
+
+	for _, fileName := range requiredPaths {
+		filePath := filepath.Join(dirPath, fileName)
+		err = ioutil.WriteFile(filePath, []byte{}, 0600)
+		if err != nil {
+			t.Errorf("error writing empty file: %v", err)
+		}
+	}
+
+	return dirPath
 }
