@@ -38,23 +38,24 @@ resources:
     branch: ((retail-demo-git-branch))
 
 {{range .AllVersions}}
-- name: bin_gpdb{{.}}_centos6
-  {{- if eq (majorVersion .) "5" }}
-  type: s3
+- name: rpm_gpdb{{.}}_centos7
+  type: gcs
   source:
-    access_key_id: ((bucket-access-key-id))
-    bucket: ((gpdb-stable-builds-bucket-name))
-    region_name: ((aws-region))
-    secret_access_key: ((bucket-secret-access-key))
-    versioned_file: release_candidates/bin_gpdb_centos6/gpdb{{.}}/bin_gpdb.tar.gz
-  {{- else}}
+    bucket: ((cm-artifacts-bucket))
+    json_key: ((cm-gcs-service-account-key))
+    {{- /* note that . can be a full X.y.z, or just a partial X or X.y */}}
+    regexp: greenplum-db-{{ majorVersion . }}/greenplum-db-({{escapeVersion .}}.*)-rhel7-x86_64.rpm
+{{end}}
+
+{{/* CentOS 6 is still used for the install-tests job. */ -}}
+{{ with .LastTargetVersion -}}
+- name: bin_gpdb{{.}}_centos6
   type: gcs
   source:
     bucket: ((gcs-bucket))
     json_key: ((concourse-gcs-resources-service-account-key))
     regexp: server/published/gpdb6/server-rc-({{escapeVersion .}}.*)-rhel6_x86_64.debug.tar.gz
-  {{- end}}
-{{end}}
+{{- end }}
 
 - name: bin_gpupgrade
   type: gcs
@@ -120,13 +121,6 @@ resources:
     bucket: ((gcs-bucket-intermediates))
     json_key: ((concourse-gcs-resources-service-account-key))
     versioned_file: 5X_STABLE/simple_dump/dump.sql.xz
-
-- name: gp-upgrade-packaging
-  type: git
-  source:
-    branch: master
-    private_key: ((gp-upgrade-packaging-git-private-key))
-    uri: git@github.com:pivotal/gp-upgrade-packaging.git
 
 anchors:
   - &ccp_default_params
@@ -246,12 +240,12 @@ jobs:
           passed: [ build ]
         - get: gpupgrade_src
           passed: [ build ]
-        - get: bin_gpdb_old
-          resource: bin_gpdb{{.Source}}_centos6
+        - get: rpm_gpdb_old
+          resource: rpm_gpdb{{.Source}}_centos7
           trigger: true
         {{- if ne .Source .Target }}
-        - get: bin_gpdb_new
-          resource: bin_gpdb{{.Target}}_centos6
+        - get: rpm_gpdb_new
+          resource: rpm_gpdb{{.Target}}_centos7
           trigger: true
         {{- end }}
         - get: ccp_src
@@ -267,22 +261,6 @@ jobs:
           resource: dump_gpdb6_icw_gporca_centos6
           {{- end }}
         {{- end }}
-        - get: gp-upgrade-packaging
-    - in_parallel:
-      - task: transform_old
-        file: gp-upgrade-packaging/ci/concourse/package/task.yml
-        input_mapping:
-          bin-gpdb: bin_gpdb_old
-        output_mapping:
-          rpm-gpdb: rpm_gpdb_old
-      {{- if ne .Source .Target }}
-      - task: transform_new
-        file: gp-upgrade-packaging/ci/concourse/package/task.yml
-        input_mapping:
-          bin-gpdb: bin_gpdb_new
-        output_mapping:
-          rpm-gpdb: rpm_gpdb_new
-      {{- end }}
     - put: terraform
       params:
         <<: *ccp_default_params
@@ -294,12 +272,12 @@ jobs:
           {{- end}}
           instance_type: n1-standard-2
           number_of_nodes: 4
-          PLATFORM: centos6
+          PLATFORM: centos7
     - task: gen_old_cluster
       file: ccp_src/ci/tasks/gen_cluster.yml
       params:
         <<: *ccp_gen_cluster_default_params
-        PLATFORM: centos6
+        PLATFORM: centos7
         GPDB_RPM: true
       input_mapping:
         gpdb_rpm: rpm_gpdb_old
