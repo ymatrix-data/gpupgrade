@@ -339,11 +339,11 @@ type TestStore struct {
 	WriteErr error
 }
 
-func (t *TestStore) Read(substep idl.Substep) (idl.Status, error) {
+func (t *TestStore) Read(_ string, substep idl.Substep) (idl.Status, error) {
 	return t.Status, nil
 }
 
-func (t *TestStore) Write(substep idl.Substep, status idl.Status) (err error) {
+func (t *TestStore) Write(_ string, substep idl.Substep, status idl.Status) (err error) {
 	t.Status = status
 	return t.WriteErr
 }

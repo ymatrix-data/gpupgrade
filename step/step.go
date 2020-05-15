@@ -122,7 +122,7 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 		return
 	}
 
-	status, err := s.store.Read(substep)
+	status, err := s.store.Read(s.name, substep)
 	if err != nil {
 		return
 	}
@@ -163,7 +163,7 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 }
 
 func (s *Step) write(substep idl.Substep, status idl.Status) error {
-	err := s.store.Write(substep, status)
+	err := s.store.Write(s.name, substep, status)
 	if err != nil {
 		return err
 	}
