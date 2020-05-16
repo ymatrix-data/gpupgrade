@@ -38,12 +38,9 @@ func TestFileStore(t *testing.T) {
 		}
 	})
 
-	err = ioutil.WriteFile(path, []byte("{}"), 0600)
-	if err != nil {
-		t.Fatalf("writing initial status file: %v", err)
-	}
-
 	t.Run("reads the same status that was written", func(t *testing.T) {
+		clear(t, path)
+
 		substep := idl.Substep_CHECK_UPGRADE
 		expected := idl.Status_COMPLETE
 
@@ -62,10 +59,7 @@ func TestFileStore(t *testing.T) {
 	})
 
 	t.Run("can write to the same substep in different sections", func(t *testing.T) {
-		err = ioutil.WriteFile(path, []byte("{}"), 0600)
-		if err != nil {
-			t.Fatalf("clearing status file: %v", err)
-		}
+		clear(t, path)
 
 		substep := idl.Substep_CHECK_UPGRADE
 		entries := []struct {
@@ -97,10 +91,7 @@ func TestFileStore(t *testing.T) {
 	})
 
 	t.Run("returns unknown status if requested section has not been written", func(t *testing.T) {
-		err = ioutil.WriteFile(path, []byte("{}"), 0600)
-		if err != nil {
-			t.Fatalf("clearing status file: %v", err)
-		}
+		clear(t, path)
 
 		status, err := fs.Read(section, idl.Substep_INIT_TARGET_CLUSTER)
 		if err != nil {
@@ -114,10 +105,7 @@ func TestFileStore(t *testing.T) {
 	})
 
 	t.Run("returns unknown status if substep was not written to the requested section", func(t *testing.T) {
-		err = ioutil.WriteFile(path, []byte("{}"), 0600)
-		if err != nil {
-			t.Fatalf("clearing status file: %v", err)
-		}
+		clear(t, path)
 
 		err := fs.Write(section, idl.Substep_CHECK_UPGRADE, idl.Status_FAILED)
 		if err != nil {
@@ -136,10 +124,7 @@ func TestFileStore(t *testing.T) {
 	})
 
 	t.Run("returns unknown status if substep was written to a different section", func(t *testing.T) {
-		err = ioutil.WriteFile(path, []byte("{}"), 0600)
-		if err != nil {
-			t.Fatalf("clearing status file: %v", err)
-		}
+		clear(t, path)
 
 		err := fs.Write("other_section", idl.Substep_INIT_TARGET_CLUSTER, idl.Status_FAILED)
 		if err != nil {
@@ -181,4 +166,14 @@ func TestFileStore(t *testing.T) {
 			t.Errorf("status[%q][%q] = %q, want %q", section, key, raw[section][key], status.String())
 		}
 	})
+}
+
+// clear writes an empty JSON map to the given FileStore backing path.
+func clear(t *testing.T, path string) {
+	t.Helper()
+
+	err := ioutil.WriteFile(path, []byte("{}"), 0600)
+	if err != nil {
+		t.Fatalf("clearing status file: %v", err)
+	}
 }

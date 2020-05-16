@@ -24,11 +24,11 @@ type FileStore struct {
 	path string
 }
 
-type statusMap = map[string]map[string]idl.Status
-
 func NewFileStore(path string) *FileStore {
 	return &FileStore{path}
 }
+
+type prettyMap = map[string]map[string]PrettyStatus
 
 // PrettyStatus exists only to write a string description of idl.Status to
 // the JSON representation, instead of an integer.
@@ -52,26 +52,18 @@ func (p *PrettyStatus) UnmarshalText(buf []byte) error {
 	return nil
 }
 
-func (f *FileStore) load() (statusMap, error) {
+func (f *FileStore) load() (prettyMap, error) {
 	data, err := ioutil.ReadFile(f.path)
 	if err != nil {
 		return nil, err
 	}
 
-	var prettySubsteps map[string]map[string]PrettyStatus
-	err = json.Unmarshal(data, &prettySubsteps)
+	var substeps prettyMap
+	err = json.Unmarshal(data, &substeps)
 	if err != nil {
 		return nil, err
 	}
 
-	substeps := make(statusMap)
-	for section, statuses := range prettySubsteps {
-		substeps[section] = make(map[string]idl.Status)
-
-		for k, v := range statuses {
-			substeps[section][k] = v.Status
-		}
-	}
 	return substeps, nil
 }
 
@@ -91,7 +83,7 @@ func (f *FileStore) Read(section string, substep idl.Substep) (idl.Status, error
 		return idl.Status_UNKNOWN_STATUS, nil
 	}
 
-	return status, nil
+	return status.Status, nil
 }
 
 // Write atomically updates the status file.
@@ -103,21 +95,12 @@ func (f *FileStore) Write(section string, substep idl.Substep, status idl.Status
 		return err
 	}
 
-	prettySteps := make(map[string]map[string]PrettyStatus)
-
-	prettySteps[section] = make(map[string]PrettyStatus)
-	for section := range steps {
-		prettySteps[section] = make(map[string]PrettyStatus)
+	if _, ok := steps[section]; !ok {
+		steps[section] = make(map[string]PrettyStatus)
 	}
+	steps[section][substep.String()] = PrettyStatus{status}
 
-	for section, statuses := range steps {
-		for k, v := range statuses {
-			prettySteps[section][k] = PrettyStatus{v}
-		}
-	}
-	prettySteps[section][substep.String()] = PrettyStatus{status}
-
-	data, err := json.MarshalIndent(prettySteps, "", "  ") // pretty print JSON
+	data, err := json.MarshalIndent(steps, "", "  ") // pretty print JSON
 	if err != nil {
 		return err
 	}
