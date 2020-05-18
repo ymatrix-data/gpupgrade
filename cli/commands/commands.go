@@ -82,13 +82,13 @@ func init() {
 		idl.Substep_START_TARGET_CLUSTER,
 	})
 	FinalizeHelp = GenerateHelpString(finalizeHelp, []idl.Substep{
-		idl.Substep_FINALIZE_SHUTDOWN_TARGET_CLUSTER,
-		idl.Substep_FINALIZE_UPDATE_TARGET_CATALOG_AND_CLUSTER_CONFIG,
-		idl.Substep_FINALIZE_UPDATE_DATA_DIRECTORIES,
-		idl.Substep_FINALIZE_UPDATE_TARGET_CONF_FILES,
-		idl.Substep_FINALIZE_START_TARGET_CLUSTER,
-		idl.Substep_FINALIZE_UPGRADE_STANDBY,
-		idl.Substep_FINALIZE_UPGRADE_MIRRORS,
+		idl.Substep_SHUTDOWN_TARGET_CLUSTER,
+		idl.Substep_UPDATE_TARGET_CATALOG_AND_CLUSTER_CONFIG,
+		idl.Substep_UPDATE_DATA_DIRECTORIES,
+		idl.Substep_UPDATE_TARGET_CONF_FILES,
+		idl.Substep_START_TARGET_CLUSTER,
+		idl.Substep_UPGRADE_STANDBY,
+		idl.Substep_UPGRADE_MIRRORS,
 	})
 	RevertHelp = GenerateHelpString(revertHelp, []idl.Substep{
 		idl.Substep_DELETE_PRIMARY_DATADIRS,

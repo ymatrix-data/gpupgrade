@@ -31,7 +31,7 @@ func (s *Server) UpdateCatalogAndClusterConfig(streams step.OutStreams) (err err
 		return s.UpdateGpSegmentConfiguration(conn)
 	})
 	if err != nil {
-		return xerrors.Errorf("%s: %w", idl.Substep_FINALIZE_UPDATE_TARGET_CATALOG_AND_CLUSTER_CONFIG, err)
+		return xerrors.Errorf("%s: %w", idl.Substep_UPDATE_TARGET_CATALOG_AND_CLUSTER_CONFIG, err)
 	}
 
 	// Create an oldTarget cluster to pass to StopMasterOnly since
