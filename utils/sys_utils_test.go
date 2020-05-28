@@ -8,6 +8,7 @@ import (
 	"os/user"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/pkg/errors"
@@ -293,4 +294,20 @@ func TestCreateAllDataDirectories(t *testing.T) {
 			t.Errorf("marker file %q was not created", marker)
 		}
 	})
+}
+
+func TestGetArchiveDirectoryName(t *testing.T) {
+	System.Now = func() time.Time {
+		// Make sure every part of the date is distinct, to catch mistakes in
+		// formatting (e.g. using seconds rather than minutes).
+		return time.Date(2000, 03, 14, 12, 15, 45, 1, time.Local)
+	}
+	defer resetSystemFunctions()
+
+	actual := GetArchiveDirectoryName()
+
+	expected := "gpupgrade-2000-03-14T12:15"
+	if actual != expected {
+		t.Errorf("GetArchiveDirectoryName() = %q, want %q", actual, expected)
+	}
 }
