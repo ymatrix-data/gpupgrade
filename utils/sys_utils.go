@@ -5,7 +5,6 @@ package utils
 
 import (
 	"database/sql"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -123,7 +122,7 @@ func GetLogDir() (string, error) {
 
 func GetArchiveDirectoryName() string {
 	now := System.Now()
-	return fmt.Sprintf("gpupgrade-%d-%02d-%02dT%02d:%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
+	return now.Format("gpupgrade-2006-01-02T15:04")
 }
 
 func CreateDataDirectory(dataDir string) error {
