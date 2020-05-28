@@ -297,14 +297,11 @@ func TestCreateAllDataDirectories(t *testing.T) {
 }
 
 func TestGetArchiveDirectoryName(t *testing.T) {
-	System.Now = func() time.Time {
-		// Make sure every part of the date is distinct, to catch mistakes in
-		// formatting (e.g. using seconds rather than minutes).
-		return time.Date(2000, 03, 14, 12, 15, 45, 1, time.Local)
-	}
-	defer resetSystemFunctions()
+	// Make sure every part of the date is distinct, to catch mistakes in
+	// formatting (e.g. using seconds rather than minutes).
+	stamp := time.Date(2000, 03, 14, 12, 15, 45, 1, time.Local)
 
-	actual := GetArchiveDirectoryName()
+	actual := GetArchiveDirectoryName(stamp)
 
 	expected := "gpupgrade-2000-03-14T12:15"
 	if actual != expected {

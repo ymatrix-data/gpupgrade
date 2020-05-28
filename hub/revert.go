@@ -5,6 +5,7 @@ package hub
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
@@ -37,7 +38,7 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		if err != nil {
 			return err
 		}
-		newDir := filepath.Join(filepath.Dir(oldDir), utils.GetArchiveDirectoryName())
+		newDir := filepath.Join(filepath.Dir(oldDir), utils.GetArchiveDirectoryName(time.Now()))
 		if err = utils.System.Rename(oldDir, newDir); err != nil {
 			return err
 		}

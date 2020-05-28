@@ -120,9 +120,8 @@ func GetLogDir() (string, error) {
 	return logDir, nil
 }
 
-func GetArchiveDirectoryName() string {
-	now := System.Now()
-	return now.Format("gpupgrade-2006-01-02T15:04")
+func GetArchiveDirectoryName(t time.Time) string {
+	return t.Format("gpupgrade-2006-01-02T15:04")
 }
 
 func CreateDataDirectory(dataDir string) error {
