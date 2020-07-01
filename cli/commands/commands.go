@@ -434,6 +434,12 @@ func initialize() *cobra.Command {
 			// text describing the next actions to take.
 			defer func() {
 				if err != nil {
+					// XXX work around an annoying UI nit: the error message is
+					// smashed against the failing substep without any vertical
+					// space. Ideally this would be handled by the "UI" logic as
+					// opposed to pushed into business logic.
+					fmt.Println()
+
 					err = cli.NewNextActions(err, "initialize")
 				}
 			}()
