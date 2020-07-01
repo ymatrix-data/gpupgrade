@@ -11,14 +11,13 @@ require (
 	github.com/google/renameio v0.1.0
 	github.com/greenplum-db/gp-common-go-libs v1.0.2
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/pgx v3.2.0+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.3.0
 	github.com/onsi/gomega v1.4.0
 	github.com/pkg/errors v0.8.0
-	github.com/spf13/cobra v0.0.1
-	github.com/spf13/pflag v1.0.0
+	github.com/spf13/cobra v1.0.0
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
