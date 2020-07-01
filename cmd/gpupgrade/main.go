@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -12,6 +13,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	_ "github.com/lib/pq"
 
+	"github.com/greenplum-db/gpupgrade/cli"
 	"github.com/greenplum-db/gpupgrade/cli/commands"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
@@ -41,6 +43,13 @@ func main() {
 		// We use gplog.Debug instead of Error so the error is not displayed
 		// twice to the user in the terminal.
 		gplog.Debug("%+v", err)
+
+		// Print any additional actions that should be taken by the user.
+		var actions cli.NextActions
+		if errors.As(err, &actions) {
+			actions.PrintHelp()
+		}
+
 		os.Exit(1)
 	}
 }

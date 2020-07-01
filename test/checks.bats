@@ -15,7 +15,10 @@ setup() {
 }
 
 teardown() {
-    skip_if_no_gpdb
+    # XXX Beware, BATS_TEST_SKIPPED is not a documented export.
+    if [ -n "${BATS_TEST_SKIPPED}" ]; then
+        return
+    fi
 
     gpupgrade kill-services
     rm -r "$STATE_DIR"
@@ -116,4 +119,8 @@ are_equivalent_within_tolerance() {
     if ! are_equivalent_within_tolerance $required_bytes $total_space 0.001; then
         fail "the required bytes ($required_bytes) are not within 0.1% of the total disk space ($total_space)"
     fi
+
+    # Make sure we print "next actions" too.
+    [[ $output == *'Please address the above issue and run "gpupgrade initialize" again.'* ]] \
+        || fail "failed to print expected next actions; actual output: $output"
 }

@@ -48,6 +48,7 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 
+	"github.com/greenplum-db/gpupgrade/cli"
 	"github.com/greenplum-db/gpupgrade/cli/commanders"
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
@@ -375,7 +376,7 @@ func initialize() *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if cmd.Flag("file").Changed {
 				configFile, err := os.Open(file)
 				if err != nil {
@@ -428,6 +429,14 @@ func initialize() *cobra.Command {
 			// If we got here, the args are okay and the user doesn't need a usage
 			// dump on failure.
 			cmd.SilenceUsage = true
+
+			// Past this point, we want any errors to be accompanied by helper
+			// text describing the next actions to take.
+			defer func() {
+				if err != nil {
+					err = cli.NewNextActions(err, "initialize")
+				}
+			}()
 
 			fmt.Println()
 			fmt.Println("Initialize in progress.")
