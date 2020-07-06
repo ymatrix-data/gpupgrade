@@ -62,7 +62,7 @@ execute_sql_directory() {
 }
 
 main(){
-    local dirs=(pre-upgrade)
+    local dirs=(pre-upgrade post-revert)
     local databases=($(get_databases))
 
     for dir in "${dirs[@]}"; do
