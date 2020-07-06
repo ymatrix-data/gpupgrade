@@ -22,39 +22,52 @@ get_databases(){
 exec_sql_file(){
     local database=$1
     local path=$2
-    local file=$3
-    local output_file=migration_${database}_${file}
+    local output_dir=$3
+
+    local output_file=migration_${database}_$(basename "$path")
 
     records=$("$GPHOME"/bin/psql -d "$database" -p "$PGPORT" -Atf "$path")
     if [[ -n "$records" ]]; then
-        echo "\c $database" > "${OUTPUT_DIR}/${output_file}"
-        echo "$records" >> "${OUTPUT_DIR}/${output_file}"
+        echo "\c $database" > "${output_dir}/${output_file}"
+        echo "$records" >> "${output_dir}/${output_file}"
     fi
 }
 
 should_apply_once(){
-    local file=$1
+    local path=$1
+    local file=$(basename "$path")
     [[ " ${APPLY_ONCE_FILES[*]} " =~ ${file} ]]
 }
 
-main(){
-    mkdir -p "$OUTPUT_DIR"
-    rm -rf "$OUTPUT_DIR"/*.sql
+execute_sql_directory() {
+    local dir=$1; shift
+    local databases=( "$@" )
 
-    local databases=($(get_databases))
-    local paths=($(find $(dirname "$0") -type f -name "*.sql"))
+    local paths=($(find "$(dirname "$0")/${dir}" -type f -name "*.sql"))
+    local output_dir="${OUTPUT_DIR}/${dir}"
+
+    mkdir -p "$output_dir"
+    rm -rf "$output_dir"/*.sql
 
     for database in "${databases[@]}"; do
         for path in "${paths[@]}"; do
-            local file=$(basename "$path")
             # generate sql modifying shared objects only for default database
-            if ! should_apply_once "$file" || [ "$database" == "postgres" ]; then
-                exec_sql_file "$database" "$path" "$file"
+            if ! should_apply_once "$path" || [ "$database" == "postgres" ]; then
+                exec_sql_file "$database" "$path" "$output_dir"
             fi
         done
     done
 
-    echo "Output files are located in: $OUTPUT_DIR"
+    echo "Output files are located in: $output_dir"
+}
+
+main(){
+    local dirs=(pre-upgrade)
+    local databases=($(get_databases))
+
+    for dir in "${dirs[@]}"; do
+        execute_sql_directory "$dir" "${databases[@]}"
+    done
 }
 
 main
