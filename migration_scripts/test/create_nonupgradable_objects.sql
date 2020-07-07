@@ -69,7 +69,6 @@ INSERT INTO table_with_primary_constraint VALUES(2, 2);
 -- create role with gphdfs readable and writable privileges
 CREATE ROLE gphdfs_user CREATEEXTTABLE(protocol='gphdfs', type='writable') CREATEEXTTABLE(protocol='gphdfs', type='readable');
 
-
 -- create partitioned tables where the index relation name is not equal primary/unique key constraint name for the root
 DROP TABLE IF EXISTS table_with_unique_constraint_p;
 CREATE TYPE table_with_unique_constraint_p_author_key AS (dummy int);
@@ -88,3 +87,17 @@ DROP TYPE table_with_primary_constraint_p_pkey, table_with_primary_constraint_p_
 ALTER TABLE table_with_primary_constraint_p ADD UNIQUE (author, title);
 INSERT INTO table_with_primary_constraint_p VALUES(1, 1);
 INSERT INTO table_with_primary_constraint_p VALUES(2, 2);
+
+-- create external gphdfs table
+-- NOTE: We fake the gphdfs protocol here so that it doesn't actually have to be
+-- installed.
+CREATE OR REPLACE FUNCTION noop() RETURNS integer AS 'select 0' LANGUAGE SQL;
+DROP PROTOCOL IF EXISTS gphdfs CASCADE;
+CREATE PROTOCOL gphdfs (writefunc=noop, readfunc=noop);
+
+CREATE EXTERNAL TABLE ext_gphdfs (name text)
+	LOCATION ('gphdfs://example.com/data/filename.txt')
+	FORMAT 'TEXT' (DELIMITER '|');
+CREATE EXTERNAL TABLE "ext gphdfs" (name text) -- whitespace in the name
+	LOCATION ('gphdfs://example.com/data/filename.txt')
+	FORMAT 'TEXT' (DELIMITER '|');
