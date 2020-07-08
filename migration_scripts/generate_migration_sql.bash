@@ -19,14 +19,24 @@ get_databases(){
     echo "$databases"
 }
 
-exec_sql_file(){
+exec_script(){
     local database=$1
     local path=$2
     local output_dir=$3
 
-    local output_file=migration_${database}_$(basename "$path")
+    local name
+    name=$(basename "$path")
+    name="${name%.*}" # strip extensions
 
-    records=$("$GPHOME"/bin/psql -d "$database" -p "$PGPORT" -Atf "$path")
+    local output_file=migration_${database}_${name}.sql
+
+    local records
+    if [[ $path == *".sql" ]]; then
+        records=$("$GPHOME"/bin/psql -d "$database" -p "$PGPORT" -Atf "$path")
+    else
+        records=$("$path" "$GPHOME" "$PGPORT" "$database")
+    fi
+
     if [[ -n "$records" ]]; then
         echo "\c $database" > "${output_dir}/${output_file}"
         echo "$records" >> "${output_dir}/${output_file}"
@@ -39,21 +49,22 @@ should_apply_once(){
     [[ " ${APPLY_ONCE_FILES[*]} " =~ ${file} ]]
 }
 
-execute_sql_directory() {
+execute_script_directory() {
     local dir=$1; shift
     local databases=( "$@" )
 
-    local paths=($(find "$(dirname "$0")/${dir}" -type f -name "*.sql"))
+    local paths=($(find "$(dirname "$0")/${dir}" -type f \( -name "*.sql" -o -name "*.sh" \) ))
     local output_dir="${OUTPUT_DIR}/${dir}"
 
     mkdir -p "$output_dir"
-    rm -rf "$output_dir"/*.sql
+    rm -f "$output_dir"/*.sql
+    rm -f "$output_dir"/*.sh
 
     for database in "${databases[@]}"; do
         for path in "${paths[@]}"; do
             # generate sql modifying shared objects only for default database
             if ! should_apply_once "$path" || [ "$database" == "postgres" ]; then
-                exec_sql_file "$database" "$path" "$output_dir"
+                exec_script "$database" "$path" "$output_dir"
             fi
         done
     done
@@ -66,7 +77,7 @@ main(){
     local databases=($(get_databases))
 
     for dir in "${dirs[@]}"; do
-        execute_sql_directory "$dir" "${databases[@]}"
+        execute_script_directory "$dir" "${databases[@]}"
     done
 }
 
