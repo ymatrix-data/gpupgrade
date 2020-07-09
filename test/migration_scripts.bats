@@ -74,7 +74,8 @@ drop_unfixable_objects() {
         --temp-port-range 6020-6040 \
         --disk-free-ratio 0 \
         --verbose
-    [ "$status" -ne 0 ] || fail "expected initialize to fail due to pg_upgrade check: $output"
+    echo "$output"
+    [ "$status" -ne 0 ] || fail "expected initialize to fail due to pg_upgrade check"
 
     egrep "\"CHECK_UPGRADE\": \"FAILED\"" $GPUPGRADE_HOME/status.json
     egrep "^Checking.*fatal$" $GPUPGRADE_HOME/pg_upgrade/seg-1/pg_upgrade_internal.log
