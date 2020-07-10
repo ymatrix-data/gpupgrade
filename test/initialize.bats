@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 load helpers
+load teardown_helpers
 
 setup() {
     skip_if_no_gpdb
@@ -28,32 +29,29 @@ setup() {
         --disk-free-ratio 0 3>&-
 
     PSQL="$GPHOME_SOURCE"/bin/psql
-    TEARDOWN_FUNCTIONS=()
 }
 
 teardown() {
     # XXX Beware, BATS_TEST_SKIPPED is not a documented export.
-    if [ -z "${BATS_TEST_SKIPPED}" ]; then
-        gpupgrade kill-services
-        rm -r "$STATE_DIR"
+    if [ -n "${BATS_TEST_SKIPPED}" ]; then
+        return
     fi
 
-    for FUNCTION in "${TEARDOWN_FUNCTIONS[@]}"; do
-        $FUNCTION
-    done
+    gpupgrade kill-services
+    rm -r "$STATE_DIR"
+
+    run_teardowns
 }
 
-set_target_cluster_var_for_teardown() {
-    TARGET_CLUSTER="$(gpupgrade config show --target-datadir)"
-}
-
-teardown_target_cluster() {
-    delete_target_datadirs $TARGET_CLUSTER
+delete_target_on_teardown() {
+    register_teardown delete_target_datadirs "$(gpupgrade config show --target-datadir)"
 }
 
 setup_check_upgrade_to_fail() {
     $PSQL -d postgres -p $PGPORT -c "CREATE TABLE test_pg_upgrade(a int) DISTRIBUTED BY (a) PARTITION BY RANGE (a)(start (1) end(4) every(1));"
     $PSQL -d postgres -p $PGPORT -c "CREATE UNIQUE INDEX fomo ON test_pg_upgrade (a);"
+
+    register_teardown teardown_check_upgrade_failure
 }
 
 teardown_check_upgrade_failure() {
@@ -206,7 +204,7 @@ wait_for_port_change() {
 
     # Store the pid of the process group leader since the port is held by its child
     HELD_PORT_PID=$!
-    TEARDOWN_FUNCTIONS+=( release_held_port )
+    register_teardown release_held_port
     wait_for_port_change $AGENT_PORT 0
 
     run gpupgrade initialize \
@@ -239,11 +237,8 @@ wait_for_port_change() {
         --disk-free-ratio 0 \
         --verbose 3>&-
 
-    set_target_cluster_var_for_teardown
-    TEARDOWN_FUNCTIONS+=( teardown_target_cluster )
-
+    delete_target_on_teardown
     setup_check_upgrade_to_fail
-    TEARDOWN_FUNCTIONS+=( teardown_check_upgrade_failure )
 
     run gpupgrade initialize \
         --source-gphome="$GPHOME_SOURCE" \
@@ -259,8 +254,7 @@ wait_for_port_change() {
 }
 
 @test "the source cluster is running at the end of initialize" {
-    set_target_cluster_var_for_teardown
-    TEARDOWN_FUNCTIONS+=( teardown_target_cluster )
+    delete_target_on_teardown
 
     isready || fail "expected source cluster to be available"
 }
@@ -279,8 +273,7 @@ wait_for_port_change() {
         --disk-free-ratio 0 \
         --verbose 3>&-
 
-    set_target_cluster_var_for_teardown
-    TEARDOWN_FUNCTIONS+=( teardown_target_cluster )
+    delete_target_on_teardown
 
     # Mark every substep in the status file as failed. Then re-initialize.
     sed -i.bak -e 's/"COMPLETE"/"FAILED"/g' "$GPUPGRADE_HOME/status.json"
