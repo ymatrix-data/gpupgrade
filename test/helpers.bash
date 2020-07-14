@@ -261,6 +261,12 @@ setup_restore_cluster() {
 # become out of sync and fail to start, thus causing gpstart to return non-zero
 # exit code.
 restore_cluster() {
+    # Precondition: the source cluster must be down. rsync'ing over a live
+    # cluster makes for some very strange and hard-to-debug failure modes.
+    if isready; then
+        abort "restore_cluster was invoked on a live source cluster (stop it first)"
+    fi
+
     if is_GPDB5 "$GPHOME_SOURCE"; then
         for var in "${RSYNC_PAIRS[@]}"; do IFS="|"; set -- $var;
             rsync -r "$1/" "$2/" \
