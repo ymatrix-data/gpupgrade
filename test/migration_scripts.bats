@@ -10,7 +10,12 @@ SCRIPTS_DIR=$BATS_TEST_DIRNAME/../migration_scripts
 setup() {
     skip_if_no_gpdb
 
+    STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
+    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
+
     PSQL="$GPHOME_SOURCE/bin/psql -X --no-align --tuples-only"
+
+    backup_source_cluster "$STATE_DIR"/backup
 
     TEST_DBNAME=testdb
     DEFAULT_DBNAME=postgres
@@ -18,9 +23,6 @@ setup() {
 
     $PSQL -c "DROP DATABASE IF EXISTS $TEST_DBNAME;" -d $DEFAULT_DBNAME
     $PSQL -c "DROP ROLE IF EXISTS $GPHDFS_USER;" -d $DEFAULT_DBNAME
-
-    STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
-    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
 
     gpupgrade kill-services
 }
@@ -31,27 +33,65 @@ teardown() {
         return
     fi
 
-    if [ -n "$NEW_CLUSTER" ]; then
-        delete_finalized_cluster $GPHOME_TARGET $NEW_CLUSTER
-    fi
-
     if [ -n "$MIGRATION_DIR" ]; then
         rm -r $MIGRATION_DIR
     fi
 
     gpupgrade kill-services
-    rm -r "$STATE_DIR"
 
-    # XXX Instead of coupling against restore_cluster's internals, we should
-    # introduce the TEARDOWN_FUNCTIONS cleanup pattern here.
-    if [ -n "$RSYNC_PAIRS" ] || [ -n "$MASTER_AND_PRIMARY_DATADIRS" ]; then
-        restore_cluster
+    restore_source_cluster "$STATE_DIR"/backup
+    rm -rf "$STATE_DIR"/backup
+
+    rm -r "$STATE_DIR"
+}
+
+# XXX backup_source_cluster is a hack to work around the standby-revert bug.
+# Instead of relying on revert to correctly reset the state of the standby, copy
+# over the original cluster contents during teardown.
+#
+# Remove this and its companion ASAP.
+backup_source_cluster() {
+    local backup_dir=$1
+
+    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
+        abort "refusing to back up cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
     fi
 
-    start_source_cluster
+    # Don't use -p. It's important that the backup directory not exist so that
+    # we know we have control over it.
+    mkdir "$backup_dir"
 
-    $GPHOME_SOURCE/bin/psql -c "DROP ROLE IF EXISTS ${GPHDFS_USER}" -d $DEFAULT_DBNAME
-    $GPHOME_SOURCE/bin/psql -c "DROP DATABASE IF EXISTS ${TEST_DBNAME}" -d $DEFAULT_DBNAME
+    local datadir_root
+    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
+
+    gpstop -af
+    rsync -r "$datadir_root"/ "$backup_dir"/
+    gpstart -a
+}
+
+# XXX restore_source_cluster is a hack to work around the standby-revert bug;
+# see backup_source_cluster above
+restore_source_cluster() {
+    local backup_dir=$1
+
+    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
+        abort "refusing to restore cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
+    fi
+
+    local datadir_root
+    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
+
+    stop_any_cluster
+    rsync -r -I --delete "$backup_dir"/ "$datadir_root"/
+    gpstart -a
+}
+
+# stop_any_cluster will attempt to stop the cluster defined by MASTER_DATA_DIRECTORY.
+stop_any_cluster() {
+    local gphome
+    gphome=$(awk '{ split($0, parts, "/bin/postgres"); print parts[1] }' "$MASTER_DATA_DIRECTORY"/postmaster.opts)
+
+    (source "$gphome"/greenplum_path.sh && gpstop -af)
 }
 
 drop_unfixable_objects() {
@@ -62,7 +102,6 @@ drop_unfixable_objects() {
 }
 
 @test "migration scripts generate sql to modify non-upgradeable objects and fix pg_upgrade check errors" {
-    setup_restore_cluster "--mode=copy"
 
     $PSQL -c "CREATE DATABASE $TEST_DBNAME;" -d $DEFAULT_DBNAME
     $PSQL -f $BATS_TEST_DIRNAME/../migration_scripts/test/create_nonupgradable_objects.sql -d $TEST_DBNAME
