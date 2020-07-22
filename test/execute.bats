@@ -133,7 +133,8 @@ ensure_hardlinks_for_relfilenode_on_master_and_segments() {
         --disk-free-ratio 0 \
         --verbose
 
-    local datadir="$(gpupgrade config show --target-datadir)"
+    local datadir
+    datadir="$(gpupgrade config show --target-datadir)"
     NEW_CLUSTER="${datadir}"
 
     # Initialize creates a backup of the target master data dir, during execute
@@ -141,7 +142,8 @@ ensure_hardlinks_for_relfilenode_on_master_and_segments() {
     # with the existing backup. Remove the target master data directory to
     # ensure that initialize created a backup and upgrade master refreshed the
     # target master data directory with the backup.
-    rm -rf "${datadir}"/*
+    abort_unless_target_master "${datadir}"
+    rm -rf "${datadir:?}"/*
 
     # create an extra file to ensure that its deleted during rsync as we pass
     # --delete flag

@@ -59,6 +59,17 @@ start_source_cluster() {
     isready || (source "$GPHOME_SOURCE"/greenplum_path.sh && "${GPHOME_SOURCE}"/bin/gpstart -a)
 }
 
+# Sanity check that the passed directory looks like a valid master data
+# directory for a target cluster. Intended to be called right before deleting
+# said directory.
+abort_unless_target_master() {
+    local dir=$1
+
+    local expected_suffix="*qddir/demoDataDir.*.-1"
+    [[ "$dir" == ${expected_suffix} ]] || \
+        abort "cowardly refusing to delete $dir which does not look like an upgraded demo data directory. Expected suffix ${expected_suffix}"
+}
+
 # delete_cluster takes an master data directory and calls gpdeletesystem, and
 # removes the associated data directories.
 delete_cluster() {
@@ -66,9 +77,7 @@ delete_cluster() {
     local masterdir="$2"
 
     # Perform a sanity check before deleting.
-    expected_suffix="*qddir/demoDataDir.*.-1"
-    [[ "$masterdir" == ${expected_suffix} ]] || \
-        abort "cowardly refusing to delete $masterdir which does not look like an upgraded demo data directory. Expected suffix ${expected_suffix}"
+    abort_unless_target_master "$masterdir"
 
     __gpdeletesystem "$gphome" "$masterdir"
 
