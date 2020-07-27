@@ -6,6 +6,8 @@ package greenplum
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 )
 
@@ -14,8 +16,9 @@ func init() {
 	ResetExecCommand()
 }
 
-func SetExecCommand(cmdFunc exectest.Command) {
-	execCommand = cmdFunc
+func MockExecCommand(ctrl *gomock.Controller) (mock *exectest.MockCommandSpy, cleanup func()) {
+	execCommand, mock = exectest.NewCommandMock(ctrl)
+	return mock, ResetExecCommand
 }
 
 func ResetExecCommand() {

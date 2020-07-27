@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/golang/mock/gomock"
 
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 )
@@ -46,20 +46,6 @@ func TestGPHomeVersion(t *testing.T) {
 	const gphome = "/usr/local/my-gpdb-home"
 	postgresPath := filepath.Join(gphome, "bin", "postgres")
 
-	// Common verifier for all tests' calls to postgres.
-	verifier := func(t *testing.T) func(string, ...string) {
-		return func(executable string, args ...string) {
-			if executable != postgresPath {
-				t.Errorf("called %q, want %q", executable, postgresPath)
-			}
-
-			expected := []string{"--gp-version"}
-			if !reflect.DeepEqual(args, expected) {
-				t.Errorf("args were %q, want %q", args, expected)
-			}
-		}
-	}
-
 	cases := []struct {
 		name     string
 		execMain exectest.Main // the postgres Main implementation to run
@@ -73,10 +59,15 @@ func TestGPHomeVersion(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			execCmd := exectest.NewCommandWithVerifier(c.execMain, verifier(t))
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			SetExecCommand(execCmd)
-			defer ResetExecCommand()
+			mock, cleanup := MockExecCommand(ctrl)
+			defer cleanup()
+
+			mock.EXPECT().
+				Command(postgresPath, []string{"--gp-version"}).
+				Return(c.execMain)
 
 			version, err := GPHomeVersion(gphome)
 			if err != nil {
@@ -113,10 +104,15 @@ func TestGPHomeVersion(t *testing.T) {
 	}
 
 	t.Run("bubbles up postgres execution failures", func(t *testing.T) {
-		execCmd := exectest.NewCommandWithVerifier(exectest.Failure, verifier(t))
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		SetExecCommand(execCmd)
-		defer ResetExecCommand()
+		mock, cleanup := MockExecCommand(ctrl)
+		defer cleanup()
+
+		mock.EXPECT().
+			Command(postgresPath, []string{"--gp-version"}).
+			Return(exectest.Failure)
 
 		_, err := GPHomeVersion(gphome)
 
