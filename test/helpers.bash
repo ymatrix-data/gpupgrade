@@ -59,6 +59,15 @@ start_source_cluster() {
     isready || (source "$GPHOME_SOURCE"/greenplum_path.sh && "${GPHOME_SOURCE}"/bin/gpstart -a)
 }
 
+# stop_any_cluster will attempt to stop the cluster defined by MASTER_DATA_DIRECTORY.
+stop_any_cluster() {
+    local gphome
+    gphome=$(awk '{ split($0, parts, "/bin/postgres"); print parts[1] }' "$MASTER_DATA_DIRECTORY"/postmaster.opts) \
+        || return $?
+
+    (source "$gphome"/greenplum_path.sh && gpstop -af) || return $?
+}
+
 # Sanity check that the passed directory looks like a valid master data
 # directory for a target cluster. Intended to be called right before deleting
 # said directory.

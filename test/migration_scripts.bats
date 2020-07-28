@@ -92,14 +92,6 @@ restore_source_cluster() {
     gpstart -a
 }
 
-# stop_any_cluster will attempt to stop the cluster defined by MASTER_DATA_DIRECTORY.
-stop_any_cluster() {
-    local gphome
-    gphome=$(awk '{ split($0, parts, "/bin/postgres"); print parts[1] }' "$MASTER_DATA_DIRECTORY"/postmaster.opts)
-
-    (source "$gphome"/greenplum_path.sh && gpstop -af)
-}
-
 drop_unfixable_objects() {
     # the migration script should not remove primary / unique key constraints on partitioned tables, so
     # remove them manually by dropping the table as they can't be dropped.

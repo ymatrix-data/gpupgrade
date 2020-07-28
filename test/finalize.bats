@@ -4,14 +4,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 load helpers
+load teardown_helpers
 load finalize_checks
 
 setup() {
     skip_if_no_gpdb
 
-    setup_state_dir
+    STATE_DIR=$(mktemp -d /tmp/gpupgrade.XXXXXX)
+    register_teardown rm -r "$STATE_DIR"
 
+    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
     gpupgrade kill-services
+
+    backup_source_cluster "$STATE_DIR"/backup
 }
 
 teardown() {
@@ -20,31 +25,42 @@ teardown() {
         return
     fi
 
-    if [ -n "$NEW_CLUSTER" ]; then
-        delete_finalized_cluster $GPHOME_TARGET $NEW_CLUSTER
-    fi
-
     gpupgrade kill-services
 
-    restore_cluster
+    run_teardowns
+}
 
-    # reload old path and start
-    source "${GPHOME_SOURCE}/greenplum_path.sh"
-    gpstart -a
+# backup_source_cluster creates an rsync'd backup of a demo cluster and restores
+# its original contents during teardown.
+backup_source_cluster() {
+    local backup_dir=$1
 
-    # delete tablespace data added to the source cluster
-    if is_GPDB5 "${GPHOME_SOURCE}"; then
-        delete_tablespace_data
+    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
+        abort "refusing to back up cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
     fi
 
-    # delete the state_dir, which also contains the tablespace filesystem
-    cleanup_state_dir
+    # Don't use -p. It's important that the backup directory not exist so that
+    # we know we have control over it. Also, don't assume set -e is enabled: if
+    # it's not, registering an rm -rf teardown anyway could be extremely
+    # dangerous.
+    mkdir "$backup_dir" || return $?
+    register_teardown rm -rf "$backup_dir"
+
+    local datadir_root
+    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
+
+    gpstop -af
+    register_teardown gpstart -a
+
+    rsync --archive "${datadir_root:?}"/ "${backup_dir:?}"/
+    register_teardown rsync --archive -I --delete "${backup_dir:?}"/ "${datadir_root:?}"/
+
+    gpstart -a
+    register_teardown stop_any_cluster
 }
 
 upgrade_cluster() {
         LINK_MODE=$1
-
-        setup_restore_cluster "$LINK_MODE"
 
         # place marker file in source master data directory
         local marker_file=source-cluster.test-marker
@@ -55,7 +71,6 @@ upgrade_cluster() {
             touch "$datadir/${marker_file}"
         done
 
-
         # grab the original configuration before starting so we can verify the
         # target cluster ends up with the source cluster's original layout
         local old_config=$(get_segment_configuration "${GPHOME_SOURCE}")
@@ -64,17 +79,6 @@ upgrade_cluster() {
         # is based on the source cluster before upgrade perhaps changes our cluster.
         local no_mirrors
         no_mirrors=$(contents_without_mirror "${GPHOME_SOURCE}" "$(hostname)" "${PGPORT}")
-
-        if [ "$LINK_MODE" == "--mode=link" ]; then
-               # create a backup of datadirs as the mirrors will be deleted in finalize
-               # and primaries pg_control file will be changed to pg_control.old to disable to old
-               # cluster
-               "${GPHOME_SOURCE}"/bin/gpstop -a
-               for datadir in "${datadirs[@]}"; do
-                   cp -r ${datadir} ${datadir}_backup
-               done
-               gpstart -a
-        fi
 
         # upgrade on 6-6 does not work due to a bug in pg_upgrade
         if is_GPDB5 "$GPHOME_SOURCE"; then
@@ -97,20 +101,9 @@ upgrade_cluster() {
             check_tablespace_data
         fi
 
-        NEW_CLUSTER="$MASTER_DATA_DIRECTORY"
-
         if [ "$LINK_MODE" == "--mode=link" ]; then
             validate_data_directories "EXISTS" "$primary_datadirs"
             validate_data_directories "NOT_EXISTS" "$mirror_datadirs"
-
-            # restore the data directories to their archived versions to fit the
-            # teardown in link mode, finalize deletes the mirrors/standby data
-            # directories, so they should be restored.
-            for datadir in "${datadirs[@]}"; do
-                local archive=$(archive_dir "$datadir")
-                rm -rf ${archive}
-                mv "${datadir}"_backup "${archive}"
-            done
         else
             validate_data_directories "EXISTS" "${datadirs}"
         fi
@@ -150,17 +143,6 @@ upgrade_cluster() {
 
 @test "in link mode gpupgrade finalize should also delete mirror directories" {
     upgrade_cluster "--mode=link"
-}
-
-setup_state_dir() {
-    STATE_DIR=$(mktemp -d /tmp/gpupgrade.XXXXXX)
-    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
-}
-
-cleanup_state_dir() {
-    if [ -n "$STATE_DIR" ]; then
-        rm -r "$STATE_DIR"
-    fi
 }
 
 get_standby_status() {
@@ -220,15 +202,6 @@ EOF
 				CREATE TABLESPACE batsTbsp FILESPACE batsFS;
 				CREATE TABLE batsTable(a int) TABLESPACE batsTbsp;
 				INSERT INTO batsTable SELECT i from generate_series(1,100)i;
-EOF
-}
-
-# This is 5X-only
-delete_tablespace_data() {
-    "${GPHOME_SOURCE}"/bin/psql -d postgres -v ON_ERROR_STOP=1 <<- EOF
-				DROP TABLE IF EXISTS batsTable;
-				DROP TABLESPACE IF EXISTS batsTbsp;
-				DROP FILESPACE IF EXISTS batsFS;
 EOF
 }
 
