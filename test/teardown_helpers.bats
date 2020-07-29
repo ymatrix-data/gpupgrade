@@ -56,3 +56,14 @@ EOF
     run_teardowns || status=$?
     [ "$status" -eq 1 ] || fail "status was $status; expected 1"
 }
+
+@test "teardown failures fail fast even without set -e" {
+    local was_run=0
+
+    register_teardown eval was_run=1  # runs last
+    register_teardown false           # runs first
+
+    run_teardowns || true # disable set -e
+
+    (( ! was_run )) || fail "second teardown was run unexpectedly"
+}
