@@ -22,9 +22,9 @@ func TestExecuteRPC(t *testing.T) {
 			{nil, nil, "sdw", nil},
 		}
 
-		var hosts []string
+		hosts := make(chan string, len(agentConns))
 		request := func(conn *hub.Connection) error {
-			hosts = append(hosts, conn.Hostname)
+			hosts <- conn.Hostname
 			return nil
 		}
 
@@ -33,10 +33,17 @@ func TestExecuteRPC(t *testing.T) {
 			t.Errorf("ExecuteRPC returned error %+v", err)
 		}
 
+		close(hosts)
+
+		var actual []string
+		for host := range hosts {
+			actual = append(actual, host)
+		}
+
 		expected := []string{"mdw", "sdw"}
-		sort.Strings(hosts)
-		if !reflect.DeepEqual(hosts, expected) {
-			t.Errorf("got %v want %v", hosts, expected)
+		sort.Strings(actual)
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %v want %v", actual, expected)
 		}
 	})
 
