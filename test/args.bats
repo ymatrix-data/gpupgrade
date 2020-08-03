@@ -21,16 +21,10 @@ teardown() {
     rm -r "$STATE_DIR"
 }
 
-@test "gpupgrade subcommands fail when passed insufficient arguments" {
+@test "gpupgrade initialize fails when passed insufficient arguments" {
     run gpupgrade initialize
     [ "$status" -eq 1 ]
     if ! [[ "$output" = *'required flag(s) "source-gphome", "source-master-port", "target-gphome" not set'* ]]; then
-        fail "actual: $output"
-    fi
-
-    run gpupgrade config set
-    [ "$status" -eq 1 ]
-    if ! [[ "$output" = *'the set command requires at least one flag to be specified'* ]]; then
         fail "actual: $output"
     fi
 }

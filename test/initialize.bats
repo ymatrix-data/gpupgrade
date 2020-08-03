@@ -126,7 +126,6 @@ outputContains() {
     gpupgrade kill-services
 
     commands=(
-        'config set --source-gphome /dummy'
         'config show'
         'execute'
         'finalize'
