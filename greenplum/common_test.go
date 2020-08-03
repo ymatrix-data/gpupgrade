@@ -3,7 +3,24 @@
 
 package greenplum
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/greenplum-db/gpupgrade/testutils/exectest"
+)
+
+func init() {
+	// Make sure all tests explicitly set execCommand.
+	ResetExecCommand()
+}
+
+func SetExecCommand(cmdFunc exectest.Command) {
+	execCommand = cmdFunc
+}
+
+func ResetExecCommand() {
+	execCommand = nil
+}
 
 // MustCreateCluster creates a utils.Cluster and calls t.Fatalf() if there is
 // any error.
