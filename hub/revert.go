@@ -49,20 +49,22 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		return xerrors.Errorf("connect to gpupgrade agent: %w", err)
 	}
 
-	// Since revert needs to work at any point, and stop is not yet idempotent
-	// check if the cluster is running before stopping.
-	// TODO: This will fail if the target does not exist which can occur when
-	//  initialize fails part way through and does not create the target cluster.
-	running, err := s.Target.IsMasterRunning(st.Streams())
-	if err != nil {
-		return err
-	}
+	// If the target cluster is started, it must be stopped.
+	if s.Target != nil {
+		st.AlwaysRun(idl.Substep_SHUTDOWN_TARGET_CLUSTER, func(streams step.OutStreams) error {
+			running, err := s.Target.IsMasterRunning(streams)
+			if err != nil {
+				return err
+			}
 
-	if running {
-		st.Run(idl.Substep_SHUTDOWN_TARGET_CLUSTER, func(streams step.OutStreams) error {
+			if !running {
+				return nil
+			}
+
 			if err := s.Target.Stop(streams); err != nil {
 				return xerrors.Errorf("stopping target cluster: %w", err)
 			}
+
 			return nil
 		})
 	}
@@ -70,7 +72,7 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 	// Restoring the source master and primaries is only needed if upgrading the
 	// primaries had started.
 	// TODO: For now we use if the source master is not running to determine this.
-	running, err = s.Source.IsMasterRunning(st.Streams())
+	running, err := s.Source.IsMasterRunning(st.Streams())
 	if err != nil {
 		return err
 	}
