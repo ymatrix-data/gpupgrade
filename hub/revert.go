@@ -115,27 +115,6 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		})
 	}
 
-	var archiveDir string
-	st.Run(idl.Substep_ARCHIVE_LOG_DIRECTORIES, func(_ step.OutStreams) error {
-		// Archive log directory on master
-		oldDir, err := utils.GetLogDir()
-		if err != nil {
-			return err
-		}
-		archiveDir = filepath.Join(filepath.Dir(oldDir), upgrade.GetArchiveDirectoryName(s.UpgradeID, time.Now()))
-
-		gplog.Debug("moving directory %q to %q", oldDir, archiveDir)
-		if err = utils.Move(oldDir, archiveDir); err != nil {
-			return err
-		}
-
-		return ArchiveSegmentLogDirectories(s.agentConns, s.Config.Target.MasterHostname(), archiveDir)
-	})
-
-	st.Run(idl.Substep_DELETE_SEGMENT_STATEDIRS, func(_ step.OutStreams) error {
-		return DeleteStateDirectories(s.agentConns, s.Source.MasterHostname())
-	})
-
 	handleMirrorStartupFailure, err := s.expectMirrorFailure()
 	if err != nil {
 		return err
@@ -178,6 +157,28 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 			return Recoverseg(streams, s.Source)
 		})
 	}
+
+	// FIXME: archiveDir is not set unless we actually run this substep; it must be persisted.
+	var archiveDir string
+	st.Run(idl.Substep_ARCHIVE_LOG_DIRECTORIES, func(_ step.OutStreams) error {
+		// Archive log directory on master
+		oldDir, err := utils.GetLogDir()
+		if err != nil {
+			return err
+		}
+		archiveDir = filepath.Join(filepath.Dir(oldDir), upgrade.GetArchiveDirectoryName(s.UpgradeID, time.Now()))
+
+		gplog.Debug("moving directory %q to %q", oldDir, archiveDir)
+		if err = utils.Move(oldDir, archiveDir); err != nil {
+			return err
+		}
+
+		return ArchiveSegmentLogDirectories(s.agentConns, s.Config.Target.MasterHostname(), archiveDir)
+	})
+
+	st.Run(idl.Substep_DELETE_SEGMENT_STATEDIRS, func(_ step.OutStreams) error {
+		return DeleteStateDirectories(s.agentConns, s.Source.MasterHostname())
+	})
 
 	message := &idl.Message{Contents: &idl.Message_Response{Response: &idl.Response{Data: map[string]string{
 		idl.ResponseKey_source_port.String():                  strconv.Itoa(s.Source.MasterPort()),
