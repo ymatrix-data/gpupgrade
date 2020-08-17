@@ -69,6 +69,26 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		})
 	}
 
+	// The target cluster's data directories and tablespaces must be removed.
+	// TODO: combine the primary/master data directory deletion into a single
+	// substep implementation, to match the prevailing patterns.
+	if s.TargetInitializeConfig.Primaries != nil {
+		st.Run(idl.Substep_DELETE_PRIMARY_DATADIRS, func(_ step.OutStreams) error {
+			return DeletePrimaryDataDirectories(s.agentConns, s.TargetInitializeConfig.Primaries)
+		})
+	}
+
+	if s.TargetInitializeConfig.Master.DataDir != "" {
+		st.Run(idl.Substep_DELETE_MASTER_DATADIR, func(streams step.OutStreams) error {
+			datadir := s.TargetInitializeConfig.Master.DataDir
+			return upgrade.DeleteDirectories([]string{datadir}, upgrade.PostgresFiles, streams)
+		})
+
+		st.Run(idl.Substep_DELETE_TABLESPACES, func(streams step.OutStreams) error {
+			return DeleteTargetTablespaces(streams, s.agentConns, s.Config.Target, s.TargetCatalogVersion, s.Tablespaces)
+		})
+	}
+
 	if s.UseLinkMode {
 		// For any of the link-mode cases described in the "Reverting to old
 		// cluster" section of https://www.postgresql.org/docs/9.4/pgupgrade.html,
@@ -96,23 +116,6 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 				return RsyncMasterAndPrimariesTablespaces(stream, s.agentConns, s.Source, s.Tablespaces)
 			})
 		}
-	}
-
-	if s.TargetInitializeConfig.Primaries != nil {
-		st.Run(idl.Substep_DELETE_PRIMARY_DATADIRS, func(_ step.OutStreams) error {
-			return DeletePrimaryDataDirectories(s.agentConns, s.TargetInitializeConfig.Primaries)
-		})
-	}
-
-	if s.TargetInitializeConfig.Master.DataDir != "" {
-		st.Run(idl.Substep_DELETE_MASTER_DATADIR, func(streams step.OutStreams) error {
-			datadir := s.TargetInitializeConfig.Master.DataDir
-			return upgrade.DeleteDirectories([]string{datadir}, upgrade.PostgresFiles, streams)
-		})
-
-		st.Run(idl.Substep_DELETE_TABLESPACES, func(streams step.OutStreams) error {
-			return DeleteTargetTablespaces(streams, s.agentConns, s.Config.Target, s.TargetCatalogVersion, s.Tablespaces)
-		})
 	}
 
 	handleMirrorStartupFailure, err := s.expectMirrorFailure()
