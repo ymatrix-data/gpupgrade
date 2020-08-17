@@ -69,38 +69,31 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		})
 	}
 
-	// Restoring the source master and primaries is only needed if upgrading the
-	// primaries had started.
-	// TODO: For now we use if the source master is not running to determine this.
-	running, err := s.Source.IsMasterRunning(st.Streams())
-	if err != nil {
-		return err
-	}
+	if s.UseLinkMode {
+		// For any of the link-mode cases described in the "Reverting to old
+		// cluster" section of https://www.postgresql.org/docs/9.4/pgupgrade.html,
+		// it is correct to restore the pg_control file. Even in the case where
+		// we're going to perform a full rsync restoration, we rely on this
+		// substep to clean up the pg_control.old file, since the rsync will not
+		// remove it.
+		st.Run(idl.Substep_RESTORE_PGCONTROL, func(streams step.OutStreams) error {
+			return RestoreMasterAndPrimariesPgControl(streams, s.agentConns, s.Source)
+		})
 
-	if !running && s.UseLinkMode {
-		hasRun, err := step.HasRun(idl.Step_EXECUTE, idl.Substep_START_TARGET_CLUSTER)
+		// if the target cluster has been started at any point, we must restore the source
+		// cluster as its files could have been modified.
+		targetStarted, err := step.HasRun(idl.Step_EXECUTE, idl.Substep_START_TARGET_CLUSTER)
 		if err != nil {
 			return err
 		}
 
-		if hasRun {
+		if targetStarted {
 			st.Run(idl.Substep_RESTORE_SOURCE_CLUSTER, func(stream step.OutStreams) error {
-				if err := RestoreMasterAndPrimariesPgControl(stream, s.agentConns, s.Source); err != nil {
-					return err
-				}
-
 				if err := RsyncMasterAndPrimaries(stream, s.agentConns, s.Source); err != nil {
 					return err
 				}
 
 				return RsyncMasterAndPrimariesTablespaces(stream, s.agentConns, s.Source, s.Tablespaces)
-			})
-		} else {
-			// Since the target cluster was not started, just restore pg_control.old
-			// to pg_control. See the "Reverting to old cluster" section of
-			// https://www.postgresql.org/docs/9.4/pgupgrade.html
-			st.Run(idl.Substep_RESTORE_PGCONTROL, func(streams step.OutStreams) error {
-				return RestoreMasterAndPrimariesPgControl(streams, s.agentConns, s.Source)
 			})
 		}
 	}
@@ -150,7 +143,7 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 
 	// If the source cluster is not running, it must be started.
 	st.AlwaysRun(idl.Substep_START_SOURCE_CLUSTER, func(streams step.OutStreams) error {
-		running, err = s.Source.IsMasterRunning(streams)
+		running, err := s.Source.IsMasterRunning(streams)
 		if err != nil {
 			return err
 		}
