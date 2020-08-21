@@ -92,7 +92,13 @@ func UpgradeMaster(args UpgradeMasterArgs) error {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if strings.HasSuffix(line, "fatal") || addText {
+
+			// XXX Checking for any instance of "fatal" is overly broad, but it
+			// keeps us from coupling against pg_upgrade UI specifics, which are
+			// currently evolving. We are guaranteed not to print too little
+			// information, though we may print too much on a spurious match.
+			// Revisit when the UI settles.
+			if strings.Contains(line, "fatal") || addText {
 				addText = true
 				text = append(text, line)
 			}

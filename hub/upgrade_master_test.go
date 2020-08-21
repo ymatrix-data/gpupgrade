@@ -46,8 +46,27 @@ Checking for users assigned the gphdfs role                 fatal
 Failure, exiting
 `
 
+const FailureWithTimingStdout = `
+Checking for orphaned TOAST relations                       ok [ 1h36m ]
+Checking for gphdfs external tables                         ok [ 12s ]
+Checking for users assigned the gphdfs role                 fatal [ 36ms ]
+
+| Your installation contains roles that have gphdfs privileges.
+| These privileges need to be revoked before upgrade.  A list
+| of roles and their corresponding gphdfs privileges that
+| must be revoked is provided in the file:
+|       gphdfs_user_roles.txt
+
+Failure, exiting
+`
+
 func PgCheckFailure() {
 	os.Stdout.WriteString(FailureStdout)
+	os.Exit(1)
+}
+
+func PgCheckFailureWithTiming() {
+	os.Stdout.WriteString(FailureWithTimingStdout)
 	os.Exit(1)
 }
 
@@ -84,6 +103,7 @@ func init() {
 		BlindlyWritingMain,
 		Failure,
 		PgCheckFailure,
+		PgCheckFailureWithTiming,
 	)
 }
 
@@ -333,32 +353,14 @@ func TestUpgradeMaster(t *testing.T) {
 	})
 
 	t.Run("when pg_upgrade check fails it adds stdout context to the error", func(t *testing.T) {
-		SetExecCommand(exectest.NewCommand(PgCheckFailure))
-		defer ResetExecCommand()
-
-		rsync.SetRsyncCommand(exectest.NewCommand(Success))
-		defer rsync.ResetRsyncCommand()
-
-		stream := new(step.BufferedStreams)
-
-		err := UpgradeMaster(UpgradeMasterArgs{
-			Source:      source,
-			Target:      target,
-			StateDir:    tempDir,
-			Stream:      stream,
-			CheckOnly:   false,
-			UseLinkMode: false,
-		})
-		if err == nil {
-			t.Errorf("expected error, returned nil")
-		}
-
-		var upgradeErr UpgradeMasterError
-		if !errors.As(err, &upgradeErr) {
-			t.Errorf("got type %T want %T", err, upgradeErr)
-		}
-
-		expected := `Checking for users assigned the gphdfs role                 fatal
+		cases := []struct {
+			name     string
+			main     exectest.Main
+			expected string
+		}{
+			{
+				"without timing", PgCheckFailure, strings.TrimSpace(`
+Checking for users assigned the gphdfs role                 fatal
 
 | Your installation contains roles that have gphdfs privileges.
 | These privileges need to be revoked before upgrade.  A list
@@ -366,10 +368,56 @@ func TestUpgradeMaster(t *testing.T) {
 | must be revoked is provided in the file:
 |       gphdfs_user_roles.txt
 
-Failure, exiting`
+Failure, exiting
+				`),
+			}, {
+				"with timing", PgCheckFailureWithTiming, strings.TrimSpace(`
+Checking for users assigned the gphdfs role                 fatal [ 36ms ]
 
-		if upgradeErr.ErrorText != expected {
-			t.Errorf("got error text %q, want %q", upgradeErr.ErrorText, expected)
+| Your installation contains roles that have gphdfs privileges.
+| These privileges need to be revoked before upgrade.  A list
+| of roles and their corresponding gphdfs privileges that
+| must be revoked is provided in the file:
+|       gphdfs_user_roles.txt
+
+Failure, exiting
+				`),
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.name, func(t *testing.T) {
+				SetExecCommand(exectest.NewCommand(c.main))
+				defer ResetExecCommand()
+
+				rsync.SetRsyncCommand(exectest.NewCommand(Success))
+				defer rsync.ResetRsyncCommand()
+
+				stream := new(step.BufferedStreams)
+
+				err := UpgradeMaster(UpgradeMasterArgs{
+					Source:      source,
+					Target:      target,
+					StateDir:    tempDir,
+					Stream:      stream,
+					CheckOnly:   false,
+					UseLinkMode: false,
+				})
+				if err == nil {
+					t.Errorf("expected error, returned nil")
+				}
+
+				var upgradeErr UpgradeMasterError
+				if !errors.As(err, &upgradeErr) {
+					t.Errorf("got type %T want %T", err, upgradeErr)
+				}
+
+				if upgradeErr.ErrorText != c.expected {
+					t.Errorf("actual error text does not match expected")
+					t.Logf("got:\n%s", upgradeErr.ErrorText)
+					t.Logf("want:\n%s", c.expected)
+				}
+			})
 		}
 	})
 }
