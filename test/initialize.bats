@@ -10,6 +10,8 @@ setup() {
     skip_if_no_gpdb
 
     STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
+    register_teardown rm -r "$STATE_DIR"
+
     export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
 
     # If this variable is set (to a master data directory), teardown() will call
@@ -27,6 +29,7 @@ setup() {
         --source-master-port="${PGPORT}"\
         --stop-before-cluster-creation \
         --disk-free-ratio 0 3>&-
+    register_teardown gpupgrade kill-services
 
     PSQL="$GPHOME_SOURCE"/bin/psql
 }
@@ -36,9 +39,6 @@ teardown() {
     if [ -n "${BATS_TEST_SKIPPED}" ]; then
         return
     fi
-
-    gpupgrade kill-services
-    rm -r "$STATE_DIR"
 
     run_teardowns
 }
@@ -284,4 +284,25 @@ wait_for_port_change() {
         --temp-port-range 6020-6040 \
         --disk-free-ratio 0 \
         --verbose 3>&-
+}
+
+# Regression test for 6X target clusters cross-linking against a 5X
+# installation during initialize.
+#
+# XXX The test power here isn't very high -- it relies on the failure mode we've
+# seen on Linux, which is a runtime link error printed to the gpinitsystem
+# output.
+@test "gpinitsystem does not run a cross-linked cluster" {
+    run gpupgrade initialize \
+        --source-gphome="$GPHOME_SOURCE" \
+        --target-gphome="$GPHOME_TARGET" \
+        --source-master-port="${PGPORT}"\
+        --temp-port-range 6020-6040 \
+        --disk-free-ratio 0 \
+        --verbose 3>&-
+    register_teardown gpupgrade revert
+
+    echo "$output"
+    [[ $output != *"libxml2.so.2: no version information available"* ]] || \
+        fail "target cluster appears to be cross-linked against the source installation"
 }

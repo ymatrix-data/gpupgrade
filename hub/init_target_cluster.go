@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -167,6 +168,8 @@ func WriteSegmentArray(config []string, targetInitializeConfig InitializeConfig)
 }
 
 func RunInitsystemForTargetCluster(stream step.OutStreams, gpHome, configPath string, version semver.Version) error {
+	// TODO: migrate this implementation to greenplum.Runner.
+
 	args := "-a -I " + configPath
 	if version.Major < 7 {
 		// For 6X we add --ignore-warnings to gpinitsystem to return 0 on
@@ -183,12 +186,42 @@ func RunInitsystemForTargetCluster(stream step.OutStreams, gpHome, configPath st
 	cmd.Stdout = stream.Stdout()
 	cmd.Stderr = stream.Stderr()
 
+	// Sanitize the child environment. The sourcing of greenplum_path.sh will
+	// give us back almost everything we need, but it's important not to put a
+	// previous installation's ambient environment into the mix.
+	//
+	// gpinitsystem unfortunately relies on a few envvars for logging purposes;
+	// otherwise, we could clear the environment completely.
+	cmd.Env = filterEnv([]string{
+		"HOME",
+		"USER",
+		"LOGNAME",
+	})
+
 	err := cmd.Run()
 	if err != nil {
 		return xerrors.Errorf("gpinitsystem: %w", err)
 	}
 
 	return nil
+}
+
+// filterEnv selects only the specified variables from the environment and
+// returns those key/value pairs, in the key=value format expected by
+// os/exec.Cmd.Env.
+func filterEnv(keys []string) []string {
+	var env []string
+
+	for _, key := range keys {
+		val, ok := os.LookupEnv(key)
+		if !ok {
+			continue
+		}
+
+		env = append(env, fmt.Sprintf("%s=%s", key, val))
+	}
+
+	return env
 }
 
 func GetMasterSegPrefix(datadir string) (string, error) {

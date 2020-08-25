@@ -4,12 +4,17 @@
 package hub
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -19,6 +24,7 @@ import (
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
 	"github.com/greenplum-db/gpupgrade/utils"
@@ -231,6 +237,75 @@ func TestRunInitsystemForTargetCluster(t *testing.T) {
 			t.Errorf("got %d, want 1", actual.ExitCode())
 		}
 	})
+
+	t.Run("suppresses most environment variables during execution", func(t *testing.T) {
+		// Set up the test environment.
+		cleanup := clearEnv(t)
+		defer cleanup()
+
+		env := map[string]string{
+			// Allowed keys.
+			//
+			// This allowlist was chosen from a manual inspection of the 5X
+			// gpinitsystem. (These environment variables are used for logging
+			// purposes.)
+			"HOME":    "/home/gpadmin",
+			"USER":    "gpadmin",
+			"LOGNAME": "gpadmin-logname",
+
+			// Disallowed.
+			"PATH":            "/some/incorrect/location",
+			"LD_LIBRARY_PATH": "/other/bad/location",
+		}
+
+		for k, v := range env {
+			if err := os.Setenv(k, v); err != nil {
+				t.Fatalf("setting up test environment: %+v", err)
+			}
+		}
+
+		// Capture the actual environment received by the gpinitsystem process.
+		SetExecCommand(exectest.NewCommand(EnvironmentMain))
+		defer ResetExecCommand()
+
+		out := &stdoutBuffer{}
+		err := RunInitsystemForTargetCluster(out, gpHome6, gpinitsystemConfigPath, version6)
+
+		if err != nil {
+			t.Fatalf("got error: %+v", err)
+		}
+
+		// Validate that we only got these allowed vars.
+		envAllowed := map[string]bool{
+			"HOME":    true,
+			"USER":    true,
+			"LOGNAME": true,
+		}
+
+		scanner := bufio.NewScanner(&out.Buffer)
+		for scanner.Scan() {
+			line := scanner.Text()
+			parts := strings.SplitN(line, "=", 2)
+
+			if len(parts) < 2 {
+				t.Errorf("envvar %q not in KEY=VALUE format", line)
+				continue
+			}
+
+			key, value := parts[0], parts[1]
+			if ok := envAllowed[key]; !ok {
+				t.Errorf("disallowed envvar %q was passed to gpinitsystem", line)
+			}
+
+			if value != env[key] {
+				t.Errorf("envvar %q has value %q, want %q", key, value, env[key])
+			}
+		}
+
+		if err := scanner.Err(); err != nil {
+			t.Errorf("scanning initsystem output: %+v", err)
+		}
+	})
 }
 
 func TestGetMasterSegPrefix(t *testing.T) {
@@ -331,4 +406,84 @@ func TestGetCatalogVersion(t *testing.T) {
 			t.Errorf("got version %s want empty string", version)
 		}
 	})
+}
+
+func TestFilterEnv(t *testing.T) {
+	cases := []struct {
+		name       string
+		initialEnv map[string]string
+		selected   []string
+		expected   []string // in sorted order
+	}{
+		{
+			name:     "does not modify empty environment",
+			selected: []string{"ENV"},
+		},
+		{
+			name: "selects only specified keys",
+			initialEnv: map[string]string{
+				"ENV1": "one",
+				"ENV2": "two",
+				"ENV3": "three",
+			},
+			selected: []string{"ENV1", "ENV3"},
+			expected: []string{"ENV1=one", "ENV3=three"},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			// Clear and load the initial environment.
+			cleanup := clearEnv(t)
+			defer cleanup()
+
+			for k, v := range c.initialEnv {
+				if err := os.Setenv(k, v); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			actual := filterEnv(c.selected)
+			sort.Strings(actual)
+
+			if !reflect.DeepEqual(actual, c.expected) {
+				t.Errorf("filterEnv(%q) = %q, want %q", c.selected, actual, c.expected)
+			}
+		})
+	}
+}
+
+// clearEnv unsets every environment variable and returns a cleanup function
+// that undoes its work.
+func clearEnv(t *testing.T) (cleanup func()) {
+	var cleanups []func()
+
+	for _, pair := range os.Environ() {
+		parts := strings.SplitN(pair, "=", 2)
+		key := parts[0]
+
+		// TODO: it's confusing that MustClearEnv runs os.Unsetenv and not
+		// os.Clearenv.
+		c := testutils.MustClearEnv(t, key)
+		cleanups = append(cleanups, c)
+	}
+
+	return func() {
+		for _, c := range cleanups {
+			c()
+		}
+	}
+}
+
+// stdoutBuffer is a steps.OutStreams implementation that stores stdout only.
+type stdoutBuffer struct {
+	Buffer bytes.Buffer
+}
+
+func (s *stdoutBuffer) Stdout() io.Writer {
+	return &s.Buffer
+}
+
+func (s *stdoutBuffer) Stderr() io.Writer {
+	return ioutil.Discard
 }
