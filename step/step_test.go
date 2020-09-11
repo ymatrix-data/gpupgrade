@@ -48,6 +48,37 @@ func TestStepRun(t *testing.T) {
 		}
 	})
 
+	t.Run("reports an explicitly skipped substep and marks the status complete on disk", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		server := mock_idl.NewMockCliToHub_ExecuteServer(ctrl)
+
+		gomock.InOrder(
+			server.EXPECT().
+				Send(&idl.Message{Contents: &idl.Message_Status{Status: &idl.SubstepStatus{
+					Step:   idl.Substep_SAVING_SOURCE_CLUSTER_CONFIG,
+					Status: idl.Status_RUNNING,
+				}}}),
+			server.EXPECT().
+				Send(&idl.Message{Contents: &idl.Message_Status{Status: &idl.SubstepStatus{
+					Step:   idl.Substep_SAVING_SOURCE_CLUSTER_CONFIG,
+					Status: idl.Status_SKIPPED,
+				}}}),
+		)
+
+		store := &TestStore{}
+		s := step.New(idl.Step_INITIALIZE, server, store, &testutils.DevNullWithClose{})
+
+		s.Run(idl.Substep_SAVING_SOURCE_CLUSTER_CONFIG, func(streams step.OutStreams) error {
+			return step.Skip
+		})
+
+		if store.Status != idl.Status_COMPLETE {
+			t.Errorf("substep status was %s, want %s", store.Status, idl.Status_COMPLETE)
+		}
+	})
+
 	t.Run("run correctly sets the substep status", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()

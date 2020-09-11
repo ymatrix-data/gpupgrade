@@ -58,7 +58,7 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 			}
 
 			if !running {
-				return nil
+				return step.Skip
 			}
 
 			if err := s.Target.Stop(streams); err != nil {
@@ -121,7 +121,7 @@ func (s *Server) Revert(_ *idl.RevertRequest, stream idl.CliToHub_RevertServer) 
 		}
 
 		if running {
-			return nil
+			return step.Skip
 		}
 
 		err = s.Source.Start(streams)

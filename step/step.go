@@ -4,6 +4,7 @@
 package step
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -183,7 +184,14 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 	}
 
 	err = f(s.streams)
-	if err != nil {
+
+	switch {
+	case errors.Is(err, Skip):
+		// The substep has requested a manual skip; this isn't really an error.
+		err = s.write(substep, idl.Status_SKIPPED)
+		return
+
+	case err != nil:
 		if werr := s.write(substep, idl.Status_FAILED); werr != nil {
 			err = multierror.Append(err, werr).ErrorOrNil()
 		}
@@ -194,7 +202,14 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 }
 
 func (s *Step) write(substep idl.Substep, status idl.Status) error {
-	err := s.store.Write(s.name, substep, status)
+	storeStatus := status
+	if status == idl.Status_SKIPPED {
+		// Special case: we want to mark an explicitly-skipped substep COMPLETE
+		// on disk.
+		storeStatus = idl.Status_COMPLETE
+	}
+
+	err := s.store.Write(s.name, substep, storeStatus)
 	if err != nil {
 		return err
 	}
@@ -218,3 +233,11 @@ func (s *Step) printDuration(substep idl.Substep, timer *stopwatch.Stopwatch) er
 	_, err := fmt.Fprintf(s.streams.Stdout(), "\n%s took %s\n\n", substep, timer.String())
 	return err
 }
+
+// Skip can be returned from a Run or AlwaysRun callback to immediately mark the
+// substep complete on disk and report "skipped" to the UI.
+var Skip = skipErr{}
+
+type skipErr struct{}
+
+func (s skipErr) Error() string { return "skipped" }
