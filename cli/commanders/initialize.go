@@ -11,6 +11,7 @@ import (
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"golang.org/x/xerrors"
 
+	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
 )
@@ -26,7 +27,7 @@ func CreateStateDir() (err error) {
 	err = os.Mkdir(stateDir, 0700)
 	if os.IsExist(err) {
 		gplog.Debug("State directory %s already present...skipping", stateDir)
-		return nil
+		return step.Skip
 	}
 	if err != nil {
 		gplog.Debug("State directory %s could not be created.", stateDir)
@@ -80,7 +81,7 @@ func StartHub() (err error) {
 	}
 	if running {
 		gplog.Debug("gpupgrade hub already running...skipping.")
-		return nil
+		return step.Skip
 	}
 
 	cmd := execCommandHubStart("gpupgrade", "hub", "--daemonize")

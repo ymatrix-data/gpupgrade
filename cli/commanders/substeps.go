@@ -4,9 +4,11 @@
 package commanders
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/greenplum-db/gpupgrade/idl"
+	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/utils/stopwatch"
 )
 
@@ -81,9 +83,18 @@ func NewSubstep(step idl.Substep, verbose bool) *substep {
 //        ...
 //    }
 //
+// As a special case, passing the step.Skip sentinel will report SKIPPED in the
+// UI and reset the passed err to nil.
+//
 func (s *substep) Finish(err *error) {
 	status := idl.Status_COMPLETE
-	if *err != nil {
+
+	switch {
+	case errors.Is(*err, step.Skip):
+		status = idl.Status_SKIPPED
+		*err = nil
+
+	case *err != nil:
 		status = idl.Status_FAILED
 	}
 

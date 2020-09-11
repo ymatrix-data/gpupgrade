@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 )
@@ -134,14 +135,15 @@ func TestStartHub_FailsToStartWhenHubIsRunningErrors(t *testing.T) {
 	}
 }
 
-func TestStartHub_ReturnsWhenHubIsRunning(t *testing.T) {
+func TestStartHub_IsSkippedWhenHubIsRunning(t *testing.T) {
 	setup(t)
 	defer teardown()
 
 	execCommandHubCount = exectest.NewCommand(IsHubRunning_True)
 	execCommandHubStart = exectest.NewCommand(GpupgradeHub_bad_Main) // should not hit this, but fail if we do
 	err := StartHub()
-	if err != nil {
+
+	if !errors.Is(err, step.Skip) {
 		t.Errorf("unexpected error %#v", err)
 	}
 }
@@ -197,7 +199,7 @@ func TestCreateStateDir(t *testing.T) {
 
 		{ // creating state directory is idempotent
 			err = CreateStateDir()
-			if err != nil {
+			if !errors.Is(err, step.Skip) {
 				t.Fatalf("unexpected error %#v", err)
 			}
 
@@ -213,7 +215,7 @@ func TestCreateStateDir(t *testing.T) {
 
 		{ //  creating state directory succeeds on multiple runs
 			err = CreateStateDir()
-			if err != nil {
+			if !errors.Is(err, step.Skip) {
 				t.Fatalf("unexpected error %#v", err)
 			}
 		}
