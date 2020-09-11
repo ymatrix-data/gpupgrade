@@ -98,6 +98,10 @@ func TestUILoop(t *testing.T) {
 				Status: idl.Status_COMPLETE,
 			}}},
 			{Contents: &idl.Message_Status{Status: &idl.SubstepStatus{
+				Step:   idl.Substep_COPY_MASTER,
+				Status: idl.Status_SKIPPED,
+			}}},
+			{Contents: &idl.Message_Status{Status: &idl.SubstepStatus{
 				Step:   idl.Substep_UPGRADE_MASTER,
 				Status: idl.Status_FAILED,
 			}}},
@@ -107,6 +111,7 @@ func TestUILoop(t *testing.T) {
 		expected += "my string\n"
 		expected += commanders.FormatStatus(msgs[2].GetStatus()) + "\n"
 		expected += commanders.FormatStatus(msgs[3].GetStatus()) + "\n"
+		expected += commanders.FormatStatus(msgs[4].GetStatus()) + "\n"
 
 		d := commanders.BufferStandardDescriptors(t)
 		defer d.Close()

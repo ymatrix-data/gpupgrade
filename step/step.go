@@ -161,7 +161,7 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 	// Only re-run substeps that are failed or pending. Do not skip substeps that must always be run.
 	if status == idl.Status_COMPLETE && !alwaysRun {
 		// Only send the status back to the UI; don't re-persist to the store
-		s.sendStatus(substep, idl.Status_COMPLETE)
+		s.sendStatus(substep, idl.Status_SKIPPED)
 		return
 	}
 

@@ -91,6 +91,7 @@ enum Status {
     RUNNING = 1;
     COMPLETE = 2;
     FAILED = 3;
+    SKIPPED = 4;
 }
 
 message CheckDiskSpaceRequest {

@@ -168,7 +168,7 @@ func TestStepRun(t *testing.T) {
 		}
 	})
 
-	t.Run("skips completed substeps", func(t *testing.T) {
+	t.Run("skips completed substeps and sends a skipped status to the client", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -176,7 +176,7 @@ func TestStepRun(t *testing.T) {
 		server.EXPECT().
 			Send(&idl.Message{Contents: &idl.Message_Status{Status: &idl.SubstepStatus{
 				Step:   idl.Substep_CHECK_UPGRADE,
-				Status: idl.Status_COMPLETE,
+				Status: idl.Status_SKIPPED,
 			}}})
 
 		store := &TestStore{Status: idl.Status_COMPLETE}
