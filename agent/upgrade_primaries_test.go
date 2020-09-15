@@ -12,13 +12,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/greenplum-db/gpupgrade/agent"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -160,16 +159,16 @@ func TestUpgradePrimary(t *testing.T) {
 
 		// We expect each part of the request to return its own ExitError,
 		// containing the expected message from FailedRsync.
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
 		}
 
-		if len(multiErr.Errors) != len(pairs) {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), len(pairs))
+		if len(errs) != len(pairs) {
+			t.Errorf("received %d errors, want %d", len(errs), len(pairs))
 		}
 
-		for _, err := range multiErr.Errors {
+		for _, err := range errs {
 			if !strings.Contains(string(err.Error()), "rsync failed cause I said so") {
 				t.Errorf("wanted error message 'rsync failed cause I said so' from rsync, got %q",
 					string(err.Error()))

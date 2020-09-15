@@ -7,10 +7,10 @@ import (
 	"context"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 var ArchiveSource = upgrade.ArchiveSource
@@ -18,13 +18,13 @@ var ArchiveSource = upgrade.ArchiveSource
 func (s *Server) RenameDirectories(ctx context.Context, in *idl.RenameDirectoriesRequest) (*idl.RenameDirectoriesReply, error) {
 	gplog.Info("agent received request to rename segment data directories")
 
-	var mErr *multierror.Error
+	var mErr error
 	for _, dir := range in.GetDirs() {
 		err := ArchiveSource(dir.GetSource(), dir.GetTarget(), dir.GetRenameTarget())
 		if err != nil {
-			mErr = multierror.Append(mErr, err)
+			mErr = errorlist.Append(mErr, err)
 		}
 	}
 
-	return &idl.RenameDirectoriesReply{}, mErr.ErrorOrNil()
+	return &idl.RenameDirectoriesReply{}, mErr
 }

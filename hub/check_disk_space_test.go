@@ -13,7 +13,6 @@ import (
 
 	sigar "github.com/cloudfoundry/gosigar"
 	"github.com/golang/mock/gomock"
-	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/sys/unix"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
@@ -21,6 +20,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl/mock_idl"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
 	"github.com/greenplum-db/gpupgrade/utils/disk"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func TestCheckDiskSpace(t *testing.T) {
@@ -179,7 +179,7 @@ func TestCheckDiskSpace(t *testing.T) {
 		_, err := checkDiskSpace(ctx, c, agents, d, req)
 
 		expected := []error{d.err, agentErr, greenplum.ErrUnknownHost}
-		checkMultierrorContents(t, err, expected)
+		checkErrorContents(t, err, expected)
 	})
 }
 
@@ -229,15 +229,15 @@ func scale(n uint64, f float64) uint64 {
 	return uint64(float64(n) * f)
 }
 
-// checkMultierrorContents ensures that the passed error is actually a
-// multierror.Error, and that it consists of exactly the expected contents
+// checkErrorContents ensures that the passed error is actually a
+// errorlist.Errors slice, and that it consists of exactly the expected contents
 // (ignoring order).
-func checkMultierrorContents(t *testing.T, err error, expected []error) {
+func checkErrorContents(t *testing.T, err error, expected []error) {
 	t.Helper()
 
-	var multierr *multierror.Error
-	if !errors.As(err, &multierr) {
-		t.Errorf("error %#v does not contain type %T", err, multierr)
+	var errs errorlist.Errors
+	if !errors.As(err, &errs) {
+		t.Errorf("got error %#v, want type %T", err, errs)
 		return
 	}
 
@@ -247,7 +247,7 @@ func checkMultierrorContents(t *testing.T, err error, expected []error) {
 	}
 
 	failed := false
-	for _, actual := range multierr.Errors {
+	for _, actual := range errs {
 		match := -1
 
 		for i, candidate := range expected {
@@ -273,7 +273,7 @@ func checkMultierrorContents(t *testing.T, err error, expected []error) {
 
 	if failed {
 		// Make the test easy to debug.
-		t.Logf("actual error contents: %v", multierr)
+		t.Logf("actual error contents: %v", []error(errs))
 	}
 }
 

@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -59,23 +59,23 @@ func Copy(streams step.OutStreams, destinationDir string, sourceDirs, hosts []st
 	wg.Wait()
 	close(results)
 
-	var multierr *multierror.Error
+	var errs error
 
 	for result := range results {
 		if _, err := io.Copy(streams.Stdout(), &result.stdout); err != nil {
-			multierr = multierror.Append(multierr, err)
+			errs = errorlist.Append(errs, err)
 		}
 
 		if _, err := io.Copy(streams.Stderr(), &result.stderr); err != nil {
-			multierr = multierror.Append(multierr, err)
+			errs = errorlist.Append(errs, err)
 		}
 
 		if result.err != nil {
-			multierr = multierror.Append(multierr, result.err)
+			errs = errorlist.Append(errs, result.err)
 		}
 	}
 
-	return multierr.ErrorOrNil()
+	return errs
 }
 
 func (s *Server) CopyMasterDataDir(streams step.OutStreams, destination string) error {

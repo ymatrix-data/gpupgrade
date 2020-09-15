@@ -13,7 +13,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
@@ -21,6 +20,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -114,11 +114,11 @@ func TestCopy(t *testing.T) {
 		err := Copy(streams, "", nil, []string{"localhost"})
 
 		// Make sure the errors are correctly propagated up.
-		var merr *multierror.Error
-		if !errors.As(err, &merr) {
-			t.Fatalf("returned %#v, want error type %T", err, merr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("returned %#v, want error type %T", err, errs)
 		}
-		for _, err := range merr.Errors {
+		for _, err := range errs {
 			if !errors.Is(err, streams.Err) {
 				t.Errorf("returned error %#v, want %#v", err, streams.Err)
 			}
@@ -133,12 +133,13 @@ func TestCopy(t *testing.T) {
 		err := Copy(buffer, "foobar/path", nil, hosts)
 
 		// Make sure the errors are correctly propagated up.
-		var merr *multierror.Error
-		if !errors.As(err, &merr) {
-			t.Fatalf("returned %#v, want error type %T", err, merr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("returned %#v, want error type %T", err, errs)
 		}
+
 		var exitErr *exec.ExitError
-		for _, err := range merr.Errors {
+		for _, err := range errs {
 			if !errors.As(err, &exitErr) || exitErr.ExitCode() != rsyncExitCode {
 				t.Errorf("returned error %#v, want exit code %d", err, rsyncExitCode)
 			}

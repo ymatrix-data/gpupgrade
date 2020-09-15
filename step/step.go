@@ -11,11 +11,11 @@ import (
 	"strings"
 
 	"github.com/greenplum-db/gp-common-go-libs/operating"
-	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/stopwatch"
 )
 
@@ -79,7 +79,7 @@ func GetStatusFile(stateDir string) (path string, err error) {
 
 	defer func() {
 		if cErr := f.Close(); cErr != nil {
-			err = multierror.Append(err, cErr).ErrorOrNil()
+			err = errorlist.Append(err, cErr)
 		}
 	}()
 
@@ -169,7 +169,7 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 	timer := stopwatch.Start()
 	defer func() {
 		if pErr := s.printDuration(substep, timer.Stop()); pErr != nil {
-			err = multierror.Append(err, pErr).ErrorOrNil()
+			err = errorlist.Append(err, pErr)
 		}
 	}()
 
@@ -193,7 +193,7 @@ func (s *Step) run(substep idl.Substep, f func(OutStreams) error, alwaysRun bool
 
 	case err != nil:
 		if werr := s.write(substep, idl.Status_FAILED); werr != nil {
-			err = multierror.Append(err, werr).ErrorOrNil()
+			err = errorlist.Append(err, werr)
 		}
 		return
 	}

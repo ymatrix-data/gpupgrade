@@ -13,7 +13,8 @@ import (
 	"time"
 
 	"github.com/google/renameio"
-	"github.com/hashicorp/go-multierror"
+
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 var (
@@ -123,7 +124,7 @@ func AtomicallyWrite(path string, data []byte) (err error) {
 	}
 	defer func() {
 		if cErr := file.Cleanup(); cErr != nil {
-			err = multierror.Append(err, cErr).ErrorOrNil()
+			err = errorlist.Append(err, cErr)
 		}
 	}()
 

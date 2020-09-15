@@ -6,7 +6,7 @@ package hub
 import (
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func ExecuteRPC(agentConns []*Connection, executeRequest func(conn *Connection) error) error {
@@ -28,10 +28,10 @@ func ExecuteRPC(agentConns []*Connection, executeRequest func(conn *Connection) 
 	wg.Wait()
 	close(errs)
 
-	var mErr *multierror.Error
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }

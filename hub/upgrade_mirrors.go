@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 const defaultFTSTimeout = 2 * time.Minute
@@ -114,7 +114,7 @@ func doUpgrade(db *sql.DB, stateDir string, mirrors []greenplum.SegConfig, targe
 	defer func() {
 		if !fileClosed {
 			if cerr := f.Close(); cerr != nil {
-				err = multierror.Append(err, cerr).ErrorOrNil()
+				err = errorlist.Append(err, cerr)
 			}
 		}
 	}()

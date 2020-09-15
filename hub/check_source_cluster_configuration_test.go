@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/testutils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func TestSegmentStatusError_Error(t *testing.T) {
@@ -63,10 +63,9 @@ func TestSegmentStatusErrors(t *testing.T) {
 			t.Fatalf("got no errors for step, expected segment status error")
 		}
 
-		var multiError *multierror.Error
 		var segmentStatusError hub.UnbalancedSegmentStatusError
 
-		if !errors.As(err, &multiError) || !errors.As(multiError.Errors[0], &segmentStatusError) {
+		if !errors.As(err, &segmentStatusError) {
 			t.Errorf("got an error that was not a segment status error: %v",
 				err.Error())
 		}
@@ -122,9 +121,7 @@ func TestSegmentStatusErrors(t *testing.T) {
 		}
 
 		var segmentStatusError hub.DownSegmentStatusError
-
-		var multiError *multierror.Error
-		if !errors.As(err, &multiError) || !errors.As(multiError.Errors[0], &segmentStatusError) {
+		if !errors.As(err, &segmentStatusError) {
 			t.Errorf("got an error that was not a segment status error: %v",
 				err.Error())
 		}
@@ -171,21 +168,20 @@ func TestSegmentStatusErrors(t *testing.T) {
 			t.Fatalf("got no errors for step, expected segment status error")
 		}
 
-		var multiError *multierror.Error
+		var errs errorlist.Errors
 
-		if !errors.As(err, &multiError) {
-			t.Errorf("got an error that was not a multi error: %v",
-				err.Error())
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
 		}
 
 		var downSegmentStatusError hub.DownSegmentStatusError
-		if !errors.As(multiError.Errors[0], &downSegmentStatusError) {
+		if !errors.As(errs[0], &downSegmentStatusError) {
 			t.Errorf("got an error that was not a down segment status error: %v",
 				err.Error())
 		}
 
 		var unbalancedSegmentStatusError hub.UnbalancedSegmentStatusError
-		if !errors.As(multiError.Errors[1], &unbalancedSegmentStatusError) {
+		if !errors.As(errs[1], &unbalancedSegmentStatusError) {
 			t.Errorf("got an error that was not an unbalanced segment status error: %v",
 				err.Error())
 		}

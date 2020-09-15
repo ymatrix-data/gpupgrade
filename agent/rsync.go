@@ -9,10 +9,10 @@ import (
 	"sync"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -20,14 +20,14 @@ func (s *Server) RsyncDataDirectories(ctx context.Context, in *idl.RsyncRequest)
 	gplog.Info("agent received request to rsync data directories")
 
 	// verify source data directories
-	var mErr *multierror.Error
+	var mErr error
 	for _, pair := range in.Pairs {
 		err := upgrade.VerifyDataDirectory(pair.GetSource())
 		if err != nil {
-			mErr = multierror.Append(mErr, err)
+			mErr = errorlist.Append(mErr, err)
 		}
 	}
-	if mErr.ErrorOrNil() != nil {
+	if mErr != nil {
 		return &idl.RsyncReply{}, mErr
 	}
 
@@ -53,7 +53,6 @@ func (s *Server) RsyncTablespaceDirectories(ctx context.Context, in *idl.RsyncRe
 }
 
 func rsyncRequestDirs(in *idl.RsyncRequest) error {
-	var mErr *multierror.Error
 	var wg sync.WaitGroup
 	errs := make(chan error, len(in.Pairs))
 
@@ -78,9 +77,10 @@ func rsyncRequestDirs(in *idl.RsyncRequest) error {
 	wg.Wait()
 	close(errs)
 
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }

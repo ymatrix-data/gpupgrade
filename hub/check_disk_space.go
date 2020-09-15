@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"sync"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/utils/disk"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func (s *Server) CheckDiskSpace(ctx context.Context, in *idl.CheckDiskSpaceRequest) (*idl.CheckDiskSpaceReply, error) {
@@ -92,11 +92,11 @@ func checkDiskSpace(ctx context.Context, cluster *greenplum.Cluster, agents []*C
 	close(errs)
 	close(failures)
 
-	var multiErr *multierror.Error
-	for err := range errs {
-		multiErr = multierror.Append(multiErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
-	if err := multiErr.ErrorOrNil(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 

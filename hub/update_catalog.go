@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 // TODO: When in copy mode should we update the catalog and in-memory object of
@@ -66,7 +66,7 @@ func WithinDbConnection(masterPort int, operation func(connection *sql.DB) error
 		closeErr := connection.Close()
 		if closeErr != nil {
 			closeErr = xerrors.Errorf("closing connection to target master: %w", closeErr)
-			err = multierror.Append(err, closeErr)
+			err = errorlist.Append(err, closeErr)
 		}
 	}()
 
@@ -148,13 +148,13 @@ func sanityCheckContentIDs(tx *sql.Tx, src *greenplum.Cluster) error {
 // commitOrRollback either Commit()s or Rollback()s the passed transaction
 // depending on whether err is non-nil. It returns any error encountered during
 // the operation; in the case of a rollback error, the incoming error will be
-// combined with the new error in a multierror.Error.
+// combined with the new error.
 func commitOrRollback(tx *sql.Tx, err error) error {
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
 			rollbackErr = xerrors.Errorf("rolling back transaction: %w", rollbackErr)
-			err = multierror.Append(err, rollbackErr)
+			err = errorlist.Append(err, rollbackErr)
 		}
 		return err
 	}

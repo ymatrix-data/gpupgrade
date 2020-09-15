@@ -13,12 +13,12 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	. "github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 // Sentinel error values to make error case testing easier.
@@ -226,14 +226,14 @@ func TestUpdateCatalog(t *testing.T) {
 			mock.ExpectRollback().WillReturnError(ErrRollback)
 		},
 		func(t *testing.T, err error) {
-			multiErr, ok := err.(*multierror.Error)
+			errs, ok := err.(errorlist.Errors)
 			if !ok {
-				t.Fatal("did not return a multierror")
+				t.Fatal("did not return an Errors list")
 			}
-			if !errors.Is(multiErr.Errors[0], ErrSentinel) {
+			if !errors.Is(errs[0], ErrSentinel) {
 				t.Errorf("first error was %#v want %#v", err, ErrSentinel)
 			}
-			if !errors.Is(multiErr.Errors[1], ErrRollback) {
+			if !errors.Is(errs[1], ErrRollback) {
 				t.Errorf("second error was %#v want %#v", err, ErrRollback)
 			}
 		},

@@ -14,13 +14,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func TestTempDataDir(t *testing.T) {
@@ -152,12 +151,13 @@ func TestArchiveSource(t *testing.T) {
 		defer testutils.MustRemoveAll(t, target)
 
 		err := upgrade.ArchiveSource(source, target, true)
-		var merr *multierror.Error
-		if !errors.As(err, &merr) {
-			t.Fatalf("returned %#v want error type %T", err, merr)
+
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("returned %#v want error type %T", err, errs)
 		}
 
-		for _, err := range merr.Errors {
+		for _, err := range errs {
 			expected := upgrade.ErrInvalidDataDirectory
 			if !errors.Is(err, expected) {
 				t.Errorf("returned error %#v want %#v", err, expected)
@@ -394,16 +394,16 @@ func TestDeleteDirectories(t *testing.T) {
 
 		err := upgrade.DeleteDirectories(directories, []string{"a", "b"}, step.DevNullStream)
 
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
 		}
 
-		if len(multiErr.Errors) != 4 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 4)
+		if len(errs) != 4 {
+			t.Errorf("received %d errors, want %d", len(errs), 4)
 		}
 
-		for _, err := range multiErr.Errors {
+		for _, err := range errs {
 			if !errors.Is(err, os.ErrNotExist) {
 				t.Errorf("got error %#v, want %#v", err, os.ErrNotExist)
 			}
@@ -419,23 +419,11 @@ func TestDeleteDirectories(t *testing.T) {
 			t.Errorf("unexpected error %+v", err)
 		}
 
-		err2 := upgrade.DeleteDirectories(directories, requiredPaths, step.DevNullStream)
-
-		var multiErr *multierror.Error
-		if !errors.As(err2, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err2, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("got %d errors, want %d", len(multiErr.Errors), 1)
-		}
+		err := upgrade.DeleteDirectories(directories, requiredPaths, step.DevNullStream)
 
 		var actualErr *os.PathError
-
-		for _, err := range multiErr.Errors {
-			if !errors.As(err, &actualErr) {
-				t.Errorf("got error %#v, want %#v", err, "PathError")
-			}
+		if !errors.As(err, &actualErr) {
+			t.Errorf("got error %#v, want %#v", err, "PathError")
 		}
 
 		if _, err := os.Stat(directories[0]); err != nil {
@@ -677,19 +665,9 @@ func TestDeleteNewTablespaceDirectories(t *testing.T) {
 		}
 
 		err = upgrade.DeleteNewTablespaceDirectories(step.DevNullStream, []string{tablespaceDir})
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v want type %T", err, multiErr)
-		}
 
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, os.ErrPermission) {
-				t.Errorf("got error %#v want %#v", err, os.ErrPermission)
-			}
+		if !errors.Is(err, os.ErrPermission) {
+			t.Errorf("got error %#v want %#v", err, os.ErrPermission)
 		}
 
 		if !upgrade.PathExists(tablespaceDir) {
@@ -864,19 +842,9 @@ func TestVerify5XTablespaceDirectories(t *testing.T) {
 		}
 
 		err = upgrade.Verify5XTablespaceDirectories([]string{tsLocationDir})
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v want type %T", err, multiErr)
-		}
 
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, upgrade.ErrInvalidTablespaceDirectory) {
-				t.Errorf("got error %#v want %#v", err, upgrade.ErrInvalidTablespaceDirectory)
-			}
+		if !errors.Is(err, upgrade.ErrInvalidTablespaceDirectory) {
+			t.Errorf("got error %#v want %#v", err, upgrade.ErrInvalidTablespaceDirectory)
 		}
 	})
 }

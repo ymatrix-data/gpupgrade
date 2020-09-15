@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 const connectionString = "postgresql://localhost:%d/template1?gp_session_role=utility&search_path="
@@ -27,7 +27,7 @@ func (s *Server) Initialize(in *idl.InitializeRequest, stream idl.CliToHub_Initi
 
 	defer func() {
 		if ferr := st.Finish(); ferr != nil {
-			err = multierror.Append(err, ferr).ErrorOrNil()
+			err = errorlist.Append(err, ferr)
 		}
 
 		if err != nil {
@@ -42,7 +42,7 @@ func (s *Server) Initialize(in *idl.InitializeRequest, stream idl.CliToHub_Initi
 		}
 		defer func() {
 			if cerr := conn.Close(); cerr != nil {
-				err = multierror.Append(err, cerr).ErrorOrNil()
+				err = errorlist.Append(err, cerr)
 			}
 		}()
 
@@ -65,7 +65,7 @@ func (s *Server) InitializeCreateCluster(in *idl.InitializeCreateClusterRequest,
 
 	defer func() {
 		if ferr := st.Finish(); ferr != nil {
-			err = multierror.Append(err, ferr).ErrorOrNil()
+			err = errorlist.Append(err, ferr)
 		}
 
 		if err != nil {

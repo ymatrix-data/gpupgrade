@@ -16,11 +16,11 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 type greenplumStub struct {
@@ -274,16 +274,16 @@ func TestDoUpgrade(t *testing.T) {
 
 		err = doUpgrade(db, "/state/dir", mirrors, stub)
 
-		var merr *multierror.Error
-		if !errors.As(err, &merr) {
-			t.Fatalf("returned error %#v, want error type %T", err, merr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("returned error %#v, want error type %T", err, errs)
 		}
 
-		if len(merr.Errors) != 2 {
+		if len(errs) != 2 {
 			t.Errorf("expected exactly two errors")
 		}
 
-		for _, err := range merr.Errors {
+		for _, err := range errs {
 			if !errors.Is(err, os.ErrInvalid) {
 				t.Errorf("returned error %#v want %#v", err, os.ErrInvalid)
 			}

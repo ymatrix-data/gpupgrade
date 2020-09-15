@@ -10,12 +10,12 @@ import (
 	"strconv"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 const executeMasterBackupName = "upgraded-master.bak"
@@ -30,7 +30,7 @@ func (s *Server) Execute(request *idl.ExecuteRequest, stream idl.CliToHub_Execut
 
 	defer func() {
 		if ferr := st.Finish(); ferr != nil {
-			err = multierror.Append(err, ferr).ErrorOrNil()
+			err = errorlist.Append(err, ferr)
 		}
 
 		if err != nil {

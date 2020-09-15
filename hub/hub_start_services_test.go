@@ -16,7 +16,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 
@@ -25,6 +24,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func gpupgrade_agent() {
@@ -116,16 +116,19 @@ func TestRestartAgent(t *testing.T) {
 			t.Errorf("expected restart agents to fail")
 		}
 
-		if merr, ok := err.(*multierror.Error); ok {
-			if merr.Len() != 2 {
-				t.Errorf("expected 2 errors, got %d", merr.Len())
-			}
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
+		}
 
-			var exitErr *exec.ExitError
-			for _, err := range merr.WrappedErrors() {
-				if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
-					t.Errorf("expected exit code: 1 but got: %#v", err)
-				}
+		if len(errs) != 2 {
+			t.Errorf("expected 2 errors, got %d", len(errs))
+		}
+
+		var exitErr *exec.ExitError
+		for _, err := range errs {
+			if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
+				t.Errorf("expected exit code: 1 but got: %#v", err)
 			}
 		}
 

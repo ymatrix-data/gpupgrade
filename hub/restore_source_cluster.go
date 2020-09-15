@@ -11,13 +11,13 @@ import (
 	"sync"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -49,12 +49,12 @@ func RsyncMasterAndPrimaries(stream step.OutStreams, agentConns []*Connection, s
 	wg.Wait()
 	close(errs)
 
-	var mErr *multierror.Error
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }
 
 func RsyncMasterAndPrimariesTablespaces(stream step.OutStreams, agentConns []*Connection, source *greenplum.Cluster, tablespaces greenplum.Tablespaces) error {
@@ -76,12 +76,12 @@ func RsyncMasterAndPrimariesTablespaces(stream step.OutStreams, agentConns []*Co
 	wg.Wait()
 	close(errs)
 
-	var mErr *multierror.Error
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }
 
 // Restoring the mirrors is needed in copy mode on 5X since the source cluster
@@ -230,12 +230,12 @@ func RestoreMasterAndPrimariesPgControl(streams step.OutStreams, agentConns []*C
 	wg.Wait()
 	close(errs)
 
-	var mErr *multierror.Error
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }
 
 func restorePrimariesPgControl(agentConns []*Connection, source *greenplum.Cluster) error {

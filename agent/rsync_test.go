@@ -13,8 +13,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/greenplum-db/gpupgrade/agent"
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
@@ -22,6 +20,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -158,16 +157,16 @@ func TestRsync(t *testing.T) {
 			t.Error("expected error, returned nil")
 		}
 
-		var mErr *multierror.Error
-		if !errors.As(err, &mErr) {
-			t.Errorf("got type %T want %T", err, mErr)
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
 		}
 
-		if mErr.Len() != 2 {
-			t.Errorf("got %d errors want 2", mErr.Len())
+		if len(errs) != 2 {
+			t.Errorf("got %d errors want 2", len(errs))
 		}
 
-		for _, err := range mErr.Errors {
+		for _, err := range errs {
 			var rsyncError rsync.RsyncError
 			if !errors.As(err, &rsyncError) {
 				t.Errorf("got type %T want %T", err, rsyncError)
@@ -257,19 +256,9 @@ func TestRsyncTablespaceDirectories(t *testing.T) {
 		}}
 
 		_, err = server.RsyncTablespaceDirectories(context.Background(), request)
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v want type %T", err, multiErr)
-		}
 
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, upgrade.ErrInvalidTablespaceDirectory) {
-				t.Errorf("got error %#v want %#v", err, upgrade.ErrInvalidTablespaceDirectory)
-			}
+		if !errors.Is(err, upgrade.ErrInvalidTablespaceDirectory) {
+			t.Errorf("got error %#v want %#v", err, upgrade.ErrInvalidTablespaceDirectory)
 		}
 
 		if rsyncCalled {

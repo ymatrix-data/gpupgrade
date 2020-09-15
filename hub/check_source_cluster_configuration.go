@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 const (
@@ -71,17 +71,17 @@ func GetSegmentStatuses(connection *sql.DB) ([]SegmentStatus, error) {
 }
 
 func SegmentStatusErrors(statuses []SegmentStatus) error {
-	errors := &multierror.Error{}
+	var errs error
 
 	if err := checkForDownSegments(statuses); err != nil {
-		errors = multierror.Append(errors, err)
+		errs = errorlist.Append(errs, err)
 	}
 
 	if err := checkForUnbalancedSegments(statuses); err != nil {
-		errors = multierror.Append(errors, err)
+		errs = errorlist.Append(errs, err)
 	}
 
-	return errors.ErrorOrNil()
+	return errs
 }
 
 func checkForDownSegments(statuses []SegmentStatus) error {

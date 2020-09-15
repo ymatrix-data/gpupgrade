@@ -15,7 +15,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/hub"
@@ -25,6 +24,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/testutils"
 	"github.com/greenplum-db/gpupgrade/testutils/exectest"
 	"github.com/greenplum-db/gpupgrade/testutils/testlog"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/rsync"
 )
 
@@ -394,19 +394,8 @@ func TestRsyncMasterAndPrimaries(t *testing.T) {
 
 		err := hub.RsyncPrimaries(agentConns, cluster)
 
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, expected) {
-				t.Errorf("got error %#v, want %#v", expected, err)
-			}
+		if !errors.Is(err, expected) {
+			t.Errorf("got error %#v, want %#v", err, expected)
 		}
 	})
 
@@ -434,19 +423,8 @@ func TestRsyncMasterAndPrimaries(t *testing.T) {
 
 		err := hub.RsyncPrimariesTablespaces(agentConns, cluster, tablespaces)
 
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, expected) {
-				t.Errorf("got error %#v, want %#v", expected, err)
-			}
+		if !errors.Is(err, expected) {
+			t.Errorf("got error %#v, want %#v", err, expected)
 		}
 	})
 }
@@ -493,16 +471,17 @@ func TestRestoreMasterAndPrimariesPgControl(t *testing.T) {
 		}
 
 		err := hub.RestoreMasterAndPrimariesPgControl(step.DevNullStream, agentConns, cluster)
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
+
+		var errs errorlist.Errors
+		if !errors.As(err, &errs) {
+			t.Fatalf("got error %#v, want type %T", err, errs)
 		}
 
-		if len(multiErr.Errors) != 2 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
+		if len(errs) != 2 {
+			t.Errorf("received %d errors, want %d", len(errs), 1)
 		}
 
-		for _, err := range multiErr.Errors {
+		for _, err := range errs {
 			if !errors.Is(err, expectedError) {
 				t.Errorf("got error %#v, want %#v", expectedError, err)
 			}

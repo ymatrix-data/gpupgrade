@@ -6,10 +6,10 @@ package hub
 import (
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 type UpgradeChecker interface {
@@ -70,10 +70,10 @@ func (s *Server) CheckUpgrade(stream step.OutStreams, conns []*Connection) error
 	wg.Wait()
 	close(checkErrs)
 
-	var multiErr *multierror.Error
-	for err := range checkErrs {
-		multiErr = multierror.Append(multiErr, err)
+	var err error
+	for e := range checkErrs {
+		err = errorlist.Append(err, e)
 	}
 
-	return multiErr.ErrorOrNil()
+	return err
 }

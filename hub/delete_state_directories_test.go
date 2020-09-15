@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/hub"
 	"github.com/greenplum-db/gpupgrade/idl"
@@ -76,19 +75,8 @@ func TestDeleteStateDirectories(t *testing.T) {
 
 			err := hub.DeleteStateDirectories(agentConns, "")
 
-			var multiErr *multierror.Error
-			if !errors.As(err, &multiErr) {
-				t.Fatalf("got error %#v, want type %T", err, multiErr)
-			}
-
-			if len(multiErr.Errors) != 1 {
-				t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-			}
-
-			for _, err := range multiErr.Errors {
-				if !errors.Is(err, expected) {
-					t.Errorf("got error %#v, want %#v", expected, err)
-				}
+			if !errors.Is(err, expected) {
+				t.Errorf("got error %#v, want %#v", err, expected)
 			}
 		})
 	})

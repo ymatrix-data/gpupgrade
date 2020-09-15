@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
@@ -31,6 +30,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
 	"github.com/greenplum-db/gpupgrade/utils/daemon"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/log"
 )
 
@@ -259,12 +259,12 @@ func RestartAgents(ctx context.Context,
 		hosts = append(hosts, h)
 	}
 
-	var multiErr *multierror.Error
-	for err := range errs {
-		multiErr = multierror.Append(multiErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return hosts, multiErr.ErrorOrNil()
+	return hosts, err
 }
 
 func (s *Server) AgentConns() ([]*Connection, error) {

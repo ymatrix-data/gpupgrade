@@ -40,7 +40,6 @@ import (
 	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -56,6 +55,7 @@ import (
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 	"github.com/greenplum-db/gpupgrade/utils/stopwatch"
 )
 
@@ -347,7 +347,7 @@ func initialize() *cobra.Command {
 				}
 				defer func() {
 					if cErr := configFile.Close(); cErr != nil {
-						err = multierror.Append(err, cErr).ErrorOrNil()
+						err = errorlist.Append(err, cErr)
 					}
 				}()
 

@@ -7,12 +7,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/upgrade"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func DeleteMirrorAndStandbyDataDirectories(agentConns []*Connection, cluster *greenplum.Cluster) error {
@@ -29,9 +28,9 @@ func DeleteMasterAndPrimaryDataDirectories(streams step.OutStreams, agentConns [
 	}()
 
 	err := deleteDataDirectories(agentConns, source.Primaries)
+	err = errorlist.Append(err, <-masterErr)
 
-	mErr := multierror.Append(err, <-masterErr)
-	return mErr.ErrorOrNil()
+	return err
 }
 
 func deleteDataDirectories(agentConns []*Connection, segConfigs greenplum.SegConfigs) error {
@@ -74,12 +73,12 @@ func DeleteTargetTablespaces(streams step.OutStreams, agentConns []*Connection, 
 	wg.Wait()
 	close(errs)
 
-	var mErr *multierror.Error
-	for err := range errs {
-		mErr = multierror.Append(mErr, err)
+	var err error
+	for e := range errs {
+		err = errorlist.Append(err, e)
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }
 
 func DeleteTargetTablespacesOnMaster(streams step.OutStreams, target *greenplum.Cluster, masterTablespaces greenplum.SegmentTablespaces, catalogVersion string) error {

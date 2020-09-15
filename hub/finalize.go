@@ -8,12 +8,12 @@ import (
 	"strconv"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/step"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeServer) (err error) {
@@ -24,7 +24,7 @@ func (s *Server) Finalize(_ *idl.FinalizeRequest, stream idl.CliToHub_FinalizeSe
 
 	defer func() {
 		if ferr := st.Finish(); ferr != nil {
-			err = multierror.Append(err, ferr).ErrorOrNil()
+			err = errorlist.Append(err, ferr)
 		}
 
 		if err != nil {

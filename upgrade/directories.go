@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	"github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/step"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 const ConfigFileName = "config.json"
@@ -158,14 +158,15 @@ func (i *InvalidDataDirectoryError) Is(err error) bool {
 }
 
 func VerifyDataDirectory(path string) error {
-	var mErr multierror.Error
+	var err error
+
 	for _, f := range PostgresFiles {
 		if !PathExists(filepath.Join(path, f)) {
-			mErr = *multierror.Append(&mErr, &InvalidDataDirectoryError{path, f})
+			err = errorlist.Append(err, &InvalidDataDirectoryError{path, f})
 		}
 	}
 
-	return mErr.ErrorOrNil()
+	return err
 }
 
 // TODO: Remove alreadyRenamed and use AlreadyRenamed
@@ -209,17 +210,17 @@ func PathExist(path string) (bool, error) {
 }
 
 func verifyPathsExist(path string, files ...string) error {
-	var mErr *multierror.Error
+	var mErr error
 
 	for _, f := range files {
 		path := filepath.Join(path, f)
 		_, err := utils.System.Stat(path)
 		if err != nil {
-			mErr = multierror.Append(mErr, err)
+			mErr = errorlist.Append(mErr, err)
 		}
 	}
 
-	return mErr.ErrorOrNil()
+	return mErr
 }
 
 // Each directory in 'directories' is deleted only if every path in 'requiredPaths' exists
@@ -230,7 +231,7 @@ func DeleteDirectories(directories []string, requiredPaths []string, streams ste
 		return err
 	}
 
-	var mErr *multierror.Error
+	var mErr error
 	for _, directory := range directories {
 		gplog.Debug("Deleting directory: %q on host %q\n", directory, hostname)
 		_, err = fmt.Fprintf(streams.Stdout(), "Deleting directory: %q on host %q\n", directory, hostname)
@@ -246,17 +247,17 @@ func DeleteDirectories(directories []string, requiredPaths []string, streams ste
 
 		err = verifyPathsExist(directory, requiredPaths...)
 		if err != nil {
-			mErr = multierror.Append(mErr, err)
+			mErr = errorlist.Append(mErr, err)
 			continue
 		}
 
 		err = utils.System.RemoveAll(directory)
 		if err != nil {
-			mErr = multierror.Append(mErr, err)
+			mErr = errorlist.Append(mErr, err)
 		}
 	}
 
-	return mErr.ErrorOrNil()
+	return mErr
 }
 
 var ErrInvalidTablespaceDirectory = errors.New("invalid tablespace directory")
@@ -377,7 +378,7 @@ func VerifyTargetTablespaceDirectories(dirs []string) error {
 // NOTE: No error is returned when the dbOid directory does not exist since
 // the user may not have created a table within the tablespace.
 func Verify5XTablespaceDirectories(tsLocations []string) error {
-	var mErr *multierror.Error
+	var mErr error
 	for _, tsLocation := range tsLocations {
 		entries, err := ioutil.ReadDir(tsLocation)
 		if err != nil {
@@ -391,12 +392,12 @@ func Verify5XTablespaceDirectories(tsLocations []string) error {
 
 			path := filepath.Join(tsLocation, dbOidDir.Name(), PGVersion)
 			if !PathExists(path) {
-				mErr = multierror.Append(mErr, newTablespaceDirectoryError("5X source cluster", "missing "+path))
+				mErr = errorlist.Append(mErr, newTablespaceDirectoryError("5X source cluster", "missing "+path))
 			}
 		}
 	}
 
-	return mErr.ErrorOrNil()
+	return mErr
 }
 
 func TablespacePath(tablespaceLocation string, dbID int, majorVersion uint64, catalogVersion string) string {

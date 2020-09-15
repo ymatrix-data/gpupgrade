@@ -9,12 +9,12 @@ import (
 	"os/exec"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
-	multierror "github.com/hashicorp/go-multierror"
 	"golang.org/x/xerrors"
 
 	"github.com/greenplum-db/gpupgrade/idl"
 	"github.com/greenplum-db/gpupgrade/upgrade"
 	"github.com/greenplum-db/gpupgrade/utils"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func (s *Server) UpgradePrimaries(ctx context.Context, request *idl.UpgradePrimariesRequest) (*idl.UpgradePrimariesReply, error) {
@@ -62,7 +62,7 @@ func UpgradePrimaries(stateDir string, request *idl.UpgradePrimariesRequest) err
 	for range segments {
 		response := <-upgradeResponse
 		if response != nil {
-			err = multierror.Append(err, response)
+			err = errorlist.Append(err, response)
 		}
 	}
 

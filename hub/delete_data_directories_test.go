@@ -13,7 +13,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/greenplum-db/gpupgrade/greenplum"
 	"github.com/greenplum-db/gpupgrade/hub"
@@ -165,19 +164,8 @@ func TestDeleteSegmentDataDirs(t *testing.T) {
 
 			err := hub.DeleteMasterAndPrimaryDataDirectories(step.DevNullStream, agentConns, source)
 
-			var multiErr *multierror.Error
-			if !errors.As(err, &multiErr) {
-				t.Fatalf("got error %#v, want type %T", err, multiErr)
-			}
-
-			if len(multiErr.Errors) != 1 {
-				t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-			}
-
-			for _, err := range multiErr.Errors {
-				if !errors.Is(err, expected) {
-					t.Errorf("got error %#v, want %#v", expected, err)
-				}
+			if !errors.Is(err, expected) {
+				t.Errorf("got error %#v, want %#v", err, expected)
 			}
 		})
 	})
@@ -358,19 +346,8 @@ func TestDeleteTablespaceDirectories(t *testing.T) {
 
 		err := hub.DeleteTargetTablespacesOnPrimaries(agentConns, target, nil, "")
 
-		var multiErr *multierror.Error
-		if !errors.As(err, &multiErr) {
-			t.Fatalf("got error %#v, want type %T", err, multiErr)
-		}
-
-		if len(multiErr.Errors) != 1 {
-			t.Errorf("received %d errors, want %d", len(multiErr.Errors), 1)
-		}
-
-		for _, err := range multiErr.Errors {
-			if !errors.Is(err, expected) {
-				t.Errorf("got error %#v, want %#v", expected, err)
-			}
+		if !errors.Is(err, expected) {
+			t.Errorf("got error %#v, want %#v", err, expected)
 		}
 	})
 }

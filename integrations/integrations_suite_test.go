@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/greenplum-db/gpupgrade/utils/errorlist"
 )
 
 func init() {
@@ -28,7 +28,7 @@ func init() {
 	for _, bin := range []string{"gpupgrade"} {
 		binPath, err := exec.LookPath(bin)
 		if err != nil {
-			allErrs = multierror.Append(allErrs, err)
+			allErrs = errorlist.Append(allErrs, err)
 			continue
 		}
 
@@ -40,7 +40,7 @@ func init() {
 	if allErrs != nil {
 		panic(fmt.Sprintf(
 			"Please put gpupgrade binaries on your PATH before running integration tests.\n%s",
-			multierror.Flatten(allErrs),
+			allErrs,
 		))
 	}
 }
