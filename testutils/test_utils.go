@@ -88,7 +88,7 @@ func MustRemoveAll(t *testing.T, dir string) {
 
 	err := os.RemoveAll(dir)
 	if err != nil {
-		t.Fatalf("removing temp dir %q: %#v", dir, err)
+		t.Fatalf("removing temp dir %q: %+v", dir, err)
 	}
 }
 
