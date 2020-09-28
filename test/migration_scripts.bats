@@ -4,16 +4,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 load helpers
+load teardown_helpers
 
 SCRIPTS_DIR=$BATS_TEST_DIRNAME/../data_migration_scripts
 
 setup() {
     skip_if_no_gpdb
 
-    STATE_DIR=`mktemp -d /tmp/gpupgrade.XXXXXX`
-    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
+    STATE_DIR=$(mktemp -d /tmp/gpupgrade.XXXXXX)
+    register_teardown rm -r "$STATE_DIR"
 
-    PSQL="$GPHOME_SOURCE/bin/psql -X --no-align --tuples-only"
+    export GPUPGRADE_HOME="${STATE_DIR}/gpupgrade"
+    gpupgrade kill-services
 
     backup_source_cluster "$STATE_DIR"/backup
 
@@ -21,10 +23,11 @@ setup() {
     DEFAULT_DBNAME=postgres
     GPHDFS_USER=gphdfs_user
 
+    PSQL="$GPHOME_SOURCE/bin/psql -X --no-align --tuples-only"
+
     $PSQL -c "DROP DATABASE IF EXISTS $TEST_DBNAME;" -d $DEFAULT_DBNAME
     $PSQL -c "DROP ROLE IF EXISTS $GPHDFS_USER;" -d $DEFAULT_DBNAME
 
-    gpupgrade kill-services
 }
 
 teardown() {
@@ -33,63 +36,9 @@ teardown() {
         return
     fi
 
-    if [ -n "$MIGRATION_DIR" ]; then
-        rm -r $MIGRATION_DIR
-    fi
-
     gpupgrade kill-services
 
-    restore_source_cluster "$STATE_DIR"/backup
-    rm -rf "$STATE_DIR"/backup
-
-    rm -r "$STATE_DIR"
-}
-
-# XXX backup_source_cluster is a hack to work around the standby-revert bug.
-# Instead of relying on revert to correctly reset the state of the standby, copy
-# over the original cluster contents during teardown.
-#
-# Remove this and its companion ASAP.
-backup_source_cluster() {
-    local backup_dir=$1
-
-    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
-        abort "refusing to back up cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
-    fi
-
-    # Don't use -p. It's important that the backup directory not exist so that
-    # we know we have control over it.
-    mkdir "$backup_dir"
-
-    local datadir_root
-    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
-
-    gpstop -af
-    # TODO: Find out why in some cases the variables used in rsync are empty/not-set
-    # which causes deletion of the the root directory. Once we have identified,
-    # do the necessary refactoring
-    rsync --archive "${datadir_root:?}"/ "${backup_dir:?}"/
-    gpstart -a
-}
-
-# XXX restore_source_cluster is a hack to work around the standby-revert bug;
-# see backup_source_cluster above
-restore_source_cluster() {
-    local backup_dir=$1
-
-    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
-        abort "refusing to restore cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
-    fi
-
-    local datadir_root
-    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
-
-    stop_any_cluster
-    # TODO: Find out why in some cases the variables used in rsync are empty/not-set
-    # which causes deletion of the the root directory. Once we have identified,
-    # do the necessary refactoring
-    rsync --archive -I --delete "${backup_dir:?}"/ "${datadir_root:?}"/
-    gpstart -a
+    run_teardowns
 }
 
 drop_unfixable_objects() {
@@ -120,6 +69,8 @@ drop_unfixable_objects() {
     egrep "^Checking.*fatal$" $GPUPGRADE_HOME/pg_upgrade/seg-1/pg_upgrade_internal.log
 
     MIGRATION_DIR=`mktemp -d /tmp/migration.XXXXXX`
+    register_teardown rm -r "$MIGRATION_DIR"
+
     "$SCRIPTS_DIR"/migration_generator_sql.bash "$GPHOME_SOURCE" "$PGPORT" "$MIGRATION_DIR"
 
     drop_unfixable_objects
@@ -145,8 +96,6 @@ drop_unfixable_objects() {
 
     # expect the index information to be same after the upgrade
     diff -U3 <(echo "$root_child_indexes_before") <(echo "$root_child_indexes_after")
-
-    NEW_CLUSTER="$MASTER_DATA_DIRECTORY"
 }
 
 @test "after reverting recreate scripts must restore non-upgradeable objects" {
@@ -165,6 +114,8 @@ drop_unfixable_objects() {
     EXCLUSIONS+="-T table_with_name_as_second_column "
 
     MIGRATION_DIR=`mktemp -d /tmp/migration.XXXXXX`
+    register_teardown rm -r "$MIGRATION_DIR"
+
     "$GPHOME_SOURCE"/bin/pg_dump --schema-only "$TEST_DBNAME" $EXCLUSIONS -f "$MIGRATION_DIR"/before.sql
 
 

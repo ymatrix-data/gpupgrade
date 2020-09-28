@@ -31,35 +31,6 @@ teardown() {
     run_teardowns
 }
 
-# backup_source_cluster creates an rsync'd backup of a demo cluster and restores
-# its original contents during teardown.
-backup_source_cluster() {
-    local backup_dir=$1
-
-    if [[ "$MASTER_DATA_DIRECTORY" != *"/datadirs/qddir/demoDataDir-1" ]]; then
-        abort "refusing to back up cluster with master '$MASTER_DATA_DIRECTORY'; demo directory layout required"
-    fi
-
-    # Don't use -p. It's important that the backup directory not exist so that
-    # we know we have control over it. Also, don't assume set -e is enabled: if
-    # it's not, registering an rm -rf teardown anyway could be extremely
-    # dangerous.
-    mkdir "$backup_dir" || return $?
-    register_teardown rm -rf "$backup_dir"
-
-    local datadir_root
-    datadir_root="$(realpath "$MASTER_DATA_DIRECTORY"/../..)"
-
-    gpstop -af
-    register_teardown gpstart -a
-
-    rsync --archive "${datadir_root:?}"/ "${backup_dir:?}"/
-    register_teardown rsync --archive -I --delete "${backup_dir:?}"/ "${datadir_root:?}"/
-
-    gpstart -a
-    register_teardown stop_any_cluster
-}
-
 upgrade_cluster() {
         LINK_MODE=$1
 
