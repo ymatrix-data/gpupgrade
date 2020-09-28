@@ -138,6 +138,39 @@ drop_unfixable_objects() {
     diff -U3 --speed-large-files "$MIGRATION_DIR"/before.sql "$MIGRATION_DIR"/after.sql
 }
 
+@test "migration scripts ignore .psqlrc files" {
+    # 5X doesn't support the PSQLRC envvar we need to avoid destroying the dev
+    # environment.
+    if is_GPDB5 "$GPHOME_SOURCE"; then
+        skip "GPDB 5 does not support alternative PSQLRC locations"
+    fi
+
+    $PSQL -c "CREATE DATABASE $TEST_DBNAME;" -d $DEFAULT_DBNAME
+    $PSQL -f "$SCRIPTS_DIR"/test/create_nonupgradable_objects.sql -d $TEST_DBNAME
+
+    MIGRATION_DIR=$(mktemp -d /tmp/migration.XXXXXX)
+    register_teardown rm -r "$MIGRATION_DIR"
+
+    # Set up psqlrc to kill any psql processes as soon as they're started.
+    export PSQLRC="$MIGRATION_DIR"/psqlrc
+    printf '\! kill $PPID\n' > "$PSQLRC"
+
+    "$SCRIPTS_DIR"/migration_generator_sql.bash "$GPHOME_SOURCE" "$PGPORT" "$MIGRATION_DIR"
+    drop_unfixable_objects
+    "$SCRIPTS_DIR"/migration_executor_sql.bash "$GPHOME_SOURCE" "$PGPORT" "$MIGRATION_DIR"/start
+
+    gpupgrade initialize \
+        --source-gphome="$GPHOME_SOURCE" \
+        --target-gphome="$GPHOME_TARGET" \
+        --source-master-port="${PGPORT}" \
+        --temp-port-range 6020-6040 \
+        --disk-free-ratio 0 \
+        --verbose
+    gpupgrade revert --verbose
+
+    "$SCRIPTS_DIR"/migration_executor_sql.bash "$GPHOME_TARGET" "$PGPORT" "$MIGRATION_DIR"/revert
+}
+
 get_indexes() {
     local gphome=$1
     $gphome/bin/psql -d "$TEST_DBNAME" -p "$PGPORT" -Atc "

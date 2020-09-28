@@ -15,7 +15,7 @@ OUTPUT_DIR=$3
 APPLY_ONCE_FILES=("gen_alter_gphdfs_roles.sql")
 
 get_databases(){
-    databases=$("$GPHOME"/bin/psql -d postgres -p "$PGPORT" -Atc "SELECT datname FROM pg_database WHERE datname != 'template0';")
+    databases=$("$GPHOME"/bin/psql -X -d postgres -p "$PGPORT" -Atc "SELECT datname FROM pg_database WHERE datname != 'template0';")
     echo "$databases"
 }
 
@@ -32,7 +32,7 @@ exec_script(){
 
     local records
     if [[ $path == *".sql" ]]; then
-        records=$("$GPHOME"/bin/psql -d "$database" -p "$PGPORT" -Atf "$path")
+        records=$("$GPHOME"/bin/psql -X -d "$database" -p "$PGPORT" -Atf "$path")
     else
         records=$("$path" "$GPHOME" "$PGPORT" "$database")
     fi

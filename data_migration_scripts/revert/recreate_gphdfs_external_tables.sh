@@ -20,6 +20,9 @@ main() {
     local tables=()
 
     # Find all GPHDFS external tables.
+    #
+    # NOTE: psql's -c implies -X; we don't need to worry about .psqlrc
+    # influencing these queries. For 8.3 this is undocumented but still true.
     while read -r table; do
         tables+=(-t "$table")
     done < <($psql -d "$DBNAME" -p "$PGPORT" -Atc "
