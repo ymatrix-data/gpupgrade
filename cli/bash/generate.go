@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // This binary exists purely for the purpose of generating bash completion for
-// the CLI.  You can run `go generate ./cli/bash` to regen the
-// bash-completion.sh script.
+// the CLI. Run `go generate ./cli/bash` to regenerate the gpupgrade.bash script.
 package main
 
 import (
