@@ -43,6 +43,12 @@ resources:
     private_key: ((retail-demo-git-key))
     branch: ((retail-demo-git-branch))
 
+# gpupgrade tests with release candidates for the source and target version.
+# This allows for faster feedback for example when changes are made to
+# pg_upgrade. Specifically, the following scenario has occurred where a
+# pg_upgrade check was added requiring a function to be installed in both the
+# source and target clusters. In order to test this scenario release candidate
+# builds are needed.
 {{range .Versions}}
 {{- if eq (majorVersion .GPVersion) "5" }}
 - name: rpm_gpdb{{.GPVersion}}_centos{{.CentosVersion}}
