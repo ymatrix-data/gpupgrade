@@ -181,7 +181,7 @@ clean:
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_URI := $(shell git ls-remote --get-url)
 
-ifeq ($(GIT_URI),https://github.com/greenplum-db/gpupgrade)
+ifeq ($(GIT_URI),https://github.com/greenplum-db/gpupgrade.git)
 ifeq ($(BRANCH),master)
 	PIPELINE_NAME := gpupgrade
 	FLY_TARGET := prod
