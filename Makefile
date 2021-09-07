@@ -181,8 +181,8 @@ clean:
 		rm -f gpupgrade-$(VERSION)*.rpm
 
 # You can override these from the command line.
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_URI := $(shell git ls-remote --get-url)
+BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+GIT_URI ?= $(shell git ls-remote --get-url)
 
 ifeq ($(GIT_URI),https://github.com/greenplum-db/gpupgrade.git)
 ifeq ($(BRANCH),master)
