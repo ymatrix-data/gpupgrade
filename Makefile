@@ -192,6 +192,7 @@ endif
 endif
 
 # Concourse does not allow "/" in pipeline names
+WORKSPACE ?= ~/workspace
 PIPELINE_NAME ?= gpupgrade:$(shell git rev-parse --abbrev-ref HEAD | tr '/' ':')
 FLY_TARGET ?= cm
 ifeq ($(FLY_TARGET),prod)
@@ -222,11 +223,11 @@ set-pipeline:
 	# TODO: Keep this in sync with the README at github.com/greenplum-db/continuous-integration
 	fly -t $(FLY_TARGET) set-pipeline -p $(PIPELINE_NAME) \
 		-c ci/generated/pipeline.yml \
-		-l ~/workspace/gp-continuous-integration/secrets/gpupgrade.$(TARGET).yml \
-		-l ~/workspace/gp-continuous-integration/secrets/gpdb_common-ci-secrets.yml \
-		-l ~/workspace/gp-continuous-integration/secrets/gpdb_master-ci-secrets.$(TARGET).yml \
-		-l ~/workspace/gp-continuous-integration/secrets/ccp_ci_secrets_$(FLY_TARGET).yml \
-		-l ~/workspace/gp-continuous-integration/secrets/gp-upgrade-packaging.dev.yml \
+		-l $(WORKSPACE)/gp-continuous-integration/secrets/gpupgrade.$(TARGET).yml \
+		-l $(WORKSPACE)/gp-continuous-integration/secrets/gpdb_common-ci-secrets.yml \
+		-l $(WORKSPACE)/gp-continuous-integration/secrets/gpdb_master-ci-secrets.$(TARGET).yml \
+		-l $(WORKSPACE)/gp-continuous-integration/secrets/ccp_ci_secrets_$(FLY_TARGET).yml \
+		-l $(WORKSPACE)/gp-continuous-integration/secrets/gp-upgrade-packaging.dev.yml \
 		-v gpupgrade-git-remote=$(GIT_URI) \
 		-v gpupgrade-git-branch=$(BRANCH)
 
