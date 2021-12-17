@@ -13,15 +13,19 @@ function rename_rpm() {
 
     rpm=$(basename "${release}_rpm"/gpupgrade-*.rpm)
     # shellcheck disable=2001
-    sed s/gpupgrade-intermediate/gpupgrade-"${SEMVER}-1"/ <<< "$rpm"
+    sed s/gpupgrade-intermediate/gpupgrade-"${SEMVER}"/ <<< "$rpm"
 }
 
 # "git describe" does not return a semver compatible version that can correctly be used with Concourse to
 # ensure pulling the correct artifact. So "0.4.0-32-g763a08e5" becomes "0.4.0+dev.32.g973669ba".
-IFS='- ' read -r -a parts <<< "$(git -C ./gpupgrade_src describe --tags)"
-SEMVER="${parts[0]}+dev"
-if [ -n "${parts[1]}" ]; then
-  SEMVER="${SEMVER}.${parts[1]}.${parts[2]}"
+git_describe=$(git -C ./gpupgrade_src describe --tags)
+IFS='-' read -r -a parts <<< "$git_describe"
+SEMVER="${parts[0]}"
+if (( ${#parts[@]} == 3 )); then
+    SEMVER="${SEMVER}+dev.${parts[1]}.${parts[2]}"
+else
+    echo "git describe '${git_describe}' was split into ${#parts[@]} parts [${parts[*]}]. Expected 3."
+    exit 1
 fi
 
 cp oss_rpm/gpupgrade-*.rpm renamed_oss_rpm/"$(rename_rpm oss)"
