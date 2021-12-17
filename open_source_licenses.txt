@@ -13824,4 +13824,4 @@ Source Files is valid for three years from the date you acquired this
 Software product. Alternatively, the Source Files may accompany the
 VMware product.
 
-[GRRENPLUMPUPGRADE120GASR111921]
+[GREENPLUMUPGRADE120GASR111921]
