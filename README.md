@@ -10,7 +10,7 @@ We warmly welcome any feedback and
 
 Greenplum has several ways of upgrading including backup & restore and gpcopy.
 These methods usually require additional diskspace for the required copy and 
-significant downtime. gpupgrade can do in-place upgrades without the need 
+significant downtime. gpupgrade can do fast in-place upgrades without the need 
 for additional hardware, disk space, and with less downtime. 
 
 Creating an easy upgrade path enables users to quickly and confidently upgrade. 
@@ -102,7 +102,8 @@ or possibly check if the work has been done.
 
 **Link vs. Copy Mode:**
 
-pg_upgrade supports two upgrade modes: link and copy.
+gpupgrade inits a fresh target cluster "next to" the source cluster, and upgrades 
+"into it" in-place using pg_upgrade's copy or link mode.
 
 | Attribute | Copy Mode | Link Mode
 | --- | --- | ---
