@@ -118,7 +118,7 @@ gpupgrade inits a fresh target cluster "next to" the source cluster, and upgrade
 
 ### Prerequisites
 
-- Golang. We currently develop against latest stable Golang, which was v1.16 as of October 2020.
+- Golang. See the top of [go.mod](go.mod) for the current version used.
 - protoc. This is the compiler for the [gRPC protobuf](https://grpc.io/) 
 system which can be installed on macOS with `brew install protobuf`.
 - Run `make && make depend-dev` to install other developer dependencies. Note 
