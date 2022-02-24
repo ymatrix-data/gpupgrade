@@ -19,6 +19,11 @@ target_gphome =
 # The link method directly upgrades the primary segments.
 # mode = copy
 
+# For extensions installed outside of target_gphome include the extension’s
+# path in the dynamic_library_path value. For example, for pxf set
+# dynamic_library_path to /usr/local/pxf-gp6/gpextable.
+# dynamic_library_path = $libdir
+
 # The disk free ratio specifies what fraction of disk space must be free on
 # every host in order for gpupgrade to run. The ratio ranges from 0.0 to 1.0.
 # Recommended values are 0.6 [60%] for copy mode, and 0.2 [20%] for link mode.
@@ -28,11 +33,6 @@ target_gphome =
 # execution of gpinitsystem and other utilities.
 # Choose "true" to use host names, or "false" to use IP addresses.
 # use_hba_hostnames = false
-
-# For extensions installed outside of target_gphome include the extension’s
-# path in the dynamic_library_path value. For example, if pxf was installed in
-# /opt then set dynamic_library_path to "$libdir:/opt/greenplum/pxf-gp6".
-# dynamic_library_path = $libdir
 
 # The temporary port range for the target Greenplum installation.
 # The temporary port range should be reserved prior to initializaton.
