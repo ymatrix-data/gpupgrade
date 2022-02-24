@@ -214,7 +214,7 @@ resources:
     regexp: pxf/published/gpdb{{.GPVersion}}/pxf-gp{{.GPVersion}}-5.(.*).el{{.CentosVersion}}.x86_64.rpm
 {{- end }}
 
-{{- if ne .GpVersion "5" }}
+{{- if ne .GPVersion "5" }}
 - name: pljava-gp{{.GPVersion}}-rhel{{.CentosVersion}}_x86_64_gppkg
   type: s3
   source:
