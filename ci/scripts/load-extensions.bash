@@ -19,6 +19,7 @@ scp gptext_targz/greenplum-text*.tar.gz gpadmin@mdw:/tmp/gptext.tar.gz
 scp postgis_gppkg_source/postgis*.gppkg gpadmin@mdw:/tmp/postgis_source.gppkg
 scp sqldump/*.sql gpadmin@mdw:/tmp/postgis_dump.sql
 scp madlib_gppkg_source/madlib*.gppkg gpadmin@mdw:/tmp/madlib_source.gppkg
+scp pljava_gppkg_source/pljava*.gppkg gpadmin@mdw:/tmp/pljava_source.gppkg
 
 echo "Installing extensions and sample data on source cluster..."
 
@@ -231,6 +232,37 @@ SQL_EOF
 }
 
 test_pxf "$OS_VERSION" && install_pxf || echo "Skipping pxf for centos6 since pxf5 for GPDB6 on centos6 is not supported..."
+
+install_pljava() {
+    echo "Installing pljava..."
+    ssh -n mdw "
+        set -eux -o pipefail
+
+        echo "export JAVA_HOME=/usr/lib/jvm/jre" >> /usr/local/greenplum-db-source/greenplum_path.sh
+        source /usr/local/greenplum-db-source/greenplum_path.sh
+
+        echo 'Initialize pljava...'
+        export GPHOME=$GPHOME_SOURCE
+
+        gpconfig -c pljava_classpath -v 'examples.jar'
+        gpstop -u
+
+        gppkg -i /tmp/pljava_source.gppkg
+
+        echo 'Load pljava data...'
+        psql -v ON_ERROR_STOP=1 -d postgres -f $GPHOME/share/postgresql/pljava/install.sql
+        psql -v ON_ERROR_STOP=1 -d postgres <<SQL_EOF
+            CREATE FUNCTION java_addOne(int)
+                RETURNS int
+                AS 'org.postgresql.pljava.example.Parameters.addOne(java.lang.Integer)'
+            IMMUTABLE LANGUAGE java;
+
+            SELECT java_addOne(42);
+SQL_EOF
+"
+}
+
+install_pljava()
 
 echo "Running the data migration scripts on the source cluster..."
 ssh -n mdw "

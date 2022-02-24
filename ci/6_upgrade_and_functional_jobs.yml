@@ -54,6 +54,10 @@
         - get: pxf_rpm_target
           resource: pxf_5_gpdb{{.Target}}_centos{{.CentosVersion}}_rpm
         {{- end }}
+        - get: pljava_gppkg_source
+          resource: pljava-gp{{.Source}}-rhel{{.CentosVersion}}_x86_64_gppkg
+        - get: pljava_gppkg_target
+          resource: pljava-gp{{.Target}}-rhel{{.CentosVersion}}_x86_64_gppkg
         {{- end }}
     - put: terraform
       params:
@@ -135,6 +139,7 @@
           - name: gptext_targz
           - name: postgis_gppkg_source
           - name: madlib_gppkg_source
+          - name: pljava_gppkg_source
           - name: sqldump
           {{- if ne .CentosVersion "6" }}
           - name: pxf_rpm_source

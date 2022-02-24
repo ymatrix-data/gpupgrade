@@ -21,6 +21,7 @@ export PGPORT=5432
 echo "Copying extensions to the target cluster..."
 scp postgis_gppkg_target/postgis*.gppkg gpadmin@mdw:/tmp/postgis_target.gppkg
 scp madlib_gppkg_target/madlib*.gppkg gpadmin@mdw:/tmp/madlib_target.gppkg
+scp pljava_gppkg_target/pljava*.gppkg gpadmin@mdw:/tmp/pljava_target.gppkg
 
 if test_pxf "$OS_VERSION"; then
     mapfile -t hosts < cluster_env_files/hostfile_all
@@ -78,6 +79,7 @@ time ssh -n mdw "
 
     gppkg -i /tmp/postgis_target.gppkg
     gppkg -i /tmp/madlib_target.gppkg
+    gppkg -i /tmp/pljava_target.gppkg
 
     $(typeset -f test_pxf) # allow local function on remote host
     if test_pxf '$OS_VERSION'; then
