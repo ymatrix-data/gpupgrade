@@ -233,36 +233,40 @@ SQL_EOF
 
 test_pxf "$OS_VERSION" && install_pxf || echo "Skipping pxf for centos6 since pxf5 for GPDB6 on centos6 is not supported..."
 
-install_pljava() {
-    echo "Installing pljava..."
-    ssh -n mdw "
-        set -eux -o pipefail
+echo "Installing pljava..."
+ssh -n mdw "
+    set -eux -o pipefail
 
-        echo "export JAVA_HOME=/usr/lib/jvm/jre" >> /usr/local/greenplum-db-source/greenplum_path.sh
-        source /usr/local/greenplum-db-source/greenplum_path.sh
+    source /usr/local/greenplum-db-source/greenplum_path.sh
+    export MASTER_DATA_DIRECTORY=$MASTER_DATA_DIRECTORY
+    export JAVA_HOME=/usr/lib/jvm
 
-        echo 'Initialize pljava...'
-        export GPHOME=$GPHOME_SOURCE
+    echo 'Initializing pljava...'
 
-        gpconfig -c pljava_classpath -v 'examples.jar'
-        gpstop -u
+    gppkg -i /tmp/pljava_source.gppkg
 
-        gppkg -i /tmp/pljava_source.gppkg
+    # pljava installer will modify LD_LIBRARAY_PATH in the greenplum_path.sh.
+    # And the same modifications needs to be done on all the segments to make sure
+    # they can discover libjvm.so
+    gpscp -f $HOME/segment_host_list $GPHOME/greenplum_path.sh  =:$GPHOME/greenplum_path.sh
+    gpconfig -c pljava_classpath -v 'examples.jar'
 
-        echo 'Load pljava data...'
-        psql -v ON_ERROR_STOP=1 -d postgres -f $GPHOME/share/postgresql/pljava/install.sql
-        psql -v ON_ERROR_STOP=1 -d postgres <<SQL_EOF
-            CREATE FUNCTION java_addOne(int)
-                RETURNS int
-                AS 'org.postgresql.pljava.example.Parameters.addOne(java.lang.Integer)'
-            IMMUTABLE LANGUAGE java;
+    # Restart the cluster to reload LD_LIBRARAY_PATH
+    gpstop -ra
 
-            SELECT java_addOne(42);
-SQL_EOF
+
+    echo 'Loading pljava data...'
+    psql -v ON_ERROR_STOP=1 -d postgres -f $GPHOME/share/postgresql/pljava/install.sql
+    psql -v ON_ERROR_STOP=1 -d postgres <<SQL_EOF
+    CREATE FUNCTION java_addOne(int)
+    RETURNS int
+    AS 'org.postgresql.pljava.example.Parameters.addOne(java.lang.Integer)'
+    IMMUTABLE LANGUAGE java;
+
+    SELECT java_addOne(42);
+    SQL_EOF
 "
-}
 
-install_pljava()
 
 echo "Running the data migration scripts on the source cluster..."
 ssh -n mdw "

@@ -214,23 +214,12 @@ resources:
     regexp: pxf/published/gpdb{{.GPVersion}}/pxf-gp{{.GPVersion}}-5.(.*).el{{.CentosVersion}}.x86_64.rpm
 {{- end }}
 
-{{- if ne .GPVersion "5" }}
-- name: pljava-gp{{.GPVersion}}-rhel{{.CentosVersion}}_x86_64_gppkg
-  type: s3
-  source:
-    access_key_id: ((bucket-access-key-id))
-    secret_access_key: ((bucket-secret-access-key))
-    region_name: us-west-2
-    bucket: procedural-languages-concourse-gpdb-5x-stable
-    versioned_file: gpdb5/pljava/pljava-1.4.4-gp5-rhel{{.CentosVersion}}-x86_64.gppkg
-{{- else }}
-- name: pljava-gp{{.GPVersion}}-rhel{{.CentosVersion}}_x86_64_gppkg
+- name: pljava_gpdb{{.GPVersion}}_rhel{{.CentosVersion}}_gppkg
   type: gcs
   source:
     json_key: ((concourse-gcs-resources-service-account-key))
     bucket: pivotal-gpdb-concourse-resources-prod
-    regexp: pljava/released/gpdb{{.GPVersion}}/pljava-(.*)-gp{{.GPVersion}}-rhel{{.CentosVersion}}_x86_64.gppkg
-{{- end }}
+    regexp: pljava/released/gpdb{{.GPVersion}}/pljava-(.*)-gp{{.GPVersion}}-rhel{{.CentosVersion}}-x86_64.gppkg
 {{end}}
 
 anchors:

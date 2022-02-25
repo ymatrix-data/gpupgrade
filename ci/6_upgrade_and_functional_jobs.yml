@@ -55,9 +55,9 @@
           resource: pxf_5_gpdb{{.Target}}_centos{{.CentosVersion}}_rpm
         {{- end }}
         - get: pljava_gppkg_source
-          resource: pljava-gp{{.Source}}-rhel{{.CentosVersion}}_x86_64_gppkg
+          resource: pljava_gpdb{{.Source}}_rhel{{.CentosVersion}}_gppkg
         - get: pljava_gppkg_target
-          resource: pljava-gp{{.Target}}-rhel{{.CentosVersion}}_x86_64_gppkg
+          resource: pljava_gpdb{{.Target}}_rhel{{.CentosVersion}}_gppkg
         {{- end }}
     - put: terraform
       params:
