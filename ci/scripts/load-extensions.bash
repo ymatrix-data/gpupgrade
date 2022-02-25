@@ -266,7 +266,7 @@ ssh -n mdw "
     IMMUTABLE LANGUAGE java;
 
     SELECT java_addOne(42);
-    SQL_EOF
+SQL_EOF
 "
 
 
