@@ -180,6 +180,7 @@
           - name: gpupgrade_src
           - name: postgis_gppkg_target
           - name: madlib_gppkg_target
+          - name: pljava_gppkg_target
           {{- if ne .CentosVersion "6" }}
           - name: pxf_rpm_target
           {{- end }}
