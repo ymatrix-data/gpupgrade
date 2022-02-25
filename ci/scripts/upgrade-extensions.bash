@@ -101,6 +101,8 @@ time ssh -n mdw "
     gpstop -a
 
     echo 'Finishing the upgrade...'
+    # '/usr/lib/jvm/jre/lib/amd64/server' is needed by pljava to find the libjvm.so. Normally pljava
+    # installer add the LD_LIBRARAY_PATH change into the greenplum_path.sh.
     gpupgrade initialize \
               $LINK_MODE \
               --automatic \
@@ -108,7 +110,7 @@ time ssh -n mdw "
               --source-gphome $GPHOME_SOURCE \
               --source-master-port $PGPORT \
               --temp-port-range 6020-6040 \
-              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6
+              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6:/usr/lib/jvm/jre/lib/amd64/server
 
     gpupgrade execute --non-interactive
     gpupgrade finalize --non-interactive
