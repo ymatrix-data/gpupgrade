@@ -251,6 +251,8 @@ ssh -n mdw "
     gpscp -f /home/gpadmin/segment_host_list $GPHOME_SOURCE/greenplum_path.sh  =:$GPHOME_SOURCE/greenplum_path.sh
     gpconfig -c pljava_classpath -v 'examples.jar'
 
+    # Source again to get the new LD_LIBRARAY_PATH
+    source /usr/local/greenplum-db-source/greenplum_path.sh
     # Restart the cluster to reload LD_LIBRARAY_PATH
     gpstop -ra
 
