@@ -79,7 +79,7 @@ time ssh -n mdw "
 
     gppkg -i /tmp/postgis_target.gppkg
     gppkg -i /tmp/madlib_target.gppkg
-    gppkg -i /tmp/pljava_target.gppkg
+
 
     $(typeset -f test_pxf) # allow local function on remote host
     if test_pxf '$OS_VERSION'; then
@@ -89,6 +89,12 @@ time ssh -n mdw "
 
         /usr/local/pxf-gp6/bin/pxf cluster init
     fi
+
+    JAVA_HOME=/usr/lib/jvm gppkg -i /tmp/pljava_target.gppkg
+    # pljava installer will modify LD_LIBRARAY_PATH in the greenplum_path.sh.
+    # And the same modifications needs to be done on all the segments to make sure
+    # they can discover libjvm.so
+    gpscp -f /home/gpadmin/segment_host_list $GPHOME_TARGET/greenplum_path.sh  =:$GPHOME_TARGET/greenplum_path.sh
 
     # This is a band-aid workaround due to gptext tech debt that needs to be addressed.
     # Extension data belongs in the extension directory and 'not' in the server
@@ -101,8 +107,6 @@ time ssh -n mdw "
     gpstop -a
 
     echo 'Finishing the upgrade...'
-    # '/usr/lib/jvm/jre/lib/amd64/server' is needed by pljava to find the libjvm.so. Normally pljava
-    # installer add the LD_LIBRARAY_PATH change into the greenplum_path.sh.
     gpupgrade initialize \
               $LINK_MODE \
               --automatic \
@@ -110,7 +114,7 @@ time ssh -n mdw "
               --source-gphome $GPHOME_SOURCE \
               --source-master-port $PGPORT \
               --temp-port-range 6020-6040 \
-              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6:/usr/lib/jvm/jre/lib/amd64/server
+              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6
 
     gpupgrade execute --non-interactive
     gpupgrade finalize --non-interactive
