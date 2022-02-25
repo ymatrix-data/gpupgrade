@@ -248,7 +248,7 @@ ssh -n mdw "
     # pljava installer will modify LD_LIBRARAY_PATH in the greenplum_path.sh.
     # And the same modifications needs to be done on all the segments to make sure
     # they can discover libjvm.so
-    gpscp -f $HOME/segment_host_list $GPHOME_SOURCE/greenplum_path.sh  =:$GPHOME_SOURCE/greenplum_path.sh
+    gpscp -f /home/gpadmin/segment_host_list $GPHOME_SOURCE/greenplum_path.sh  =:$GPHOME_SOURCE/greenplum_path.sh
     gpconfig -c pljava_classpath -v 'examples.jar'
 
     # Restart the cluster to reload LD_LIBRARAY_PATH
