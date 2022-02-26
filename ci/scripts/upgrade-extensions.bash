@@ -96,6 +96,7 @@ time ssh -n mdw "
     # they can discover libjvm.so
     gpscp -f /home/gpadmin/segment_host_list $GPHOME_TARGET/greenplum_path.sh  =:$GPHOME_TARGET/greenplum_path.sh
     source /usr/local/greenplum-db-target/greenplum_path.sh
+    gpstop -ar
 
     # This is a band-aid workaround due to gptext tech debt that needs to be addressed.
     # Extension data belongs in the extension directory and 'not' in the server
