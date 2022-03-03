@@ -8,7 +8,7 @@ We warmly welcome any feedback and
 
 **Purpose:**
 
-Greenplum has several ways of upgrading including backup & restore and gpcopy.
+Greenplum has multiple ways of upgrading including backup & restore and gpcopy.
 These methods usually require additional diskspace for the required copy and 
 significant downtime. gpupgrade can do fast in-place upgrades without the need 
 for additional hardware, disk space, and with less downtime. 
@@ -67,6 +67,7 @@ Running gpupgrade consists of three main steps:
   - After finalizing the upgrade cannot be reverted.
   - Substeps include updating the data directories and master catalog, and 
   upgrading the standby and mirrors.
+Additional commands:
 - gpupgrade revert
   - Restores the cluster to the state before upgrade.
   - Can be run after initialize or execute, but *not* finalize.
