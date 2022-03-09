@@ -166,14 +166,22 @@ SQL_EOF
 "
 
 install_pxf() {
-    local PXF_CONF=/home/gpadmin/pxf
+    local PXF_BASE=/home/gpadmin/pxf
 
     echo "Installing pxf on all hosts in the source cluster..."
     echo "${GOOGLE_CREDENTIALS}" > /tmp/key.json
 
+    # PXF SNAPSHOT builds are only available as an RPM inside a tar.gz
+    if compgen -G pxf_installer_source/pxf-gp?.el7.tar.gz &>/dev/null; then
+        tar -xf pxf_installer_source/pxf-gp?.el7.tar.gz \
+            --directory pxf_installer_source \
+            --strip-components=1 \
+            --wildcards '*.rpm'
+    fi
+
     mapfile -t hosts < cluster_env_files/hostfile_all
     for host in "${hosts[@]}"; do
-        scp pxf_rpm_source/*.rpm "gpadmin@${host}":/tmp/pxf_source.rpm
+        scp pxf_installer_source/*.rpm "gpadmin@${host}":/tmp/pxf_source.rpm
         scp /tmp/key.json "gpadmin@${host}":/tmp/key.json
 
         ssh -n "centos@${host}" "
@@ -193,14 +201,16 @@ install_pxf() {
 
         echo 'Initialize pxf...'
         export GPHOME=$GPHOME_SOURCE
-        export PXF_CONF=$PXF_CONF
-        export JAVA_HOME=/usr/lib/jvm/jre
+        export PXF_BASE=$PXF_BASE
 
-        mkdir -p ${PXF_CONF}/servers/google
-        /usr/local/pxf-*/bin/pxf cluster init
+        /usr/local/pxf-*/bin/pxf cluster prepare
+        sed -i -e 's|^# export JAVA_HOME=.*|export JAVA_HOME=/usr/lib/jvm/jre|' $PXF_BASE/conf/pxf-env.sh
+        mkdir -p ${PXF_BASE}/servers/google
 
-        cp /home/gpadmin/pxf/templates/gs-site.xml ${PXF_CONF}/servers/google/
-        sed -i 's|YOUR_GOOGLE_STORAGE_KEYFILE|/tmp/key.json|' ${PXF_CONF}/servers/google/gs-site.xml
+        cp /usr/local/pxf-*/templates/gs-site.xml ${PXF_BASE}/servers/google/
+        sed -i 's|YOUR_GOOGLE_STORAGE_KEYFILE|/tmp/key.json|' ${PXF_BASE}/servers/google/gs-site.xml
+
+        /usr/local/pxf-*/bin/pxf cluster register
         /usr/local/pxf-*/bin/pxf cluster sync
         /usr/local/pxf-*/bin/pxf cluster start
 
@@ -230,7 +240,7 @@ SQL_EOF
 "
 }
 
-test_pxf "$OS_VERSION" && install_pxf || echo "Skipping pxf for centos6 since pxf5 for GPDB6 on centos6 is not supported..."
+test_pxf "$OS_VERSION" && install_pxf || echo "Skipping pxf for centos6 since pxf6 for GPDB6 on centos6 is not supported..."
 
 echo "Running the data migration scripts on the source cluster..."
 ssh -n mdw "

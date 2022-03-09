@@ -49,10 +49,10 @@
         - get: madlib_gppkg_target
           resource: madlib_1.19.0_gpdb{{.Target}}_centos{{.CentosVersion}}_gppkg
         {{- if ne .CentosVersion "6" }}
-        - get: pxf_rpm_source
-          resource: pxf_5_gpdb{{.Source}}_centos{{.CentosVersion}}_rpm
-        - get: pxf_rpm_target
-          resource: pxf_5_gpdb{{.Target}}_centos{{.CentosVersion}}_rpm
+        - get: pxf_installer_source
+          resource: pxf_6_gpdb{{.Source}}_centos{{.CentosVersion}}_tgz
+        - get: pxf_installer_target
+          resource: pxf_6_gpdb{{.Target}}_centos{{.CentosVersion}}_tgz
         {{- end }}
         {{- end }}
     - put: terraform
@@ -137,7 +137,7 @@
           - name: madlib_gppkg_source
           - name: sqldump
           {{- if ne .CentosVersion "6" }}
-          - name: pxf_rpm_source
+          - name: pxf_installer_source
           {{- end }}
         run:
           path: gpupgrade_src/ci/scripts/load-extensions.bash
@@ -176,7 +176,7 @@
           - name: postgis_gppkg_target
           - name: madlib_gppkg_target
           {{- if ne .CentosVersion "6" }}
-          - name: pxf_rpm_target
+          - name: pxf_installer_target
           {{- end }}
         run:
           path: gpupgrade_src/ci/scripts/upgrade-extensions.bash

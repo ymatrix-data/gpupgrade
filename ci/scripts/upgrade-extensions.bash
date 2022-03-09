@@ -23,9 +23,17 @@ scp postgis_gppkg_target/postgis*.gppkg gpadmin@mdw:/tmp/postgis_target.gppkg
 scp madlib_gppkg_target/madlib*.gppkg gpadmin@mdw:/tmp/madlib_target.gppkg
 
 if test_pxf "$OS_VERSION"; then
+    # PXF SNAPSHOT builds are only available as an RPM inside a tar.gz
+    if compgen -G pxf_installer_target/pxf-gp?.el7.tar.gz &>/dev/null; then
+        tar -xf pxf_installer_target/pxf-gp?.el7.tar.gz \
+            --directory pxf_installer_target \
+            --strip-components=1 \
+            --wildcards '*.rpm'
+        fi
+
     mapfile -t hosts < cluster_env_files/hostfile_all
     for host in "${hosts[@]}"; do
-        scp pxf_rpm_target/*.rpm "gpadmin@${host}":/tmp/pxf_target.rpm
+        scp pxf_installer_target/*.rpm "gpadmin@${host}":/tmp/pxf_target.rpm
 
         ssh -n "centos@${host}" "
             set -eux -o pipefail
@@ -34,6 +42,14 @@ if test_pxf "$OS_VERSION"; then
             sudo chown -R gpadmin:gpadmin /usr/local/pxf*
         "
     done
+
+    ssh -n mdw "
+        set -eux -o pipefail
+        export GPHOME=${GPHOME_SOURCE}
+        export PXF_BASE=/home/gpadmin/pxf
+
+        PGDATABASE=postgres /usr/local/pxf-gp5/bin/pxf-pre-gpupgrade
+    "
 fi
 
 if ! is_GPDB5 ${GPHOME_SOURCE}; then
@@ -63,7 +79,7 @@ time ssh -n mdw "
               --source-gphome $GPHOME_SOURCE \
               --source-master-port $PGPORT \
               --temp-port-range 6020-6040 \
-              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6
+              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6:/usr/local/pxf-gp6/gpextable
     set -e
 
     # Remove the expected failure logs such that any legitimate errors can easily be identified.
@@ -82,10 +98,9 @@ time ssh -n mdw "
     $(typeset -f test_pxf) # allow local function on remote host
     if test_pxf '$OS_VERSION'; then
         echo 'Initialize PXF on target cluster...'
-        export PXF_CONF=/home/gpadmin/pxf
-        export JAVA_HOME=/usr/lib/jvm/jre
+        export PXF_BASE=/home/gpadmin/pxf
 
-        /usr/local/pxf-gp6/bin/pxf cluster init
+        /usr/local/pxf-gp6/bin/pxf cluster register
     fi
 
     # This is a band-aid workaround due to gptext tech debt that needs to be addressed.
@@ -106,7 +121,7 @@ time ssh -n mdw "
               --source-gphome $GPHOME_SOURCE \
               --source-master-port $PGPORT \
               --temp-port-range 6020-6040 \
-              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6
+              --dynamic-library-path ${GPHOME_TARGET}/madlib/Current/ports/greenplum/6/lib:/usr/local/greenplum-db-text/lib/gpdb6:/usr/local/pxf-gp6/gpextable
 
     gpupgrade execute --non-interactive
     gpupgrade finalize --non-interactive
@@ -135,7 +150,7 @@ echo "Applying post-upgrade extension fixups after comparing dumps..."
 ssh -n mdw "
     set -eux -o pipefail
 
-    source /usr/local/greenplum-db-source/greenplum_path.sh
+    source /usr/local/greenplum-db-target/greenplum_path.sh
 
     echo 'Recreating dropped views that contained the deprecated name datatype...'
     psql -v ON_ERROR_STOP=1 -d postgres -f /usr/local/greenplum-db-target/share/postgresql/contrib/postgis-*/postgis_replace_views.sql
@@ -147,6 +162,11 @@ ssh -n mdw "
     $(typeset -f test_pxf) # allow local function on remote host
     if test_pxf '$OS_VERSION'; then
         echo 'Starting pxf...'
+        export GPHOME=${GPHOME_TARGET}
+        export PXF_BASE=/home/gpadmin/pxf
+
+        PGDATABASE=postgres /usr/local/pxf-gp6/bin/pxf-post-gpupgrade
+
         /usr/local/pxf-gp6/bin/pxf cluster start
     fi
 "
