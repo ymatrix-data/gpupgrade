@@ -43,8 +43,13 @@ Example gen_pipeline commands:
 - For 6X: `./gen_pipeline.py -t cm --build-test-rc -O 'centos6' 'centos7' 'photon3' -o /tmp/6X_rc.yml`
 - For 7X: `./gen_pipeline.py -t cm --build-test-rc -O centos7 -o /tmp/7X_rc.yml`
 
-3. Finally, generate a gpupgrade pipeline to use those test GPDB RPMs using the appropriate environment variables.
+3. Create a gpupgrade test branch and push it. Next, generate a gpupgrade test pipeline that uses the GPDB RC RPMs using 
+the appropriate environment variables:
 `make 5X_GIT_USER=alice 5X_GIT_BRANCH=5X_rc 6X_GIT_USER=bob 6X_GIT_BRANCH=6X_rc set-pipeline`
+
+*Note:* This will use the test RC RPM's for the rpm resources such as `gpdb6_centos7_rpm`. This will not use the GPDB RC 
+test branch for the src resources such as `gpdb6_src` which will continue to use 6X_STABLE. This is expected since only 
+the RPM's are needed for proper testing. 
 
 ---
 
