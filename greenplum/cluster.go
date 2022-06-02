@@ -464,7 +464,7 @@ WHERE content > -1 AND status = 'u' AND (role = preferred_role) ` + whereClause)
 		return true, nil
 	}
 
-	row = db.QueryRow("SELECT COUNT(*) FROM gp_stat_replication WHERE gp_segment_id = -1 AND state = 'streaming' AND sent_location = flush_location;")
+	row = db.QueryRow("SELECT COUNT(*) FROM gp_stat_replication WHERE gp_segment_id = -1 AND state = 'streaming' AND sent_lsn = flush_lsn;")
 	if err := row.Scan(&segments); err != nil {
 		if err == sql.ErrNoRows {
 			gplog.Debug("no rows found when querying gp_stat_replication")

@@ -36,7 +36,6 @@ func Run(stdout, stderr io.Writer, opts *idl.PgOptions) error {
 
 	args := []string{
 		"--retain",
-		"--progress",
 		"--old-bindir", opts.GetOldBinDir(),
 		"--new-bindir", opts.GetNewBinDir(),
 		"--old-datadir", opts.GetOldDataDir(),
@@ -56,10 +55,6 @@ func Run(stdout, stderr io.Writer, opts *idl.PgOptions) error {
 
 	if opts.OldOptions != "" {
 		args = append(args, "--old-options", opts.GetOldOptions())
-	}
-
-	if opts.Action != idl.PgOptions_check {
-		args = append(args, "--old-tablespaces-file", utils.GetTablespaceMappingFile())
 	}
 
 	// Below 7X, specify the dbid's for upgrading tablespaces.

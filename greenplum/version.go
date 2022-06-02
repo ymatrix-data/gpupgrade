@@ -40,9 +40,9 @@ func Version(gphome string) (string, error) {
 	}
 
 	rawVersion := string(output)
-	parts := strings.SplitN(strings.TrimSpace(rawVersion), "postgres (Greenplum Database) ", 2)
+	parts := strings.SplitN(strings.TrimSpace(rawVersion), " (Greenplum Database) ", 2)
 	if len(parts) != 2 {
-		return "", xerrors.Errorf(`Greenplum version %q is not of the form "postgres (Greenplum Database) #.#.#"`, rawVersion)
+		return "", xerrors.Errorf(`Greenplum version %q is not of the form "postgres (MatrixDB) xxx (Greenplum Database) #.#.#"`, rawVersion)
 	}
 
 	pattern := regexp.MustCompile(`\d+\.\d+\.\d+`)
